@@ -45,6 +45,7 @@ export default function CategoryPage({ params }: { params: { slug: string } }) {
             <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
           </Link>
           <nav className="hidden md:flex gap-6 items-center">
+            <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">Inicio</Link>
             <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">Productos</Link>
             <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">Nosotros</Link>
             <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">Contacto</Link>
