@@ -10,7 +10,7 @@ import { ShoppingCart, User, Search, LogOut, LayoutDashboard } from 'lucide-reac
 import { useCart } from '@/context/cart-context'; 
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { categories, type Product, getProducts } from '@/lib/dummy-data';
+import { categories, type Product, initialProducts } from '@/lib/dummy-data';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
@@ -19,6 +19,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProductCard } from '@/components/product-card';
 import { ImageViewerDialog } from '@/components/image-viewer-dialog';
 import { LogoTienda } from '@/components/logo-tienda';
+
+const PRODUCTS_STORAGE_KEY = 'crud_products';
 
 export default function HomePage() {
   const { addToCart, getCartItemCount } = useCart();
@@ -31,7 +33,18 @@ export default function HomePage() {
   const [viewerProductName, setViewerProductName] = useState('');
 
   useEffect(() => {
-    setProducts(getProducts());
+    try {
+        const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+        if (storedProducts) {
+            setProducts(JSON.parse(storedProducts));
+        } else {
+            setProducts(initialProducts);
+            localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
+        }
+    } catch (error) {
+        console.error("Failed to load products from localStorage", error);
+        setProducts(initialProducts);
+    }
   }, []);
 
   const featuredProducts = products.filter(p => p.featured && p.status === 'activo');
@@ -164,7 +177,7 @@ export default function HomePage() {
             </div>
         </section>
 
-        <section className="py-16 bg-secondary">
+        <section className="py-10 bg-secondary">
           <div className="container mx-auto px-4 md:px-6">
             <h2 className="text-3xl font-bold text-center mb-4">Categorías Populares</h2>
              <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10">Explora nuestras categorías más buscadas y encuentra lo que necesitas para empezar.</p>
