@@ -1,8 +1,9 @@
+
 "use client";
 
-import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Wrench, Package } from 'lucide-react';
+import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Wrench, Package, LogOut } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import {
     Sidebar,
@@ -26,7 +27,9 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useAuth } from '@/context/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SalesLayout({
   children,
@@ -34,6 +37,37 @@ export default function SalesLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { user, logout, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      toast({
+        variant: 'destructive',
+        title: 'Acceso Denegado',
+        description: 'Debes iniciar sesión para acceder a esta página.',
+      });
+    } else if (user?.role !== 'admin' && user?.role !== 'vendedor') {
+      router.push('/');
+      toast({
+        variant: 'destructive',
+        title: 'Acceso Denegado',
+        description: 'No tienes permisos para acceder a esta sección.',
+      });
+    }
+  }, [isAuthenticated, user, router, toast]);
+
+  const isAdmin = user?.role === 'admin';
+
+  if (!user) {
+    return (
+        <div className="flex h-screen w-full items-center justify-center">
+            <p>Cargando...</p>
+        </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -52,16 +86,22 @@ export default function SalesLayout({
                     <Link href="#"><Home /><span>Panel</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/customers')} tooltip="Registrados">
-                  <Link href="/sales/customers"><Users /><span>Registrados</span></Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-                <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/products')} tooltip="Productos">
-                  <Link href="/sales/products"><Package /><span>Productos</span></Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              
+              {isAdmin && (
+                <>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/customers')} tooltip="Registrados">
+                        <Link href="/sales/customers"><Users /><span>Registrados</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/products')} tooltip="Productos">
+                        <Link href="/sales/products"><Package /><span>Productos</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </>
+              )}
+
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/create-quote')} tooltip="Crear Cotización">
                   <Link href="/sales/create-quote"><PlusCircle /><span>Crear Cotización</span></Link>
@@ -84,29 +124,29 @@ export default function SalesLayout({
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="justify-start gap-2 w-full px-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src="https://placehold.co/40x40.png" alt="@salesperson" data-ai-hint="person portrait" />
-                    <AvatarFallback>AV</AvatarFallback>
+                    <AvatarImage src="https://placehold.co/40x40.png" alt={user.name} data-ai-hint="person portrait" />
+                    <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className="text-left hidden group-data-[state=expanded]:block">
-                    <p className="font-medium text-sm">Agente de Ventas</p>
-                    <p className="text-xs text-muted-foreground">ventas@distriminsas.com</p>
+                    <p className="font-medium text-sm">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">Agente de Ventas</p>
+                    <p className="text-sm font-medium leading-none">{user.name}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      ventas@distriminsas.com
+                      {user.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Perfil</DropdownMenuItem>
-                <DropdownMenuItem>Configuración</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>Cerrar sesión</DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Cerrar sesión</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
@@ -117,10 +157,6 @@ export default function SalesLayout({
                 <div className="w-full flex-1">
                 {/* Header content can go here */}
                 </div>
-                <Button variant="outline" size="icon" className="rounded-full">
-                <Users className="h-5 w-5" />
-                <span className="sr-only">Gestionar Equipo</span>
-                </Button>
             </header>
             <main className="flex-1 p-4 sm:p-6">
                 {children}
@@ -130,3 +166,4 @@ export default function SalesLayout({
     </SidebarProvider>
   );
 }
+

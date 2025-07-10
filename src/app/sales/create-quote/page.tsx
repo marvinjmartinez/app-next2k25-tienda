@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Trash2, Search, Plus, Send } from 'lucide-react';
+import { Trash2, Search, Plus, Send, Save } from 'lucide-react';
 
 import type { Product } from '@/lib/dummy-data';
 import { products as allProducts } from '@/lib/dummy-data';
@@ -73,12 +73,31 @@ export default function CreateQuotePage() {
   const filteredProducts = allProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
   const quoteTotal = quoteItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  
+  const validateQuote = () => {
+    if (!selectedCustomerId) {
+      toast({ variant: 'destructive', title: "Cliente no seleccionado", description: "Por favor, selecciona un cliente." });
+      return false;
+    }
+    if (quoteItems.length === 0) {
+      toast({ variant: 'destructive', title: "Cotización Vacía", description: "Agrega productos antes de continuar." });
+      return false;
+    }
+    return true;
+  }
+
+  const handleSaveQuote = () => {
+      if (!validateQuote()) return;
+      
+      // En una aplicación real, aquí guardarías la cotización en la base de datos
+      toast({
+          title: "Cotización Guardada (Simulación)",
+          description: "La cotización ha sido guardada como borrador.",
+      });
+  }
 
   const handleSendToCart = () => {
-      if(quoteItems.length === 0) {
-          toast({ variant: 'destructive', title: "Cotización Vacía", description: "Agrega productos antes de enviar al carrito." });
-          return;
-      }
+      if (!validateQuote()) return;
       
       quoteItems.forEach(item => {
           addToCart({
@@ -181,15 +200,21 @@ export default function CreateQuotePage() {
                   </TableBody>
                 </Table>
               </CardContent>
-              <CardFooter className="flex justify-end items-center gap-4">
-                  <div className="text-right">
+              <CardFooter className="flex justify-between items-center gap-4">
+                  <div className="text-right flex-1">
                     <p className="text-lg font-bold">Total: ${quoteTotal.toFixed(2)}</p>
                     <p className="text-xs text-muted-foreground">Impuestos no incluidos</p>
                   </div>
-                  <Button size="lg" onClick={handleSendToCart}>
-                    <Send className="mr-2 h-4 w-4"/>
-                    Enviar al Carrito
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button size="lg" variant="outline" onClick={handleSaveQuote}>
+                        <Save className="mr-2 h-4 w-4"/>
+                        Guardar
+                    </Button>
+                    <Button size="lg" onClick={handleSendToCart}>
+                        <Send className="mr-2 h-4 w-4"/>
+                        Enviar al Carrito
+                    </Button>
+                  </div>
               </CardFooter>
             </Card>
           </div>
@@ -240,7 +265,11 @@ export default function CreateQuotePage() {
                             <TableCell>{product.stock}</TableCell>
                             <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
                             <TableCell>
-                                <Button size="sm" onClick={() => handleAddProductToQuote(product)}>
+                                <Button size="sm" onClick={() => {
+                                    handleAddProductToQuote(product);
+                                    setIsProductDialogOpen(false);
+                                    setSearchQuery('');
+                                }}>
                                     Agregar
                                 </Button>
                             </TableCell>
