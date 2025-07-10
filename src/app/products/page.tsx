@@ -37,14 +37,15 @@ function ProductsPageComponent() {
   }, [searchQuery]);
   
   useEffect(() => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     if (selectedCategory) {
       params.set('category', selectedCategory);
     } else {
       params.delete('category');
     }
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [selectedCategory, pathname, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, pathname]);
 
   const handleAddToCart = (product: Product) => {
     addToCart({
@@ -62,7 +63,7 @@ function ProductsPageComponent() {
 
   const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     if (localSearch.trim()) {
       params.set('search', localSearch.trim());
     } else {
@@ -179,9 +180,9 @@ function ProductsPageComponent() {
             </div>
           ) : (
              <div className="text-center py-16">
-              <p className="text-muted-foreground">No se encontraron productos que coincidan con tu búsqueda.</p>
-              <Button asChild className="mt-4" onClick={() => { setLocalSearch(''); setSelectedCategory(null); router.push(pathname)}}>
-                  <span>Ver todos los productos</span>
+              <p className="text-muted-foreground">No se encontraron productos que coincidan con tus filtros.</p>
+              <Button variant="link" className="mt-4" onClick={() => { setLocalSearch(''); setSelectedCategory(null); router.push(pathname)}}>
+                  Limpiar filtros y ver todos los productos
               </Button>
             </div>
           )}
