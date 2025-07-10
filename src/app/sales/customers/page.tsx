@@ -1,6 +1,7 @@
 // src/app/sales/customers/page.tsx
 "use client";
 
+import { useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -19,7 +20,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Search } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -32,6 +33,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 
 const dummyUsers = [
   {
@@ -109,6 +111,7 @@ export default function CustomersPage() {
     const { user } = useAuth();
     const { toast } = useToast();
     const isAdmin = user?.role === 'admin';
+    const [searchQuery, setSearchQuery] = useState('');
 
     const handleChangeRole = (userName: string, newRole: string) => {
         // En una aplicación real, aquí llamarías a una API para actualizar el rol.
@@ -118,6 +121,12 @@ export default function CustomersPage() {
         })
     }
 
+    const filteredUsers = dummyUsers.filter(u => 
+        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        u.email.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -126,10 +135,23 @@ export default function CustomersPage() {
       />
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Registrados</CardTitle>
-          <CardDescription>
-            Usuarios registrados en la plataforma. Solo los administradores pueden cambiar roles.
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+                <CardTitle>Lista de Registrados</CardTitle>
+                <CardDescription>
+                    Usuarios registrados en la plataforma. Solo los administradores pueden cambiar roles.
+                </CardDescription>
+            </div>
+            <div className="relative w-full max-w-sm">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                    placeholder="Buscar por nombre o email..."
+                    className="pl-10"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -143,7 +165,7 @@ export default function CustomersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dummyUsers.map((customer) => (
+              {filteredUsers.map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell>
                     <div className="font-medium">{customer.name}</div>

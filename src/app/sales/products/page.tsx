@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -29,7 +29,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { products, categories, type Product } from '@/lib/dummy-data';
+import { products as allProducts, categories, type Product } from '@/lib/dummy-data';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -65,6 +65,7 @@ export default function ProductsAdminPage() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleAddNew = () => {
     setSelectedProduct(null);
@@ -98,6 +99,10 @@ export default function ProductsAdminPage() {
       return categories.find(c => c.slug === slug)?.name || 'Sin categoría';
   }
 
+  const filteredProducts = allProducts.filter(p => 
+      p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <>
       <div className="space-y-6">
@@ -113,10 +118,23 @@ export default function ProductsAdminPage() {
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Catálogo de Productos</CardTitle>
-            <CardDescription>
-              Lista completa de productos disponibles en la tienda.
-            </CardDescription>
+             <div className="flex justify-between items-center">
+                <div>
+                    <CardTitle>Catálogo de Productos</CardTitle>
+                    <CardDescription>
+                    Lista completa de productos disponibles en la tienda.
+                    </CardDescription>
+                </div>
+                <div className="relative w-full max-w-sm">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Buscar por nombre..."
+                        className="pl-10"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -132,7 +150,7 @@ export default function ProductsAdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell>
                       <Image
