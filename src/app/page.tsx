@@ -5,58 +5,19 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Wrench, User, Search, HardHat, Paintbrush, Drill } from 'lucide-react';
+import { ShoppingCart, Wrench, User, Search } from 'lucide-react';
 import Image from 'next/image';
-import { useCart } from '@/context/cart-context'; // Import the cart context
-import { Badge } from '@/components/ui/badge'; // Import Badge
+import { useCart } from '@/context/cart-context'; 
+import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
+import { products, categories, type Product } from '@/lib/dummy-data';
 
-const featuredProducts = [
-  {
-    id: "prod_1",
-    name: "Taladro Percutor Inalámbrico",
-    price: 1899.00,
-    image: "https://placehold.co/300x300.png",
-    hint: "power tool",
-    stock: 15,
-  },
-  {
-    id: "prod_2",
-    name: "Juego de Destornilladores 25 pzs",
-    price: 499.00,
-    image: "https://placehold.co/300x300.png",
-    hint: "hand tools",
-    stock: 30,
-  },
-  {
-    id: "prod_3",
-    name: "Pintura Vinílica Blanca 19L",
-    price: 1250.00,
-    image: "https://placehold.co/300x300.png",
-    hint: "paint can",
-    stock: 8,
-  },
-  {
-    id: "prod_4",
-    name: "Escalera de Tijera de Aluminio",
-    price: 980.00,
-    image: "https://placehold.co/300x300.png",
-    hint: "ladder",
-    stock: 0,
-  },
-];
-
-const categories = [
-    { name: "Herramientas", icon: <Drill className="h-8 w-8" /> },
-    { name: "Construcción", icon: <HardHat className="h-8 w-8" /> },
-    { name: "Pintura", icon: <Paintbrush className="h-8 w-8" /> },
-    { name: "Plomería", icon: <Wrench className="h-8 w-8" /> },
-]
+const featuredProducts = products.filter(p => p.featured);
 
 export default function HomePage() {
   const { addToCart, getCartItemCount } = useCart();
 
-  const handleAddToCart = (product: typeof featuredProducts[0]) => {
+  const handleAddToCart = (product: Product) => {
     addToCart({
         id: product.id,
         name: product.name,
@@ -79,9 +40,9 @@ export default function HomePage() {
             <span className="font-bold text-xl font-headline text-foreground">El Martillo de Oro</span>
           </Link>
           <nav className="hidden md:flex gap-6 items-center">
-            <Link href="#" className="text-sm font-medium hover:text-primary transition-colors">Productos</Link>
-            <Link href="#" className="text-sm font-medium hover:text-primary transition-colors">Nosotros</Link>
-            <Link href="#" className="text-sm font-medium hover:text-primary transition-colors">Contacto</Link>
+            <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">Productos</Link>
+            <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">Nosotros</Link>
+            <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">Contacto</Link>
           </nav>
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" asChild>
@@ -124,12 +85,14 @@ export default function HomePage() {
              <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10">Explora nuestras categorías más buscadas y encuentra lo que necesitas para empezar.</p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {categories.map((category) => (
-                <Card key={category.name} className="text-center hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6 flex flex-col items-center justify-center gap-3">
-                    <div className="p-4 bg-primary/10 rounded-full text-primary">{category.icon}</div>
-                    <p className="font-semibold">{category.name}</p>
-                  </CardContent>
-                </Card>
+                <Link key={category.slug} href={`/category/${category.slug}`}>
+                    <Card className="text-center hover:shadow-lg transition-shadow h-full">
+                        <CardContent className="p-6 flex flex-col items-center justify-center gap-3">
+                            <div className="p-4 bg-primary/10 rounded-full text-primary">{category.icon}</div>
+                            <p className="font-semibold">{category.name}</p>
+                        </CardContent>
+                    </Card>
+                </Link>
               ))}
             </div>
           </div>
@@ -180,9 +143,9 @@ export default function HomePage() {
             <div>
               <h3 className="font-bold text-lg mb-2">Navegación</h3>
               <ul className="space-y-1 text-sm">
-                <li><Link href="#" className="hover:text-primary">Productos</Link></li>
-                <li><Link href="#" className="hover:text-primary">Nosotros</Link></li>
-                <li><Link href="#" className="hover:text-primary">Contacto</Link></li>
+                <li><Link href="/products" className="hover:text-primary">Productos</Link></li>
+                <li><Link href="/about" className="hover:text-primary">Nosotros</Link></li>
+                <li><Link href="/contact" className="hover:text-primary">Contacto</Link></li>
               </ul>
             </div>
             <div>
@@ -196,10 +159,12 @@ export default function HomePage() {
             <div>
               <h3 className="font-bold text-lg mb-2">Subscríbete</h3>
               <p className="text-sm mb-2 text-muted-foreground">Recibe ofertas especiales y noticias.</p>
-              <div className="flex">
-                  <Input type="email" placeholder="tu@email.com" className="bg-background/20 border-0 rounded-r-none text-white placeholder:text-muted-foreground/80" />
-                  <Button type="submit" className="rounded-l-none">Enviar</Button>
-              </div>
+              <form onSubmit={(e) => { e.preventDefault(); toast({title: "¡Gracias por subscribirte!"}) }}>
+                <div className="flex">
+                    <Input type="email" required placeholder="tu@email.com" className="bg-background/20 border-0 rounded-r-none text-white placeholder:text-muted-foreground/80" />
+                    <Button type="submit" className="rounded-l-none">Enviar</Button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
