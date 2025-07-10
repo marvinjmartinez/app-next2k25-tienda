@@ -59,8 +59,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = (email: string, password: string) => {
     // Simulación de credenciales de administrador
-    if (email === 'sistemas@distrimin.com' && password === '123') {
-        const adminUser = DUMMY_USERS.find(u => u.email === 'sistemas@distrimin.com');
+    if (email.toLowerCase() === 'sistemas@distrimin.com' && password === '123') {
+        const adminUser = DUMMY_USERS.find(u => u.email.toLowerCase() === 'sistemas@distrimin.com');
         if (adminUser) {
             setUser(adminUser);
             localStorage.setItem('user', JSON.stringify(adminUser));

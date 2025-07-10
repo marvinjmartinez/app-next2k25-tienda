@@ -46,15 +46,19 @@ export default function LoginPage() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // Lógica de autenticación simulada
     const loginResult = login(values.email, values.password);
     
-    if (loginResult.success) {
+    if (loginResult.success && loginResult.user) {
       toast({
         title: "Inicio de sesión exitoso",
-        description: `Bienvenido de nuevo, ${loginResult.user?.name}.`,
+        description: `Bienvenido de nuevo, ${loginResult.user.name}.`,
       });
-      router.push("/");
+      
+      if (loginResult.user.role === 'admin') {
+        router.push("/sales/create-quote");
+      } else {
+        router.push("/");
+      }
     } else {
       toast({
         variant: "destructive",
