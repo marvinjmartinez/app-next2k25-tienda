@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Send, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Send, Trash2, Pencil } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -49,6 +49,7 @@ const initialDummyQuotes: Quote[] = [
   {
     id: 'COT-001',
     customerName: 'Constructora Roble',
+    customerId: 'user-roble',
     date: '2024-07-08',
     total: 15890.50,
     status: 'Pagada',
@@ -57,6 +58,7 @@ const initialDummyQuotes: Quote[] = [
   {
     id: 'COT-002',
     customerName: 'Ana García',
+    customerId: 'user-vendedor', // Dummy ID
     date: '2024-07-10',
     total: 3250.00,
     status: 'Borrador',
@@ -65,6 +67,7 @@ const initialDummyQuotes: Quote[] = [
   {
     id: 'COT-003',
     customerName: 'Proyectos Urbanos S.A.',
+    customerId: 'user-urbanos',
     date: '2024-07-11',
     total: 78500.00,
     status: 'Enviada',
@@ -73,6 +76,7 @@ const initialDummyQuotes: Quote[] = [
    {
     id: 'COT-004',
     customerName: 'Carlos Mendoza',
+    customerId: 'user-cliente', // Dummy ID
     date: '2024-07-12',
     total: 890.00,
     status: 'Borrador',
@@ -118,7 +122,7 @@ export default function QuotesPage() {
                     combined.unshift(savedQuote);
                 }
             });
-            setQuotes(combined);
+            setQuotes(combined.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         } catch (error) {
             console.error("Failed to load quotes from localStorage", error);
             setQuotes(initialDummyQuotes);
@@ -149,6 +153,10 @@ export default function QuotesPage() {
                 description: `No se pueden agregar productos al carrito porque la cotización está vacía o es una simulación.`,
             });
         }
+    }
+
+    const handleEdit = (quoteId: string) => {
+        router.push(`/sales/create-quote?edit=${quoteId}`);
     }
 
     const deleteQuote = (quoteId: string) => {
@@ -219,6 +227,12 @@ export default function QuotesPage() {
                       <DropdownMenuContent>
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                         <DropdownMenuItem disabled>Ver Detalles</DropdownMenuItem>
+                         {quote.status !== 'Pagada' && (
+                             <DropdownMenuItem onClick={() => handleEdit(quote.id)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Editar
+                            </DropdownMenuItem>
+                         )}
                         {quote.status !== 'Pagada' && (
                           <DropdownMenuItem onClick={() => handleSendToCart(quote)}>
                             <Send className="mr-2 h-4 w-4" />

@@ -1,9 +1,8 @@
-
 // src/app/sales/create-quote/page.tsx
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { PageHeader } from '@/components/page-header';
 import { AiProductSuggester } from '@/components/ai-product-suggester';
@@ -22,6 +21,7 @@ import { products as allProducts } from '@/lib/dummy-data';
 import usersData from '@/data/users.json';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const dummyCustomers = usersData.filter(u => u.role.startsWith('cliente')).map(u => ({ id: u.id, name: u.name }));
 
@@ -31,6 +31,7 @@ interface QuoteItem extends Product {
 
 export interface Quote {
   id: string;
+  customerId: string;
   customerName: string;
   date: string;
   total: number;
@@ -40,6 +41,12 @@ export interface Quote {
 
 
 export default function CreateQuotePage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editQuoteId = searchParams.get('edit');
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedCustomerName, setSelectedCustomerName] = useState<string>('');
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
@@ -48,8 +55,29 @@ export default function CreateQuotePage() {
   
   const { addToCart } = useCart();
   const { toast } = useToast();
-  const router = useRouter();
   
+  useEffect(() => {
+    if (editQuoteId) {
+      try {
+        const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
+        const quoteToEdit = existingQuotes.find(q => q.id === editQuoteId);
+        if (quoteToEdit) {
+          setIsEditing(true);
+          setSelectedCustomerId(quoteToEdit.customerId);
+          setSelectedCustomerName(quoteToEdit.customerName);
+          setQuoteItems(quoteToEdit.items);
+        } else {
+          toast({ variant: 'destructive', title: 'Error', description: 'No se encontró la cotización a editar.' });
+          router.push('/sales/quotes');
+        }
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'No se pudo cargar la cotización.' });
+        router.push('/sales/quotes');
+      }
+    }
+    setIsLoading(false);
+  }, [editQuoteId, router, toast]);
+
   const handleAddProductToQuote = (product: Product, quantity: number = 1) => {
     setQuoteItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
@@ -96,8 +124,9 @@ export default function CreateQuotePage() {
   const saveQuoteToLocalStorage = (status: 'Borrador' | 'Enviada') => {
       if (!validateQuote()) return;
 
-      const newQuote: Quote = {
-          id: `COT-${Date.now().toString().slice(-4)}`,
+      const quoteData: Quote = {
+          id: isEditing ? editQuoteId! : `COT-${Date.now().toString().slice(-4)}`,
+          customerId: selectedCustomerId!,
           customerName: selectedCustomerName,
           date: new Date().toISOString().split('T')[0],
           total: quoteTotal,
@@ -106,15 +135,27 @@ export default function CreateQuotePage() {
       };
 
       const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
-      localStorage.setItem('saved_quotes', JSON.stringify([newQuote, ...existingQuotes]));
+      
+      if (isEditing) {
+        const quoteIndex = existingQuotes.findIndex(q => q.id === editQuoteId);
+        if (quoteIndex !== -1) {
+            existingQuotes[quoteIndex] = quoteData;
+        } else {
+            existingQuotes.unshift(quoteData); // Add if not found, just in case
+        }
+      } else {
+        existingQuotes.unshift(quoteData);
+      }
+      
+      localStorage.setItem('saved_quotes', JSON.stringify(existingQuotes));
   }
 
 
   const handleSaveQuote = () => {
       saveQuoteToLocalStorage('Borrador');
       toast({
-          title: "Cotización Guardada",
-          description: "La cotización ha sido guardada como borrador.",
+          title: `Cotización ${isEditing ? 'Actualizada' : 'Guardada'}`,
+          description: `La cotización ha sido ${isEditing ? 'actualizada' : 'guardada'} como borrador.`,
       });
       router.push('/sales/quotes');
   }
@@ -147,12 +188,28 @@ export default function CreateQuotePage() {
       setSelectedCustomerName(customer ? customer.name : '');
   }
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+          <Skeleton className="h-10 w-1/3" />
+          <Separator />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                  <Card><Skeleton className="h-40 w-full" /></Card>
+                  <Card><Skeleton className="h-64 w-full" /></Card>
+              </div>
+              <Card><Skeleton className="h-96 w-full" /></Card>
+          </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="space-y-6">
         <PageHeader
-          title="Crear Nueva Cotización"
-          description="Selecciona un cliente, agrega productos y genera una nueva cotización."
+          title={isEditing ? 'Editar Cotización' : 'Crear Nueva Cotización'}
+          description={isEditing ? `Editando la cotización ${editQuoteId} para ${selectedCustomerName}` : "Selecciona un cliente, agrega productos y genera una nueva cotización."}
         />
         <Separator />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -163,7 +220,7 @@ export default function CreateQuotePage() {
               </CardHeader>
               <CardContent>
                 <Label htmlFor="customer-select">Cliente</Label>
-                <Select onValueChange={handleCustomerChange}>
+                <Select value={selectedCustomerId || ''} onValueChange={handleCustomerChange}>
                   <SelectTrigger id="customer-select">
                     <SelectValue placeholder="Selecciona un cliente para la cotización" />
                   </SelectTrigger>
@@ -239,11 +296,11 @@ export default function CreateQuotePage() {
                   <div className="flex gap-2">
                     <Button size="lg" variant="outline" onClick={handleSaveQuote}>
                         <Save className="mr-2 h-4 w-4"/>
-                        Guardar Borrador
+                        {isEditing ? 'Actualizar Borrador' : 'Guardar Borrador'}
                     </Button>
                     <Button size="lg" onClick={handleSendToCart}>
                         <Send className="mr-2 h-4 w-4"/>
-                        Enviar al Carrito
+                        {isEditing ? 'Actualizar y Enviar' : 'Enviar al Carrito'}
                     </Button>
                   </div>
               </CardFooter>
