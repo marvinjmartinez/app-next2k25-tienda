@@ -1,7 +1,7 @@
 // src/app/sales/products/page.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import {
   Table,
@@ -20,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Search } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -65,7 +66,12 @@ export default function ProductsAdminPage() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  
+  // State for filtering and pagination
   const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const handleAddNew = () => {
     setSelectedProduct(null);
@@ -99,9 +105,26 @@ export default function ProductsAdminPage() {
       return categories.find(c => c.slug === slug)?.name || 'Sin categoría';
   }
 
-  const filteredProducts = allProducts.filter(p => 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredProducts = useMemo(() => {
+    return allProducts.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
+        return matchesSearch && matchesCategory;
+    });
+  }, [searchQuery, categoryFilter]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+      setCurrentPage(1);
+  }, [searchQuery, categoryFilter, itemsPerPage]);
+
+  const totalPages = itemsPerPage === 0 ? 1 : Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = useMemo(() => {
+      if (itemsPerPage === 0) return filteredProducts;
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage, itemsPerPage]);
 
   return (
     <>
@@ -118,14 +141,12 @@ export default function ProductsAdminPage() {
         </div>
         <Card>
           <CardHeader>
-             <div className="flex justify-between items-center">
-                <div>
-                    <CardTitle>Catálogo de Productos</CardTitle>
-                    <CardDescription>
-                    Lista completa de productos disponibles en la tienda.
-                    </CardDescription>
-                </div>
-                <div className="relative w-full max-w-sm">
+            <CardTitle>Catálogo de Productos</CardTitle>
+            <CardDescription>
+                Lista completa de productos disponibles en la tienda.
+            </CardDescription>
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <div className="relative w-full">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
                         placeholder="Buscar por nombre..."
@@ -134,6 +155,17 @@ export default function ProductsAdminPage() {
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
                 </div>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-full sm:w-[240px]">
+                        <SelectValue placeholder="Filtrar por categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="all">Todas las Categorías</SelectItem>
+                        {categories.map((cat) => (
+                            <SelectItem key={cat.slug} value={cat.slug}>{cat.name}</SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
             </div>
           </CardHeader>
           <CardContent>
@@ -150,61 +182,113 @@ export default function ProductsAdminPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell>
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        width={40}
-                        height={40}
-                        className="rounded-md object-cover"
-                        data-ai-hint={product.hint}
-                      />
-                    </TableCell>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{getCategoryName(product.category)}</TableCell>
-                    <TableCell>{formatCurrency(product.price)}</TableCell>
-                    <TableCell>
-                      <Badge variant={product.stock > 0 ? 'default' : 'destructive'}>
-                        {product.stock > 0 ? `${product.stock} unidades` : 'Agotado'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                        {product.featured ? (
-                             <Badge variant="secondary">Sí</Badge>
-                        ) : (
-                            'No'
-                        )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Acciones</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleEdit(product)}>
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={() => handleDelete(product)}
-                          >
-                            Eliminar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {paginatedProducts.length > 0 ? (
+                    paginatedProducts.map((product) => (
+                    <TableRow key={product.id}>
+                        <TableCell>
+                        <Image
+                            src={product.image}
+                            alt={product.name}
+                            width={40}
+                            height={40}
+                            className="rounded-md object-cover"
+                            data-ai-hint={product.hint}
+                        />
+                        </TableCell>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>{getCategoryName(product.category)}</TableCell>
+                        <TableCell>{formatCurrency(product.price)}</TableCell>
+                        <TableCell>
+                        <Badge variant={product.stock > 0 ? 'default' : 'destructive'}>
+                            {product.stock > 0 ? `${product.stock} unidades` : 'Agotado'}
+                        </Badge>
+                        </TableCell>
+                        <TableCell>
+                            {product.featured ? (
+                                <Badge variant="secondary">Sí</Badge>
+                            ) : (
+                                'No'
+                            )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Acciones</span>
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleEdit(product)}>
+                                Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => handleDelete(product)}
+                            >
+                                Eliminar
+                            </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                        </TableCell>
+                    </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
+                            No se encontraron productos que coincidan con los filtros.
+                        </TableCell>
+                    </TableRow>
+                )}
               </TableBody>
             </Table>
           </CardContent>
+          <CardFooter>
+            <div className="flex items-center justify-between w-full text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                        <span>Filas por página:</span>
+                    <Select
+                        value={itemsPerPage.toString()}
+                        onValueChange={(value) => setItemsPerPage(Number(value))}
+                    >
+                        <SelectTrigger className="w-20 h-8">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
+                            <SelectItem value="0">Todos</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                    <div className="flex items-center gap-4">
+                    <span>Página {currentPage} de {totalPages}</span>
+                    <div className="flex gap-2">
+                        <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        >
+                        <ChevronLeft className="h-4 w-4" />
+                        Anterior
+                        </Button>
+                        <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        >
+                        Siguiente
+                        <ChevronRight className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            </div>
+          </CardFooter>
         </Card>
       </div>
 
