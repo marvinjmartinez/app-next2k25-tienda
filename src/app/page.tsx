@@ -33,7 +33,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
             <Wrench className="h-6 w-6 text-primary" />
@@ -49,13 +49,13 @@ export default function HomePage() {
                 <Link href="/cart" className="relative">
                     <ShoppingCart className="h-5 w-5" />
                     {getCartItemCount() > 0 && (
-                        <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 justify-center p-1 text-xs">{getCartItemCount()}</Badge>
+                        <Badge className="absolute -top-2 -right-2 h-5 w-5 justify-center p-1 text-xs bg-accent text-accent-foreground">{getCartItemCount()}</Badge>
                     )}
                     <span className="sr-only">Carrito</span>
                 </Link>
             </Button>
             <Link href="/sales/create-quote">
-                <Button variant="outline">
+                <Button>
                     <User className="mr-2 h-4 w-4" />
                     Iniciar Sesión
                 </Button>
@@ -72,7 +72,7 @@ export default function HomePage() {
                 <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8">Encuentra todo lo que necesitas, desde un tornillo hasta maquinaria pesada.</p>
                 <div className="relative max-w-xl mx-auto">
                     <Input type="search" placeholder="Buscar producto..." className="w-full h-12 pr-12 text-black" />
-                    <Button size="icon" className="absolute right-1 top-1 h-10 w-10">
+                    <Button size="icon" className="absolute right-1 top-1 h-10 w-10 bg-accent hover:bg-accent/90">
                         <Search className="h-5 w-5"/>
                     </Button>
                 </div>
@@ -120,7 +120,7 @@ export default function HomePage() {
                     <CardDescription className="text-primary font-semibold text-lg mt-2">${product.price.toFixed(2)}</CardDescription>
                   </CardContent>
                   <CardFooter className="p-4 pt-0">
-                    <Button className="w-full" onClick={() => handleAddToCart(product)} disabled={product.stock === 0}>
+                    <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => handleAddToCart(product)} disabled={product.stock === 0}>
                       <ShoppingCart className="mr-2 h-4 w-4" />
                       {product.stock > 0 ? 'Agregar al carrito' : 'No disponible'}
                     </Button>
@@ -162,7 +162,7 @@ export default function HomePage() {
               <form onSubmit={(e) => { e.preventDefault(); toast({title: "¡Gracias por subscribirte!"}) }}>
                 <div className="flex">
                     <Input type="email" required placeholder="tu@email.com" className="bg-background/20 border-0 rounded-r-none text-white placeholder:text-muted-foreground/80" />
-                    <Button type="submit" className="rounded-l-none">Enviar</Button>
+                    <Button type="submit" className="rounded-l-none bg-accent hover:bg-accent/90">Enviar</Button>
                 </div>
               </form>
             </div>

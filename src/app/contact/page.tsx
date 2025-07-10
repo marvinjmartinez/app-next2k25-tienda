@@ -28,7 +28,7 @@ export default function ContactPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
             <Wrench className="h-6 w-6 text-primary" />
@@ -44,13 +44,13 @@ export default function ContactPage() {
               <Link href="/cart" className="relative">
                 <ShoppingCart className="h-5 w-5" />
                 {getCartItemCount() > 0 && (
-                  <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 justify-center p-1 text-xs">{getCartItemCount()}</Badge>
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 justify-center p-1 text-xs bg-accent text-accent-foreground">{getCartItemCount()}</Badge>
                 )}
                 <span className="sr-only">Carrito</span>
               </Link>
             </Button>
              <Link href="/sales/create-quote">
-              <Button variant="outline">
+              <Button>
                 <User className="mr-2 h-4 w-4" />
                 Iniciar Sesión
               </Button>
@@ -87,7 +87,7 @@ export default function ContactPage() {
                             <Label htmlFor="message">Mensaje</Label>
                             <Textarea id="message" placeholder="Escribe tu mensaje aquí..." rows={5} required />
                         </div>
-                        <Button type="submit" className="w-full">Enviar Mensaje</Button>
+                        <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">Enviar Mensaje</Button>
                     </form>
                 </CardContent>
             </Card>
