@@ -9,7 +9,7 @@ interface LogoProps extends React.SVGProps<SVGSVGElement> {
 export function Logo({ className, ...props }: LogoProps) {
   return (
     <svg
-      viewBox="0 0 100 65"
+      viewBox="0 0 100 55"
       xmlns="http://www.w3.org/2000/svg"
       className={cn("text-foreground", className)}
       {...props}
@@ -41,17 +41,6 @@ export function Logo({ className, ...props }: LogoProps) {
           fill="#4338CA"
         />
       </g>
-      <text
-        x="50"
-        y="60"
-        fontFamily="Montserrat, sans-serif"
-        fontSize="16"
-        fontWeight="bold"
-        fill="hsl(var(--foreground))"
-        textAnchor="middle"
-      >
-        DISTRIMIN
-      </text>
     </svg>
   );
 }
