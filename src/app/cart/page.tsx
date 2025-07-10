@@ -18,7 +18,7 @@ import { LogoTienda } from '@/components/logo-tienda';
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, getCartItemCount } = useCart();
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated } = useAuth();
   const router = useRouter();
 
 
@@ -162,9 +162,15 @@ export default function CartPage() {
                     </div>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
-                      <Link href="/checkout">Proceder al Pago</Link>
-                    </Button>
+                    {isAuthenticated ? (
+                        <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
+                            <Link href="/checkout">Proceder al Pago</Link>
+                        </Button>
+                    ) : (
+                        <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
+                            <Link href="/login">Iniciar Sesión para Pagar</Link>
+                        </Button>
+                    )}
                   </CardFooter>
                 </Card>
               </div>
