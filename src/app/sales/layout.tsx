@@ -1,6 +1,6 @@
 "use client";
 
-import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Wrench } from 'lucide-react';
+import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Wrench, Package } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -57,6 +57,11 @@ export default function SalesLayout({
                   <Link href="/sales/customers"><Users /><span>Registrados</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+                <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/products')} tooltip="Productos">
+                  <Link href="/sales/products"><Package /><span>Productos</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/create-quote')} tooltip="Crear Cotización">
                   <Link href="/sales/create-quote"><PlusCircle /><span>Crear Cotización</span></Link>
@@ -68,8 +73,8 @@ export default function SalesLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/products')} tooltip="Productos">
-                  <Link href="/products"><ShoppingCart /><span>Productos</span></Link>
+                 <SidebarMenuButton asChild isActive={pathname.startsWith('/products-store')} tooltip="Ir a la Tienda">
+                  <Link href="/products"><ShoppingCart /><span>Ir a la Tienda</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
