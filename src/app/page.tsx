@@ -3,10 +3,9 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ShoppingCart, Wrench, User, Search, LogOut, LayoutDashboard } from 'lucide-react';
-import Image from 'next/image';
 import { useCart } from '@/context/cart-context'; 
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
@@ -16,6 +15,7 @@ import React from 'react';
 import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { ProductCard } from '@/components/product-card';
 
 
 const featuredProducts = products.filter(p => p.featured);
@@ -167,28 +167,12 @@ export default function HomePage() {
             <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10">Los favoritos de nuestros clientes, seleccionados por su calidad y precio.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {featuredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden group flex flex-col">
-                  <CardHeader className="p-0 relative">
-                     {product.stock === 0 && (
-                      <Badge variant="destructive" className="absolute top-2 left-2 z-10">AGOTADO</Badge>
-                    )}
-                    <Image src={product.image} alt={product.name} width={300} height={300} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={product.hint} />
-                  </CardHeader>
-                  <CardContent className="p-4 flex-grow">
-                    <CardTitle className="text-lg h-12">{product.name}</CardTitle>
-                    <p className="text-xs uppercase font-medium text-muted-foreground tracking-wider mt-1">{getCategoryName(product.category)}</p>
-                     <p className="text-sm text-muted-foreground mt-1">
-                      {product.stock > 0 ? `${product.stock} en existencia` : "Sin existencias"}
-                    </p>
-                    <CardDescription className="text-primary font-semibold text-lg mt-2">${product.price.toFixed(2)}</CardDescription>
-                  </CardContent>
-                  <CardFooter className="p-4 pt-0">
-                    <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => handleAddToCart(product)} disabled={product.stock === 0}>
-                      <ShoppingCart className="mr-2 h-4 w-4" />
-                      {product.stock > 0 ? 'Agregar al carrito' : 'No disponible'}
-                    </Button>
-                  </CardFooter>
-                </Card>
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  categoryName={getCategoryName(product.category)}
+                  onAddToCart={handleAddToCart}
+                />
               ))}
             </div>
           </div>
