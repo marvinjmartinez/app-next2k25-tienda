@@ -10,10 +10,13 @@ import { ShoppingCart, Wrench, User, Search } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { products, type Product } from '@/lib/dummy-data';
+import { products, categories, type Product } from '@/lib/dummy-data';
+import React, { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 export default function ProductsPage() {
   const { addToCart, getCartItemCount } = useCart();
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const handleAddToCart = (product: Product) => {
     addToCart({
@@ -28,6 +31,10 @@ export default function ProductsPage() {
       description: `${product.name} se ha añadido a tu carrito.`,
     });
   };
+
+  const filteredProducts = selectedCategory
+    ? products.filter((p) => p.category === selectedCategory)
+    : products;
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -68,8 +75,27 @@ export default function ProductsPage() {
             <h1 className="text-4xl font-bold font-headline">Todos Nuestros Productos</h1>
             <p className="text-muted-foreground mt-2">Explora el catálogo completo de El Martillo de Oro.</p>
           </div>
+          
+          <div className="flex justify-center gap-2 mb-10 flex-wrap">
+            <Button 
+                variant={selectedCategory === null ? "default" : "outline"}
+                onClick={() => setSelectedCategory(null)}
+            >
+                Todos
+            </Button>
+            {categories.map((category) => (
+                <Button 
+                    key={category.slug} 
+                    variant={selectedCategory === category.slug ? "default" : "outline"}
+                    onClick={() => setSelectedCategory(category.slug)}
+                >
+                    {category.name}
+                </Button>
+            ))}
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <Card key={product.id} className="overflow-hidden group flex flex-col">
                 <CardHeader className="p-0 relative">
                   {product.stock === 0 && (
