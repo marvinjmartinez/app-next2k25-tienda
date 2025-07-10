@@ -121,6 +121,13 @@ export default function CustomersPage() {
         })
     }
 
+    const handleViewProfile = (customerName: string) => {
+        toast({
+            title: "Función no implementada",
+            description: `Aquí se mostraría el perfil de ${customerName}.`,
+        });
+    };
+
     const filteredUsers = dummyUsers.filter(u => 
         u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -181,14 +188,14 @@ export default function CustomersPage() {
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" disabled={!isAdmin}>
+                        <Button variant="ghost" size="icon">
                           <MoreHorizontal className="h-4 w-4" />
                           <span className="sr-only">Acciones</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewProfile(customer.name)}>Ver Perfil</DropdownMenuItem>
                         {isAdmin && (
                             <DropdownMenuSub>
                                 <DropdownMenuSubTrigger>Cambiar Rol</DropdownMenuSubTrigger>
