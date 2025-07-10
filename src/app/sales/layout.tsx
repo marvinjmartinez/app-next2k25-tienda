@@ -53,6 +53,11 @@ export default function SalesLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/customers')} tooltip="Registrados">
+                  <Link href="/sales/customers"><Users /><span>Registrados</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/create-quote')} tooltip="Crear Cotización">
                   <Link href="/sales/create-quote"><PlusCircle /><span>Crear Cotización</span></Link>
                 </SidebarMenuButton>
@@ -65,11 +70,6 @@ export default function SalesLayout({
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/products')} tooltip="Productos">
                   <Link href="/products"><ShoppingCart /><span>Productos</span></Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/customers')} tooltip="Registrados">
-                  <Link href="/sales/customers"><Users /><span>Registrados</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
