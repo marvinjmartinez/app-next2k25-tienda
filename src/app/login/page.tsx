@@ -25,7 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Wrench } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor ingresa un correo válido." }),
@@ -76,8 +76,8 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <Link href="/" className="flex items-center gap-2 justify-center">
-              <Wrench className="h-7 w-7 text-primary" />
-              <span className="font-bold text-2xl font-headline text-foreground">Distrimin SAS</span>
+              <Logo className="h-16 w-auto" />
+              <span className="font-bold text-2xl font-headline text-foreground sr-only">Distrimin SAS</span>
           </Link>
         </div>
         <Card>

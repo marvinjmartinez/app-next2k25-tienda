@@ -1,7 +1,7 @@
 // src/app/sales/layout.tsx
 "use client";
 
-import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Wrench, Package, LogOut, LayoutDashboard, User } from 'lucide-react';
+import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Package, LogOut, LayoutDashboard, User } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -31,6 +31,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Logo } from '@/components/logo';
 
 export default function SalesLayout({
   children,
@@ -89,8 +90,8 @@ export default function SalesLayout({
         <Sidebar>
           <SidebarHeader>
             <Link href="/" className="flex items-center gap-2">
-                <Wrench className="h-6 w-6 text-primary" />
-                <span className="font-semibold text-lg">Distrimin SAS</span>
+                <Logo className="h-12 w-auto" />
+                <span className="font-semibold text-lg sr-only">Distrimin SAS</span>
             </Link>
           </SidebarHeader>
           <SidebarContent>

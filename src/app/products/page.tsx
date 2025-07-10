@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Wrench, User, Search, LogOut } from 'lucide-react';
+import { ShoppingCart, User, Search, LogOut } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
@@ -23,6 +23,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProductCard } from '@/components/product-card';
 import { ImageViewerDialog } from '@/components/image-viewer-dialog';
+import { Logo } from '@/components/logo';
 
 
 function ProductsPageComponent() {
@@ -103,8 +104,8 @@ function ProductsPageComponent() {
       <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <Wrench className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
+            <Logo className="h-10 w-auto" />
+            <span className="font-bold text-xl font-headline text-foreground sr-only">Distrimin SAS</span>
           </Link>
           <nav className="hidden md:flex gap-6 items-center">
             <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">Inicio</Link>
@@ -144,7 +145,7 @@ function ProductsPageComponent() {
                   <DropdownMenuSeparator />
                    {user.role === 'admin' && (
                      <DropdownMenuItem onClick={() => router.push('/sales/create-quote')}>
-                        <Wrench className="mr-2 h-4 w-4" />
+                        <Logo className="mr-2 h-4 w-4" />
                         <span>Dashboard</span>
                     </DropdownMenuItem>
                   )}

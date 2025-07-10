@@ -8,9 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Wrench, CreditCard, Truck, Lock } from 'lucide-react';
+import { CreditCard, Truck, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { Logo } from '@/components/logo';
 
 
 export default function CheckoutPage() {
@@ -56,8 +57,8 @@ export default function CheckoutPage() {
        <header className="bg-background">
         <div className="container mx-auto flex h-16 items-center justify-center px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <Wrench className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS - Pago Seguro</span>
+            <Logo className="h-10 w-auto" />
+            <span className="font-bold text-xl font-headline text-foreground"> - Pago Seguro</span>
           </Link>
         </div>
       </header>
