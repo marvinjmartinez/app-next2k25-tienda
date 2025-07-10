@@ -36,7 +36,12 @@ const formSchema = z.object({
   pastInteractions: z.string().optional(),
 });
 
-export function AiProductSuggester() {
+type AiProductSuggesterProps = {
+  onSuggestionClick?: (productName: string) => void;
+};
+
+
+export function AiProductSuggester({ onSuggestionClick }: AiProductSuggesterProps) {
   const [suggestions, setSuggestions] = useState<SuggestProductsForQuoteOutput | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -96,7 +101,7 @@ export function AiProductSuggester() {
                   <FormLabel>Preferencias del Cliente</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Ej: 'Busca un portátil duradero para edición de video, presupuesto de unos $1500.'"
+                      placeholder="Ej: 'Busca un taladro de impacto para concreto y madera, uso rudo.'"
                       {...field}
                       rows={4}
                     />
@@ -113,7 +118,7 @@ export function AiProductSuggester() {
                   <FormLabel>Interacciones Pasadas (Opcional)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Ej: 'Compró anteriormente un mouse y teclado de gama alta.'"
+                      placeholder="Ej: 'Compró anteriormente brocas de alta velocidad y un juego de llaves.'"
                       {...field}
                       rows={2}
                     />
@@ -148,7 +153,7 @@ export function AiProductSuggester() {
                                 <PackageCheck className="h-5 w-5 text-primary" />
                                 <span className="font-medium">{product}</span>
                             </div>
-                            <Button size="sm" variant="outline">Añadir</Button>
+                            <Button size="sm" variant="outline" onClick={() => onSuggestionClick?.(product)}>Añadir</Button>
                         </div>
                     ))}
                 </div>
