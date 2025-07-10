@@ -82,7 +82,7 @@ export default function HomePage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
             <Logo className="h-10 w-auto" />
-            <span className="font-bold text-xl font-headline text-foreground sr-only">Distrimin SAS</span>
+            <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
           </Link>
           <nav className="hidden md:flex gap-6 items-center">
             <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">Inicio</Link>

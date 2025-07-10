@@ -90,8 +90,8 @@ export default function SalesLayout({
         <Sidebar>
           <SidebarHeader>
             <Link href="/" className="flex items-center gap-2">
-                <Logo className="h-12 w-auto" />
-                <span className="font-semibold text-lg sr-only">Distrimin SAS</span>
+                <Logo className="h-10 w-auto" />
+                <span className="font-semibold text-lg group-data-[state=expanded]:inline hidden">Distrimin SAS</span>
             </Link>
           </SidebarHeader>
           <SidebarContent>

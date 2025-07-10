@@ -75,9 +75,8 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
-          <Link href="/" className="flex items-center gap-2 justify-center">
-              <Logo className="h-16 w-auto" />
-              <span className="font-bold text-2xl font-headline text-foreground sr-only">Distrimin SAS</span>
+          <Link href="/" className="inline-block">
+              <Logo className="h-20 w-auto" />
           </Link>
         </div>
         <Card>

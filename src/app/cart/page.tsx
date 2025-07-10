@@ -35,7 +35,7 @@ export default function CartPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
             <Logo className="h-10 w-auto" />
-            <span className="font-bold text-xl font-headline text-foreground sr-only">Distrimin SAS</span>
+            <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
           </Link>
           <div className="flex items-center gap-4">
              <Button variant="ghost" size="icon" asChild>
