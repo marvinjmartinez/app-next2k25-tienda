@@ -17,7 +17,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, categoryName, onAddToCart, onImageClick }: ProductCardProps) {
-  const allImages = [product.image, ...(product.gallery || [])];
+  const hasGallery = product.gallery && product.gallery.length > 0;
 
   return (
     <Card className="overflow-hidden group flex flex-col">
@@ -29,28 +29,47 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick }
         {product.stock === 0 && (
           <Badge variant="destructive" className="absolute top-2 left-2 z-10">AGOTADO</Badge>
         )}
-        <Carousel className="w-full">
-          <CarouselContent>
-            {allImages.map((img, index) => (
-              <CarouselItem key={index}>
+        
+        {hasGallery ? (
+           <Carousel className="w-full" opts={{ loop: true }}>
+            <CarouselContent>
+              <CarouselItem>
                 <Image
-                  src={img}
-                  alt={`${product.name} - imagen ${index + 1}`}
+                  src={product.image}
+                  alt={product.name}
                   width={300}
                   height={300}
                   className="w-full h-48 object-cover"
                   data-ai-hint={product.hint}
+                  priority={product.featured}
                 />
               </CarouselItem>
-            ))}
-          </CarouselContent>
-          {allImages.length > 1 && (
-            <>
-              <CarouselPrevious className="absolute left-4 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-              <CarouselNext className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-            </>
-          )}
-        </Carousel>
+              {product.gallery!.map((img, index) => (
+                <CarouselItem key={index}>
+                   <Image
+                      src={img}
+                      alt={`${product.name} - imagen de galería ${index + 1}`}
+                      width={300}
+                      height={300}
+                      className="w-full h-48 object-cover"
+                    />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="absolute left-4 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+            <CarouselNext className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+          </Carousel>
+        ) : (
+           <Image
+              src={product.image}
+              alt={product.name}
+              width={300}
+              height={300}
+              className="w-full h-48 object-cover"
+              data-ai-hint={product.hint}
+              priority={product.featured}
+            />
+        )}
       </CardHeader>
       <CardContent className="p-4 flex-grow">
         <CardTitle className="text-lg h-12">{product.name}</CardTitle>
