@@ -6,6 +6,7 @@
     "price": 1899.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "power tool",
+    "description": "Potente taladro percutor inalámbrico de 20V con batería de larga duración. Ideal para trabajos en concreto, madera y metal. Incluye dos baterías, cargador y maletín.",
     "stock": 15,
     "category": "herramientas",
     "featured": true,
@@ -22,6 +23,7 @@
     "price": 499.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "hand tools",
+    "description": "Completo juego de 25 destornilladores de precisión con puntas magnéticas de cromo-vanadio para una mayor durabilidad. Mango ergonómico para un agarre cómodo.",
     "stock": 30,
     "category": "herramientas",
     "status": "activo"
@@ -32,6 +34,7 @@
     "price": 1250.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "paint can",
+    "description": "Pintura vinil-acrílica de alto rendimiento y poder cubriente, ideal para interiores y exteriores. Acabado mate lavable y de secado rápido. Rinde hasta 150 m².",
     "stock": 8,
     "category": "pintura",
     "featured": true,
@@ -46,6 +49,7 @@
     "price": 980.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "ladder",
+    "description": "Escalera ligera y resistente de aluminio tipo III. Altura de 6 pies (1.83 m) con capacidad de carga de 90 kg. Patas con goma antiderrapante para mayor seguridad.",
     "stock": 0,
     "category": "herramientas",
     "featured": true,
@@ -57,6 +61,7 @@
     "price": 280.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "cement bag",
+    "description": "Cemento Portland Compuesto (CPC 30R) de alta resistencia y fraguado rápido. Ideal para todo tipo de obras de construcción, cimentaciones, losas y castillos.",
     "stock": 50,
     "category": "construccion",
     "status": "activo"
@@ -67,6 +72,7 @@
     "price": 150.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "pvc pipe",
+    "description": "Tubo de PVC sanitario de 4 pulgadas de diámetro por 6 metros de largo. Resistente a la corrosión y a productos químicos. Unión cementar para una instalación segura.",
     "stock": 100,
     "category": "plomeria",
     "status": "activo"
@@ -77,6 +83,7 @@
     "price": 850.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "toolbox",
+    "description": "Robusta caja de herramientas metálica de 22 pulgadas con charola interior extraíble. Broches metálicos de alta resistencia para un cierre seguro.",
     "stock": 12,
     "category": "herramientas",
     "featured": true,
@@ -88,6 +95,7 @@
     "price": 95.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "paintbrush",
+    "description": "Brocha profesional de 4 pulgadas con cerdas de pelo de camello para un acabado fino y sin rayas. Ideal para esmaltes, barnices y lacas.",
     "stock": 45,
     "category": "pintura",
     "status": "activo"
@@ -98,6 +106,7 @@
     "price": 180.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "rebar",
+    "description": "Varilla de acero corrugado de 3/8 de pulgada de diámetro y 12 metros de largo. Cumple con la norma de calidad para refuerzo de concreto en estructuras.",
     "stock": 200,
     "category": "construccion",
     "status": "activo"
@@ -108,6 +117,7 @@
     "price": 2500.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "water heater",
+    "description": "Calentador de agua instantáneo (boiler de paso) para 1 servicio (6 L/min). Encendido electrónico y ahorro de hasta 70% en el consumo de gas. Display digital de temperatura.",
     "stock": 5,
     "category": "plomeria",
     "status": "activo"
@@ -118,6 +128,7 @@
     "price": 1100.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "angle grinder",
+    "description": "Esmeriladora angular de 4 1/2 pulgadas con potente motor de 800W. Diseño ergonómico y guarda de protección ajustable. Ideal para cortar y desbastar metal.",
     "stock": 18,
     "category": "herramientas",
     "status": "activo"
@@ -128,6 +139,7 @@
     "price": 1800.00,
     "image": "https://placehold.co/300x300.png",
     "hint": "waterproofing bucket",
+    "description": "Impermeabilizante acrílico elastomérico color rojo terracota con durabilidad de 5 años. Reduce la temperatura interior y es resistente a los rayos UV. Cubeta de 19 litros.",
     "stock": 7,
     "category": "pintura",
     "status": "activo"
