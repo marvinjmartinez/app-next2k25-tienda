@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -51,7 +51,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 
 
@@ -67,6 +66,10 @@ export default function ProductsAdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
+  // State for gallery management in the dialog
+  const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
+  const [newGalleryUrl, setNewGalleryUrl] = useState('');
+
   // State for filtering and pagination
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -75,11 +78,13 @@ export default function ProductsAdminPage() {
 
   const handleAddNew = () => {
     setSelectedProduct(null);
+    setGalleryUrls([]);
     setIsDialogOpen(true);
   };
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
+    setGalleryUrls(product.gallery || []);
     setIsDialogOpen(true);
   };
 
@@ -99,6 +104,23 @@ export default function ProductsAdminPage() {
           description: `El producto se ha guardado correctamente.`,
       })
       setIsDialogOpen(false);
+  }
+
+  const handleAddGalleryUrl = () => {
+      if (newGalleryUrl.trim() && (newGalleryUrl.startsWith('http://') || newGalleryUrl.startsWith('https://'))) {
+          setGalleryUrls(prev => [...prev, newGalleryUrl]);
+          setNewGalleryUrl('');
+      } else {
+          toast({
+              variant: 'destructive',
+              title: 'URL Inválida',
+              description: 'Por favor, introduce una URL válida.'
+          })
+      }
+  }
+
+  const handleRemoveGalleryUrl = (urlToRemove: string) => {
+      setGalleryUrls(prev => prev.filter(url => url !== urlToRemove));
   }
 
   const getCategoryName = (slug: string) => {
@@ -293,7 +315,7 @@ export default function ProductsAdminPage() {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-2xl">
+        <DialogContent className="sm:max-w-3xl">
           <form onSubmit={handleSave}>
             <DialogHeader>
               <DialogTitle>
@@ -303,48 +325,96 @@ export default function ProductsAdminPage() {
                 Completa la información del producto. Haz clic en guardar para aplicar los cambios.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
-                <div className="space-y-2">
-                    <Label htmlFor="name">Nombre del Producto</Label>
-                    <Input id="name" defaultValue={selectedProduct?.name} required />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6 max-h-[70vh] overflow-y-auto pr-4">
+                {/* Product Info */}
+                <div className="md:col-span-2 space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Información Básica</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Nombre del Producto</Label>
+                                <Input id="name" defaultValue={selectedProduct?.name} required />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="category">Categoría</Label>
+                                    <Select defaultValue={selectedProduct?.category}>
+                                        <SelectTrigger id="category">
+                                            <SelectValue placeholder="Selecciona una categoría" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categories.map(cat => (
+                                                <SelectItem key={cat.slug} value={cat.slug}>{cat.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label htmlFor="price">Precio</Label>
+                                    <Input id="price" type="number" step="0.01" defaultValue={selectedProduct?.price} required />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="stock">Stock</Label>
+                                    <Input id="stock" type="number" defaultValue={selectedProduct?.stock} required />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="hint">Pista de IA para la imagen</Label>
+                                    <Input id="hint" defaultValue={selectedProduct?.hint} placeholder="Ej: power tool" />
+                                </div>
+                            </div>
+                             <div className="flex items-center space-x-2 pt-4">
+                                <Checkbox id="featured" defaultChecked={selectedProduct?.featured} />
+                                <Label htmlFor="featured" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                                Marcar como producto destacado
+                                </Label>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="category">Categoría</Label>
-                    <Select defaultValue={selectedProduct?.category}>
-                        <SelectTrigger id="category">
-                            <SelectValue placeholder="Selecciona una categoría" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {categories.map(cat => (
-                                <SelectItem key={cat.slug} value={cat.slug}>{cat.name}</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="price">Precio</Label>
-                    <Input id="price" type="number" step="0.01" defaultValue={selectedProduct?.price} required />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="stock">Stock</Label>
-                    <Input id="stock" type="number" defaultValue={selectedProduct?.stock} required />
-                </div>
-                <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="image">URL de la Imagen</Label>
-                    <Input id="image" defaultValue={selectedProduct?.image || 'https://placehold.co/300x300.png'} />
-                </div>
-                 <div className="md:col-span-2 space-y-2">
-                    <Label htmlFor="hint">Pista de IA para la imagen</Label>
-                    <Input id="hint" defaultValue={selectedProduct?.hint} placeholder="Ej: power tool" />
-                </div>
-                 <div className="flex items-center space-x-2 pt-4">
-                    <Checkbox id="featured" defaultChecked={selectedProduct?.featured} />
-                    <Label htmlFor="featured" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                       Marcar como producto destacado
-                    </Label>
-                </div>
+                {/* Image Management */}
+                 <div className="md:col-span-2 space-y-4">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Imágenes del Producto</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="image">URL de la Imagen Principal</Label>
+                                <Input id="image" defaultValue={selectedProduct?.image || 'https://placehold.co/300x300.png'} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label>Galería de Imágenes</Label>
+                                <div className="space-y-2">
+                                    {galleryUrls.map((url, index) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <Input value={url} readOnly className="bg-muted"/>
+                                            <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveGalleryUrl(url)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    {galleryUrls.length === 0 && <p className="text-sm text-muted-foreground">No hay imágenes en la galería.</p>}
+                                </div>
+                                <div className="flex items-center gap-2 pt-2">
+                                    <Input 
+                                        placeholder="https://.../imagen.png" 
+                                        value={newGalleryUrl}
+                                        onChange={(e) => setNewGalleryUrl(e.target.value)}
+                                    />
+                                    <Button type="button" variant="outline" onClick={handleAddGalleryUrl}>Añadir</Button>
+                                </div>
+                                <p className="text-xs text-muted-foreground">Añade URLs a la galería para mostrar más imágenes del producto.</p>
+                            </div>
+                        </CardContent>
+                    </Card>
+                 </div>
+
             </div>
-            <DialogFooter>
+            <DialogFooter className="pt-4 border-t">
                 <DialogClose asChild>
                     <Button type="button" variant="outline">Cancelar</Button>
                 </DialogClose>

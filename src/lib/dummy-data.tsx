@@ -1,4 +1,3 @@
-
 // src/lib/dummy-data.tsx
 import { Drill, HardHat, Paintbrush, Wrench } from 'lucide-react';
 import React from 'react';
@@ -15,6 +14,7 @@ export interface Product {
   stock: number;
   category: string;
   featured?: boolean;
+  gallery?: string[];
 }
 
 export interface Category {

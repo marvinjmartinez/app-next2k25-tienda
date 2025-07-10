@@ -8,7 +8,12 @@
     "hint": "power tool",
     "stock": 15,
     "category": "herramientas",
-    "featured": true
+    "featured": true,
+    "gallery": [
+      "https://placehold.co/600x600/1.png",
+      "https://placehold.co/600x600/2.png",
+      "https://placehold.co/600x600/3.png"
+    ]
   },
   {
     "id": "prod_2",
@@ -27,7 +32,10 @@
     "hint": "paint can",
     "stock": 8,
     "category": "pintura",
-    "featured": true
+    "featured": true,
+    "gallery": [
+       "https://placehold.co/600x600/4.png"
+    ]
   },
   {
     "id": "prod_4",
