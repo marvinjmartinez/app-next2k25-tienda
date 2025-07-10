@@ -1,65 +1,98 @@
 // src/app/account/dashboard/page.tsx
 "use client";
 
+import { useState, useEffect } from 'react';
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, FileText, ShoppingBag } from "lucide-react";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/context/auth-context';
+import type { Quote } from '@/app/sales/create-quote/page';
+
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('es-MX', {
+      style: 'currency',
+      currency: 'MXN',
+    }).format(amount);
+};
+  
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('es-MX', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+    })
+}
+
+const statusBadges: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
+    Pagada: 'default',
+    Enviada: 'secondary',
+    Borrador: 'outline',
+    Cancelada: 'destructive',
+}
 
 export default function AccountDashboardPage() {
+  const { user } = useAuth();
+  const [myPurchases, setMyPurchases] = useState<Quote[]>([]);
+
+  useEffect(() => {
+    if (user) {
+        try {
+            const allQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
+            const userQuotes = allQuotes.filter(q => q.customerId === user.id);
+            setMyPurchases(userQuotes);
+        } catch (error) {
+            console.error("Error loading purchases from localStorage", error);
+        }
+    }
+  }, [user]);
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Mi Cuenta"
         description="Bienvenido a tu panel de control. Aquí puedes gestionar tu información y pedidos."
       />
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Gasto Total (Simulado)
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">$4,250.50</div>
-            <p className="text-xs text-muted-foreground">
-              +15% desde el mes pasado
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cotizaciones Recibidas</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+3</div>
-            <p className="text-xs text-muted-foreground">
-              1 pendiente de aprobación
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pedidos Realizados</CardTitle>
-            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+12</div>
-            <p className="text-xs text-muted-foreground">
-              2 en proceso de envío
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-       <Card>
-          <CardHeader>
-            <CardTitle>Próximamente</CardTitle>
-            <CardDescription>
-              Estamos trabajando para que pronto puedas editar tu perfil, ver tus cotizaciones y revisar tu historial de pedidos directamente desde aquí.
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <Card>
+        <CardHeader>
+            <CardTitle>Historial de Compras</CardTitle>
+            <CardDescription>Aquí puedes ver todas las compras y cotizaciones que has realizado.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead># Pedido</TableHead>
+                        <TableHead>Fecha</TableHead>
+                        <TableHead>Estado</TableHead>
+                        <TableHead className="text-right">Total</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                {myPurchases.length > 0 ? (
+                    myPurchases.map((purchase) => (
+                    <TableRow key={purchase.id}>
+                        <TableCell className="font-medium">{purchase.id}</TableCell>
+                        <TableCell>{formatDate(purchase.date)}</TableCell>
+                        <TableCell>
+                            <Badge variant={statusBadges[purchase.status] || 'outline'}>
+                                {purchase.status}
+                            </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">{formatCurrency(purchase.total)}</TableCell>
+                    </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={4} className="text-center h-24">
+                            No has realizado ninguna compra todavía.
+                        </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
+            </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 }

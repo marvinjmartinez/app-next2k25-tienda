@@ -12,10 +12,13 @@ import { CreditCard, Truck, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { LogoTienda } from '@/components/logo-tienda';
+import { useAuth } from '@/context/auth-context';
+import type { Quote } from '@/app/sales/create-quote/page';
 
 
 export default function CheckoutPage() {
   const { cartItems, getCartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
@@ -28,16 +31,51 @@ export default function CheckoutPage() {
   
   const handlePlaceOrder = (e: React.FormEvent) => {
       e.preventDefault();
-      // Dummy logic for placing order
-      console.log("Placing order...");
+      
+      if (!user) {
+        toast({
+            variant: 'destructive',
+            title: "Error de autenticación",
+            description: "Debes iniciar sesión para realizar un pedido.",
+        });
+        router.push('/login');
+        return;
+      }
+      
+      // Guardar la compra en localStorage
+      const newPurchase: Quote = {
+          id: `COT-${Date.now().toString().slice(-4)}`,
+          customerId: user.id,
+          customerName: user.name,
+          date: new Date().toISOString().split('T')[0],
+          total: getCartTotal(),
+          status: 'Pagada',
+          items: cartItems.map(item => ({
+            ...item,
+            hint: '',
+            stock: 0,
+            category: '',
+            status: 'activo'
+          })),
+      };
+
+      try {
+        const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
+        existingQuotes.unshift(newPurchase);
+        localStorage.setItem('saved_quotes', JSON.stringify(existingQuotes));
+      } catch (error) {
+        console.error("Error saving purchase to localStorage", error);
+      }
+      
+      console.log("Placing order...", newPurchase);
       
       toast({
           title: "¡Pedido Realizado!",
-          description: "Gracias por tu compra. Te hemos enviado un correo de confirmación.",
+          description: "Gracias por tu compra. Tu pedido ha sido registrado.",
       });
 
       clearCart();
-      router.push('/');
+      router.push('/account/dashboard');
   }
 
   if (cartItems.length === 0) {
@@ -73,11 +111,11 @@ export default function CheckoutPage() {
                 <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Nombre</Label>
-                    <Input id="firstName" placeholder="Juan" required />
+                    <Input id="firstName" placeholder="Juan" required defaultValue={user?.name.split(' ')[0]} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="lastName">Apellido</Label>
-                    <Input id="lastName" placeholder="Pérez" required />
+                    <Input id="lastName" placeholder="Pérez" required defaultValue={user?.name.split(' ').slice(1).join(' ')} />
                   </div>
                   <div className="sm:col-span-2 space-y-2">
                     <Label htmlFor="address">Dirección</Label>

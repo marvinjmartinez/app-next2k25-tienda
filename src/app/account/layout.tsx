@@ -81,7 +81,7 @@ export default function AccountLayout({
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/account/dashboard')} tooltip="Panel">
+                <SidebarMenuButton asChild isActive={pathname.endsWith('/account/dashboard')} tooltip="Panel">
                     <Link href="/account/dashboard"><Home /><span>Panel</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -92,7 +92,7 @@ export default function AccountLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/account/purchases')} tooltip="Mis Compras">
-                  <Link href="#"><ShoppingBag /><span>Mis Compras</span></Link>
+                  <Link href="/account/dashboard"><ShoppingBag /><span>Mis Compras</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
