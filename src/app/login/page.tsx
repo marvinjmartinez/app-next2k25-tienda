@@ -54,10 +54,11 @@ export default function LoginPage() {
         description: `Bienvenido de nuevo, ${loginResult.user.name}.`,
       });
       
-      if (loginResult.user.role === 'admin') {
+      const userRole = loginResult.user.role;
+      if (userRole === 'admin' || userRole === 'vendedor') {
         router.push("/sales/create-quote");
       } else {
-        router.push("/");
+        router.push("/account/dashboard");
       }
     } else {
       toast({

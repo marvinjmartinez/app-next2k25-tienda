@@ -1,7 +1,7 @@
-// src/app/sales/layout.tsx
+// src/app/account/layout.tsx
 "use client";
 
-import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Wrench, Package, LogOut, LayoutDashboard } from 'lucide-react';
+import { User, Home, FileText, ShoppingBag, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -31,7 +31,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 
-export default function SalesLayout({
+export default function AccountLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -49,27 +49,13 @@ export default function SalesLayout({
         title: 'Acceso Denegado',
         description: 'Debes iniciar sesión para acceder a esta página.',
       });
-      return;
-    } 
-    
-    const allowedRoles = ['admin', 'vendedor'];
-    if (!user || !allowedRoles.includes(user.role)) {
-       router.push('/account/dashboard'); // Redirect non-sales roles to their dashboard
-       toast({
-        variant: 'destructive',
-        title: 'Acceso Denegado',
-        description: 'No tienes permisos para acceder a esta sección.',
-      });
     }
-
   }, [isAuthenticated, user, router, toast]);
 
-  const isAdmin = user?.role === 'admin';
-
-  if (!user || !['admin', 'vendedor'].includes(user.role)) {
+  if (!user) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
-            <p>Redirigiendo...</p>
+            <p>Cargando...</p>
         </div>
     );
   }
@@ -80,46 +66,25 @@ export default function SalesLayout({
         <Sidebar>
           <SidebarHeader>
             <Link href="/" className="flex items-center gap-2">
-                <Wrench className="h-6 w-6 text-primary" />
-                <span className="font-semibold text-lg">Distrimin SAS</span>
+                <User className="h-6 w-6 text-primary" />
+                <span className="font-semibold text-lg">Mi Cuenta</span>
             </Link>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/dashboard')} tooltip="Panel">
-                    <Link href="#"><LayoutDashboard /><span>Panel</span></Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              
-              {isAdmin && (
-                <>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/customers')} tooltip="Registrados">
-                        <Link href="/sales/customers"><Users /><span>Registrados</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/products')} tooltip="Productos">
-                        <Link href="/sales/products"><Package /><span>Productos</span></Link>
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </>
-              )}
-
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/create-quote')} tooltip="Crear Cotización">
-                  <Link href="/sales/create-quote"><PlusCircle /><span>Crear Cotización</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/account/dashboard')} tooltip="Panel">
+                    <Link href="/account/dashboard"><Home /><span>Panel</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/quotes')} tooltip="Cotizaciones">
-                  <Link href="/sales/quotes"><Star /><span>Cotizaciones</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/account/quotes')} tooltip="Mis Cotizaciones">
+                  <Link href="#"><FileText /><span>Mis Cotizaciones</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                 <SidebarMenuButton asChild isActive={pathname.startsWith('/products-store')} tooltip="Ir a la Tienda">
-                  <Link href="/products"><ShoppingCart /><span>Ir a la Tienda</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/account/orders')} tooltip="Mis Pedidos">
+                  <Link href="#"><ShoppingBag /><span>Mis Pedidos</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -148,6 +113,9 @@ export default function SalesLayout({
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/')}>
+                    <span>Ir a la tienda</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Cerrar sesión</span>
@@ -160,7 +128,7 @@ export default function SalesLayout({
             <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
                 <SidebarTrigger />
                 <div className="w-full flex-1">
-                 <h1 className="font-semibold text-lg">Panel de Ventas</h1>
+                 <h1 className="font-semibold text-lg">Panel de Cliente</h1>
                 </div>
             </header>
             <main className="flex-1 p-4 sm:p-6">

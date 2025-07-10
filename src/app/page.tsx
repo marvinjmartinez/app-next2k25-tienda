@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, Wrench, User, Search, LogOut } from 'lucide-react';
+import { ShoppingCart, Wrench, User, Search, LogOut, LayoutDashboard } from 'lucide-react';
 import Image from 'next/image';
 import { useCart } from '@/context/cart-context'; 
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +47,14 @@ export default function HomePage() {
       router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
+
+  const getDashboardPath = () => {
+    if (!user) return "/login";
+    if (user.role === 'admin' || user.role === 'vendedor') {
+      return "/sales/create-quote";
+    }
+    return "/account/dashboard";
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -92,12 +100,10 @@ export default function HomePage() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {user.role === 'admin' && (
-                     <DropdownMenuItem onClick={() => router.push('/sales/create-quote')}>
-                        <Wrench className="mr-2 h-4 w-4" />
-                        <span>Dashboard</span>
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem onClick={() => router.push(getDashboardPath())}>
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>Mi Panel</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Cerrar Sesión</span>

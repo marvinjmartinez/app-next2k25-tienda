@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 // Definir los tipos de roles
 type UserRole = 'admin' | 'vendedor' | 'cliente_especial' | 'cliente';
@@ -19,6 +19,7 @@ interface User {
 const DUMMY_USERS: User[] = [
     { id: '1', name: 'Admin User', email: 'sistemas@distrimin.com', role: 'admin' },
     { id: '2', name: 'Vendedor User', email: 'vendedor@distrimin.com', role: 'vendedor' },
+    { id: '3', name: 'Cliente Ejemplo', email: 'cliente@distrimin.com', role: 'cliente' },
 ];
 
 // Definir la forma del contexto de autenticación
@@ -43,13 +44,26 @@ export function useAuth() {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
 
   // Cargar usuario desde localStorage al iniciar
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        
+        // Redirection logic on initial load
+        const currentPath = pathname;
+        const userRole = parsedUser.role;
+
+        if ((userRole === 'admin' || userRole === 'vendedor') && !currentPath.startsWith('/sales')) {
+            // router.push('/sales/create-quote');
+        } else if (userRole.includes('cliente') && !currentPath.startsWith('/account') && !['/', '/products', '/cart', '/about', '/contact', '/checkout', '/category'].some(p => currentPath.startsWith(p))) {
+            // router.push('/account/dashboard');
+        }
+
       }
     } catch (error) {
       console.error("Failed to parse user from localStorage", error);
