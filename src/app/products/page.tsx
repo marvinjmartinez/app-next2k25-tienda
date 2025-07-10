@@ -12,8 +12,15 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { products, categories, type Product } from '@/lib/dummy-data';
 import React, { useState, useEffect, Suspense } from 'react';
-import { cn } from '@/lib/utils';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
 
 function ProductsPageComponent() {
   const { addToCart, getCartItemCount } = useCart();
@@ -21,13 +28,23 @@ function ProductsPageComponent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'));
   const searchQuery = searchParams.get('search') || '';
   const [localSearch, setLocalSearch] = useState(searchQuery);
 
   useEffect(() => {
     setLocalSearch(searchQuery);
   }, [searchQuery]);
+  
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (selectedCategory) {
+      params.set('category', selectedCategory);
+    } else {
+      params.delete('category');
+    }
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [selectedCategory, pathname, router]);
 
   const handleAddToCart = (product: Product) => {
     addToCart({
@@ -104,39 +121,36 @@ function ProductsPageComponent() {
               {searchQuery ? `Encontramos ${filteredProducts.length} productos` : "Explora el catálogo completo de Distrimin SAS."}
             </p>
           </div>
-
-          <form onSubmit={handleSearch} className="relative max-w-xl mx-auto mb-10">
-              <Input 
-                  name="search" 
-                  type="search" 
-                  placeholder="Buscar producto..." 
-                  className="w-full h-12 pr-12"
-                  value={localSearch}
-                  onChange={(e) => setLocalSearch(e.target.value)}
-              />
-              <Button type="submit" size="icon" className="absolute right-1 top-1 h-10 w-10 bg-accent hover:bg-accent/90">
-                  <Search className="h-5 w-5"/>
-              </Button>
-          </form>
           
-          <div className="flex justify-center gap-2 mb-10 flex-wrap">
-            <Button 
-                variant={selectedCategory === null ? "default" : "outline"}
-                onClick={() => setSelectedCategory(null)}
-            >
-                Todos
-            </Button>
-            {categories.map((category) => (
-                <Button 
-                    key={category.slug} 
-                    variant={selectedCategory === category.slug ? "default" : "outline"}
-                    onClick={() => setSelectedCategory(category.slug)}
-                >
-                    {category.name}
-                </Button>
-            ))}
+          <div className="flex flex-col sm:flex-row gap-4 max-w-2xl mx-auto mb-10">
+              <form onSubmit={handleSearch} className="relative w-full">
+                  <Input 
+                      name="search" 
+                      type="search" 
+                      placeholder="Buscar producto..." 
+                      className="w-full h-10 pr-10"
+                      value={localSearch}
+                      onChange={(e) => setLocalSearch(e.target.value)}
+                  />
+                  <Button type="submit" size="icon" className="absolute right-1 top-1 h-8 w-8 bg-accent hover:bg-accent/90">
+                      <Search className="h-4 w-4"/>
+                  </Button>
+              </form>
+              <Select onValueChange={(value) => setSelectedCategory(value === 'all' ? null : value)} value={selectedCategory || 'all'}>
+                  <SelectTrigger className="w-full sm:w-[280px]">
+                      <SelectValue placeholder="Selecciona una categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="all">Todas las categorías</SelectItem>
+                      {categories.map((category) => (
+                          <SelectItem key={category.slug} value={category.slug}>
+                              {category.name}
+                          </SelectItem>
+                      ))}
+                  </SelectContent>
+              </Select>
           </div>
-
+          
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {filteredProducts.map((product) => (
