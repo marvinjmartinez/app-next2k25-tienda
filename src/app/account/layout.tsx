@@ -78,6 +78,11 @@ export default function AccountLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/account/profile')} tooltip="Mi Perfil">
+                    <Link href="/account/profile"><User /><span>Mi Perfil</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/account/quotes')} tooltip="Mis Cotizaciones">
                   <Link href="#"><FileText /><span>Mis Cotizaciones</span></Link>
                 </SidebarMenuButton>
