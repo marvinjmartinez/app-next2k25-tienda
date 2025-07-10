@@ -21,10 +21,10 @@ export async function generateProductImageAction(formData: FormData) {
     
     try {
         const result = await generateProductImage({ hint: validation.data.hint });
-
-        return { success: true, data: result };
+        return { success: true, data: { imageUrl: result.imageUrl } };
     } catch (error) {
         console.error(error);
-        return { success: false, error: "Ocurrió un error inesperado al generar la imagen." };
+        const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado al generar la imagen.";
+        return { success: false, error: errorMessage };
     }
 }

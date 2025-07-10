@@ -503,7 +503,7 @@ export default function ProductsAdminPage() {
                             <div className="space-y-2">
                                 <Label htmlFor="image">URL de la Imagen Principal</Label>
                                 <Input id="image" name="image" value={productImage} onChange={(e) => setProductImage(e.target.value)} />
-                                {productImage && productImage.startsWith('data:image') && (
+                                {productImage && (
                                      <Image src={productImage} alt="Preview" width={80} height={80} className="mt-2 rounded-md object-cover border" />
                                 )}
                             </div>
