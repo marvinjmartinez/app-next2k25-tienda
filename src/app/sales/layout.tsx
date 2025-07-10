@@ -98,7 +98,7 @@ export default function SalesLayout({
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/dashboard')} tooltip="Panel">
-                    <Link href="#"><LayoutDashboard /><span>Panel</span></Link>
+                    <Link href="/sales/dashboard"><LayoutDashboard /><span>Panel</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
