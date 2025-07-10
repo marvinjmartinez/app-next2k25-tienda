@@ -91,13 +91,13 @@ export default function AccountLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/account/quotes')} tooltip="Mis Cotizaciones">
-                  <Link href="#"><FileText /><span>Mis Cotizaciones</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/account/purchases')} tooltip="Mis Compras">
+                  <Link href="#"><ShoppingBag /><span>Mis Compras</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/account/orders')} tooltip="Mis Pedidos">
-                  <Link href="#"><ShoppingBag /><span>Mis Pedidos</span></Link>
+                  <Link href="#"><FileText /><span>Mis Pedidos</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
