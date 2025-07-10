@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import {
   Table,
@@ -54,13 +55,6 @@ interface User {
   status: UserStatus;
 }
 
-const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
-    }).format(amount);
-  };
-  
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('es-MX', {
         year: 'numeric',
@@ -91,6 +85,8 @@ export default function CustomersPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateUserDialogOpen, setCreateUserDialogOpen] = useState(false);
+    const [isProfileDialogOpen, setProfileDialogOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
     useEffect(() => {
         setUsers(usersData as User[]);
@@ -115,6 +111,7 @@ export default function CustomersPage() {
             description: `El usuario ${newUser.name} ha sido agregado al sistema.`,
         });
         setCreateUserDialogOpen(false);
+        e.currentTarget.reset();
     }
     
     const handleChangeRole = (userId: string, newRole: UserRole) => {
@@ -152,7 +149,7 @@ export default function CustomersPage() {
         let userName = '';
         setUsers(prev => prev.filter(u => {
             if (u.id === userId) {
-                userName = u.name;
+                userName = u.id === user?.id ? "tu propio usuario" : u.name;
                 return false;
             }
             return true;
@@ -164,12 +161,34 @@ export default function CustomersPage() {
         })
     }
 
-    const handleViewProfile = (customerName: string) => {
-        toast({
-            title: "Función no implementada",
-            description: `Aquí se mostraría el perfil de ${customerName}.`,
-        });
+    const handleViewProfile = (customer: User) => {
+        setSelectedUser(customer);
+        setProfileDialogOpen(true);
     };
+
+    const handleProfileSave = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const updatedName = formData.get('name') as string;
+
+        if (selectedUser) {
+            setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, name: updatedName } : u));
+            toast({
+                title: "Perfil Actualizado",
+                description: `Se actualizó el nombre de ${selectedUser.name} a ${updatedName}.`,
+            });
+        }
+        setProfileDialogOpen(false);
+    }
+
+    const handlePasswordChange = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        toast({
+            title: "Contraseña Actualizada (Simulación)",
+            description: `Se ha actualizado la contraseña para ${selectedUser?.name}.`,
+        });
+        setProfileDialogOpen(false);
+    }
 
     const filteredUsers = users.filter(u => 
         u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -250,7 +269,7 @@ export default function CustomersPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handleViewProfile(customer.name)}>Ver Perfil</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleViewProfile(customer)}>Ver Perfil</DropdownMenuItem>
                                 {isAdmin && customer.id !== user?.id && (
                                     <>
                                         <DropdownMenuSub>
@@ -355,6 +374,59 @@ export default function CustomersPage() {
                         <Button type="submit">Crear Usuario</Button>
                     </DialogFooter>
                 </form>
+            </DialogContent>
+        </Dialog>
+
+        <Dialog open={isProfileDialogOpen} onOpenChange={setProfileDialogOpen}>
+            <DialogContent className="sm:max-w-4xl">
+                 <DialogHeader>
+                    <DialogTitle>Gestionar Perfil de: {selectedUser?.name}</DialogTitle>
+                    <DialogDescription>
+                        Edita la información del usuario o actualiza su contraseña.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid md:grid-cols-2 gap-8 pt-4">
+                    <form onSubmit={handleProfileSave}>
+                        <Card>
+                        <CardHeader>
+                            <CardTitle>Información Personal</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="profile-name">Nombre</Label>
+                                <Input id="profile-name" name="name" defaultValue={selectedUser?.name} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="profile-email">Correo Electrónico</Label>
+                                <Input id="profile-email" type="email" defaultValue={selectedUser?.email} disabled />
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button>Guardar Cambios</Button>
+                        </CardFooter>
+                        </Card>
+                    </form>
+                     <form onSubmit={handlePasswordChange}>
+                        <Card>
+                        <CardHeader>
+                            <CardTitle>Cambiar Contraseña</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="new-password">Nueva Contraseña</Label>
+                                <Input id="new-password" type="password" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="confirm-password">Confirmar Nueva Contraseña</Label>
+                                <Input id="confirm-password" type="password" />
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button>Actualizar Contraseña</Button>
+                        </CardFooter>
+                        </Card>
+                    </form>
+                </div>
             </DialogContent>
         </Dialog>
     </>
