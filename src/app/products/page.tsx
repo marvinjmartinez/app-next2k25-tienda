@@ -13,13 +13,21 @@ import { toast } from '@/hooks/use-toast';
 import { products, categories, type Product } from '@/lib/dummy-data';
 import React, { useState, useEffect, Suspense } from 'react';
 import { cn } from '@/lib/utils';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 function ProductsPageComponent() {
   const { addToCart, getCartItemCount } = useCart();
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const searchQuery = searchParams.get('search') || '';
+  const [localSearch, setLocalSearch] = useState(searchQuery);
+
+  useEffect(() => {
+    setLocalSearch(searchQuery);
+  }, [searchQuery]);
 
   const handleAddToCart = (product: Product) => {
     addToCart({
@@ -33,6 +41,17 @@ function ProductsPageComponent() {
       title: "Producto agregado",
       description: `${product.name} se ha añadido a tu carrito.`,
     });
+  };
+
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const params = new URLSearchParams(searchParams);
+    if (localSearch.trim()) {
+      params.set('search', localSearch.trim());
+    } else {
+      params.delete('search');
+    }
+    router.push(`${pathname}?${params.toString()}`);
   };
 
   const filteredProducts = products.filter(p => {
@@ -85,6 +104,20 @@ function ProductsPageComponent() {
               {searchQuery ? `Encontramos ${filteredProducts.length} productos` : "Explora el catálogo completo de Distrimin SAS."}
             </p>
           </div>
+
+          <form onSubmit={handleSearch} className="relative max-w-xl mx-auto mb-10">
+              <Input 
+                  name="search" 
+                  type="search" 
+                  placeholder="Buscar producto..." 
+                  className="w-full h-12 pr-12"
+                  value={localSearch}
+                  onChange={(e) => setLocalSearch(e.target.value)}
+              />
+              <Button type="submit" size="icon" className="absolute right-1 top-1 h-10 w-10 bg-accent hover:bg-accent/90">
+                  <Search className="h-5 w-5"/>
+              </Button>
+          </form>
           
           <div className="flex justify-center gap-2 mb-10 flex-wrap">
             <Button 
@@ -133,8 +166,8 @@ function ProductsPageComponent() {
           ) : (
              <div className="text-center py-16">
               <p className="text-muted-foreground">No se encontraron productos que coincidan con tu búsqueda.</p>
-              <Button asChild className="mt-4">
-                  <Link href="/products">Ver todos los productos</Link>
+              <Button asChild className="mt-4" onClick={() => { setLocalSearch(''); setSelectedCategory(null); router.push(pathname)}}>
+                  <span>Ver todos los productos</span>
               </Button>
             </div>
           )}
