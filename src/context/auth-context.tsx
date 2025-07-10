@@ -17,7 +17,7 @@ interface User {
 
 // Usuarios de ejemplo
 const DUMMY_USERS: User[] = [
-    { id: '1', name: 'Admin User', email: 'admin@distrimin.com', role: 'admin' },
+    { id: '1', name: 'Admin User', email: 'sistemas@distrimin.com', role: 'admin' },
     { id: '2', name: 'Vendedor User', email: 'vendedor@distrimin.com', role: 'vendedor' },
 ];
 
@@ -58,10 +58,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (email: string, password: string) => {
-    // Simulación: en una app real, aquí se haría una llamada a la API
-    // Se ignora la contraseña por ser una simulación
-    const foundUser = DUMMY_USERS.find(u => u.email === email);
+    // Simulación de credenciales de administrador
+    if (email === 'sistemas@distrimin.com' && password === '123') {
+        const adminUser = DUMMY_USERS.find(u => u.email === 'sistemas@distrimin.com');
+        if (adminUser) {
+            setUser(adminUser);
+            localStorage.setItem('user', JSON.stringify(adminUser));
+            return { success: true, user: adminUser };
+        }
+    }
 
+    // Lógica para otros usuarios (se ignora la contraseña por ser simulación)
+    const foundUser = DUMMY_USERS.find(u => u.email === email);
     if (foundUser) {
       setUser(foundUser);
       localStorage.setItem('user', JSON.stringify(foundUser));
@@ -74,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const foundRegisteredUser = registeredUsers.find((u: User) => u.email === email);
 
         if (foundRegisteredUser) {
+            // Para usuarios registrados, se ignora la contraseña en esta simulación
             setUser(foundRegisteredUser);
             localStorage.setItem('user', JSON.stringify(foundRegisteredUser));
             return { success: true, user: foundRegisteredUser };
