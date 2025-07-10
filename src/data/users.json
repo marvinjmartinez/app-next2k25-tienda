@@ -1,0 +1,43 @@
+
+[
+  {
+    "id": "user-admin",
+    "name": "Admin User",
+    "email": "sistemas@distrimin.com",
+    "role": "admin",
+    "since": "2020-01-01",
+    "status": "activo"
+  },
+  {
+    "id": "user-vendedor",
+    "name": "Vendedor User",
+    "email": "vendedor@distrimin.com",
+    "role": "vendedor",
+    "since": "2023-01-20",
+    "status": "activo"
+  },
+  {
+    "id": "user-cliente",
+    "name": "Cliente Ejemplo",
+    "email": "cliente@distrimin.com",
+    "role": "cliente",
+    "since": "2024-03-10",
+    "status": "inactivo"
+  },
+  {
+    "id": "user-roble",
+    "name": "Constructora Roble",
+    "email": "compras@constructoraroble.com",
+    "role": "cliente_especial",
+    "since": "2021-08-15",
+    "status": "activo"
+  },
+  {
+    "id": "user-urbanos",
+    "name": "Proyectos Urbanos S.A.",
+    "email": "proyectos@urbanos.com",
+    "role": "cliente_especial",
+    "since": "2020-05-30",
+    "status": "activo"
+  }
+]

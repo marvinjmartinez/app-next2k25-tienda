@@ -1,8 +1,10 @@
+
 // src/context/auth-context.tsx
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import usersData from '@/data/users.json';
 
 // Definir los tipos de roles
 type UserRole = 'admin' | 'vendedor' | 'cliente_especial' | 'cliente';
@@ -16,11 +18,7 @@ interface User {
 }
 
 // Usuarios de ejemplo
-const DUMMY_USERS: User[] = [
-    { id: '1', name: 'Admin User', email: 'sistemas@distrimin.com', role: 'admin' },
-    { id: '2', name: 'Vendedor User', email: 'vendedor@distrimin.com', role: 'vendedor' },
-    { id: '3', name: 'Cliente Ejemplo', email: 'cliente@distrimin.com', role: 'cliente' },
-];
+const DUMMY_USERS: User[] = usersData as User[];
 
 // Definir la forma del contexto de autenticación
 interface AuthContextType {

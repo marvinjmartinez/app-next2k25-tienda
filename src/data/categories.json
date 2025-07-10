@@ -1,0 +1,7 @@
+
+[
+    { "name": "Herramientas", "slug": "herramientas", "description": "Las mejores herramientas para cualquier trabajo, desde lo básico hasta lo especializado." },
+    { "name": "Construcción", "slug": "construccion", "description": "Materiales resistentes y duraderos para construir bases sólidas y proyectos impresionantes." },
+    { "name": "Pintura", "slug": "pintura", "description": "Una amplia gama de colores y acabados para darle vida y protección a tus espacios." },
+    { "name": "Plomería", "slug": "plomeria", "description": "Todo lo necesario para instalaciones y reparaciones de agua y gas, sin fugas." }
+]

@@ -1,3 +1,4 @@
+
 // src/app/sales/customers/page.tsx
 "use client";
 
@@ -38,56 +39,11 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import usersData from '@/data/users.json';
 
 type UserStatus = 'activo' | 'inactivo';
 
-const dummyUsers = [
-  {
-    id: '1',
-    name: 'Constructora Roble',
-    email: 'compras@constructoraroble.com',
-    role: 'cliente_especial',
-    since: '2021-08-15',
-    totalSpent: 150000,
-    status: 'activo' as UserStatus,
-  },
-  {
-    id: '2',
-    name: 'Ana García',
-    email: 'ana.garcia.pro@email.com',
-    role: 'vendedor',
-    since: '2023-01-20',
-    totalSpent: 75000,
-    status: 'activo' as UserStatus,
-  },
-  {
-    id: '3',
-    name: 'Carlos Mendoza',
-    email: 'carlos.m@email.com',
-    role: 'cliente',
-    since: '2024-03-10',
-    totalSpent: 5200,
-    status: 'inactivo' as UserStatus,
-  },
-   {
-    id: '4',
-    name: 'Proyectos Urbanos S.A.',
-    email: 'proyectos@urbanos.com',
-    role: 'cliente_especial',
-    since: '2020-05-30',
-    totalSpent: 320500,
-    status: 'activo' as UserStatus,
-  },
-  {
-    id: '5',
-    name: 'Nuevo Usuario',
-    email: 'nuevo@email.com',
-    role: 'cliente',
-    since: '2024-07-15',
-    totalSpent: 0,
-    status: 'activo' as UserStatus,
-  }
-];
+const dummyUsers = usersData.map(u => ({...u, status: u.status as UserStatus}));
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {

@@ -1,3 +1,4 @@
+
 // src/app/sales/create-quote/page.tsx
 "use client";
 
@@ -18,16 +19,12 @@ import { Trash2, Search, Plus, Send, Save } from 'lucide-react';
 
 import type { Product } from '@/lib/dummy-data';
 import { products as allProducts } from '@/lib/dummy-data';
+import usersData from '@/data/users.json';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
 
 // Dummy data for customers - in a real app this would come from an API
-const dummyCustomers = [
-  { id: '1', name: 'Constructora Roble' },
-  { id: '2', name: 'Ana García' },
-  { id: '3', name: 'Carlos Mendoza' },
-  { id: '4', name: 'Proyectos Urbanos S.A.' },
-];
+const dummyCustomers = usersData.filter(u => u.role.startsWith('cliente')).map(u => ({ id: u.id, name: u.name }));
 
 interface QuoteItem extends Product {
   quantity: number;
