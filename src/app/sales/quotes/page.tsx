@@ -182,12 +182,12 @@ export default function QuotesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Gestión de Cotizaciones"
+        title="Gestión de Compras"
         description="Visualiza, edita y da seguimiento a todas las cotizaciones generadas."
       />
       <Card>
         <CardHeader>
-          <CardTitle>Cotizaciones Recientes</CardTitle>
+          <CardTitle>Compras Recientes</CardTitle>
           <CardDescription>
             Lista de las cotizaciones más recientes.
           </CardDescription>
