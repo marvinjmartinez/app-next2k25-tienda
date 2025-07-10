@@ -10,9 +10,9 @@ import { ShoppingCart, User, Search, LogOut, LayoutDashboard } from 'lucide-reac
 import { useCart } from '@/context/cart-context'; 
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { products, categories, type Product } from '@/lib/dummy-data';
+import { categories, type Product, getProducts } from '@/lib/dummy-data';
 import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -20,17 +20,21 @@ import { ProductCard } from '@/components/product-card';
 import { ImageViewerDialog } from '@/components/image-viewer-dialog';
 import { LogoTienda } from '@/components/logo-tienda';
 
-
-const featuredProducts = products.filter(p => p.featured && p.status === 'activo');
-
 export default function HomePage() {
   const { addToCart, getCartItemCount } = useCart();
   const { user, logout } = useAuth();
   const router = useRouter();
 
+  const [products, setProducts] = useState<Product[]>([]);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewerImages, setViewerImages] = useState<string[]>([]);
   const [viewerProductName, setViewerProductName] = useState('');
+
+  useEffect(() => {
+    setProducts(getProducts());
+  }, []);
+
+  const featuredProducts = products.filter(p => p.featured && p.status === 'activo');
 
   const handleOpenImageViewer = (product: Product) => {
     setViewerImages([product.image, ...(product.gallery || [])]);

@@ -8,7 +8,7 @@ import { ShoppingCart, User, Search, LogOut, LayoutDashboard } from 'lucide-reac
 import { useCart } from '@/context/cart-context';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { products, categories, type Product } from '@/lib/dummy-data';
+import { categories, type Product, getProducts } from '@/lib/dummy-data';
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
@@ -33,6 +33,7 @@ function ProductsPageComponent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'));
   const searchQuery = searchParams.get('search') || '';
   const [localSearch, setLocalSearch] = useState(searchQuery);
@@ -40,6 +41,10 @@ function ProductsPageComponent() {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewerImages, setViewerImages] = useState<string[]>([]);
   const [viewerProductName, setViewerProductName] = useState('');
+
+  useEffect(() => {
+    setProducts(getProducts());
+  }, []);
 
   const handleOpenImageViewer = (product: Product) => {
     setViewerImages([product.image, ...(product.gallery || [])]);

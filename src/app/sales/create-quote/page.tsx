@@ -17,7 +17,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, Search, Plus, Send, Save } from 'lucide-react';
 
 import type { Product } from '@/lib/dummy-data';
-import { products as allProducts } from '@/lib/dummy-data';
+import { getProducts } from '@/lib/dummy-data';
 import usersData from '@/data/users.json';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
@@ -45,6 +45,7 @@ export default function CreateQuotePage() {
   const searchParams = useSearchParams();
   const editQuoteId = searchParams.get('edit');
 
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
@@ -57,6 +58,8 @@ export default function CreateQuotePage() {
   const { toast } = useToast();
   
   useEffect(() => {
+    setAllProducts(getProducts());
+
     if (editQuoteId) {
       try {
         const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');

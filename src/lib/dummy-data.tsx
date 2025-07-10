@@ -25,6 +25,9 @@ export interface Category {
     icon?: React.ReactNode;
 }
 
+const PRODUCTS_STORAGE_KEY = 'crud_products';
+
+
 const categoryIcons: { [key: string]: React.ReactNode } = {
     herramientas: <Drill className="h-8 w-8" />,
     construccion: <HardHat className="h-8 w-8" />,
@@ -37,4 +40,22 @@ export const categories: Category[] = categoriesData.map(cat => ({
     icon: categoryIcons[cat.slug]
 }));
 
-export const products: Product[] = productsData as Product[];
+export const initialProducts: Product[] = productsData as Product[];
+
+export const getProducts = (): Product[] => {
+    if (typeof window === 'undefined') {
+        return initialProducts;
+    }
+    try {
+        const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+        if (storedProducts) {
+            return JSON.parse(storedProducts);
+        } else {
+            localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
+            return initialProducts;
+        }
+    } catch (error) {
+        console.error("Failed to load products from localStorage", error);
+        return initialProducts;
+    }
+};
