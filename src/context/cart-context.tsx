@@ -3,6 +3,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { useAuth } from './auth-context';
 
 // Define the shape of a cart item
 interface CartItem {
@@ -36,37 +37,54 @@ export function useCart() {
   return context;
 }
 
-const CART_STORAGE_KEY = 'distrimin_cart';
+const GUEST_CART_KEY = 'distrimin_cart_guest';
 
 // Create the provider component
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { user, isLoading } = useAuth();
+  const [isCartLoaded, setIsCartLoaded] = useState(false);
+  
+  const getCartStorageKey = () => {
+      return user ? `distrimin_cart_${user.id}` : GUEST_CART_KEY;
+  }
 
-  // Load cart from localStorage on initial mount
+  // Effect to load cart from localStorage when user or loading state changes.
   useEffect(() => {
+    // Wait until auth is resolved.
+    if (isLoading) return;
+
+    const cartKey = getCartStorageKey();
     try {
-      const storedCart = localStorage.getItem(CART_STORAGE_KEY);
+      const storedCart = localStorage.getItem(cartKey);
       if (storedCart) {
         setCartItems(JSON.parse(storedCart));
+      } else {
+        // If no specific cart is found for the user/guest, clear items.
+        setCartItems([]);
       }
     } catch (error) {
         console.error("Failed to load cart from localStorage", error);
+        setCartItems([]); // Reset on error
+    } finally {
+        setIsCartLoaded(true);
     }
-    setIsLoaded(true);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, isLoading]);
 
-  // Save cart to localStorage whenever it changes
+  // Effect to save cart to localStorage whenever it changes.
   useEffect(() => {
-    // We only save to localStorage after the initial load to avoid overwriting it
-    if (isLoaded) {
+    // Only save after initial load has completed.
+    if (isCartLoaded) {
+      const cartKey = getCartStorageKey();
       try {
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+        localStorage.setItem(cartKey, JSON.stringify(cartItems));
       } catch (error) {
         console.error("Failed to save cart to localStorage", error);
       }
     }
-  }, [cartItems, isLoaded]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartItems, isCartLoaded]);
 
 
   const addToCart = (item: CartItem) => {
