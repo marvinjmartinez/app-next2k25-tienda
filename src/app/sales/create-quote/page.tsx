@@ -23,15 +23,25 @@ import usersData from '@/data/users.json';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
 
-// Dummy data for customers - in a real app this would come from an API
 const dummyCustomers = usersData.filter(u => u.role.startsWith('cliente')).map(u => ({ id: u.id, name: u.name }));
 
 interface QuoteItem extends Product {
   quantity: number;
 }
 
+export interface Quote {
+  id: string;
+  customerName: string;
+  date: string;
+  total: number;
+  status: 'Pagada' | 'Enviada' | 'Borrador' | 'Cancelada';
+  items: QuoteItem[];
+}
+
+
 export default function CreateQuotePage() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [selectedCustomerName, setSelectedCustomerName] = useState<string>('');
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -82,15 +92,31 @@ export default function CreateQuotePage() {
     }
     return true;
   }
+  
+  const saveQuoteToLocalStorage = (status: 'Borrador' | 'Enviada') => {
+      if (!validateQuote()) return;
+
+      const newQuote: Quote = {
+          id: `COT-${Date.now().toString().slice(-4)}`,
+          customerName: selectedCustomerName,
+          date: new Date().toISOString().split('T')[0],
+          total: quoteTotal,
+          status,
+          items: quoteItems,
+      };
+
+      const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
+      localStorage.setItem('saved_quotes', JSON.stringify([newQuote, ...existingQuotes]));
+  }
+
 
   const handleSaveQuote = () => {
-      if (!validateQuote()) return;
-      
-      // En una aplicación real, aquí guardarías la cotización en la base de datos
+      saveQuoteToLocalStorage('Borrador');
       toast({
-          title: "Cotización Guardada (Simulación)",
+          title: "Cotización Guardada",
           description: "La cotización ha sido guardada como borrador.",
       });
+      router.push('/sales/quotes');
   }
 
   const handleSendToCart = () => {
@@ -105,12 +131,20 @@ export default function CreateQuotePage() {
               quantity: item.quantity,
           })
       });
+      
+      saveQuoteToLocalStorage('Enviada');
 
       toast({
           title: "Cotización enviada al carrito",
           description: `${quoteItems.length} productos han sido agregados al carrito de compras.`
       })
       router.push('/cart');
+  }
+
+  const handleCustomerChange = (customerId: string) => {
+      setSelectedCustomerId(customerId);
+      const customer = dummyCustomers.find(c => c.id === customerId);
+      setSelectedCustomerName(customer ? customer.name : '');
   }
 
   return (
@@ -129,7 +163,7 @@ export default function CreateQuotePage() {
               </CardHeader>
               <CardContent>
                 <Label htmlFor="customer-select">Cliente</Label>
-                <Select onValueChange={setSelectedCustomerId}>
+                <Select onValueChange={handleCustomerChange}>
                   <SelectTrigger id="customer-select">
                     <SelectValue placeholder="Selecciona un cliente para la cotización" />
                   </SelectTrigger>
@@ -205,7 +239,7 @@ export default function CreateQuotePage() {
                   <div className="flex gap-2">
                     <Button size="lg" variant="outline" onClick={handleSaveQuote}>
                         <Save className="mr-2 h-4 w-4"/>
-                        Guardar
+                        Guardar Borrador
                     </Button>
                     <Button size="lg" onClick={handleSendToCart}>
                         <Send className="mr-2 h-4 w-4"/>
