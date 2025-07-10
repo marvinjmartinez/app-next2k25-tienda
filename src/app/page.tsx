@@ -161,7 +161,7 @@ export default function HomePage() {
 
       <main className="flex-1">
         <section 
-          className="relative h-[60vh] flex items-center justify-center text-center text-white bg-no-repeat bg-cover bg-center" 
+          className="relative h-[40vh] flex items-center justify-center text-center text-white bg-no-repeat bg-cover bg-center" 
           style={{backgroundImage: "url('https://placehold.co/1920x1080.png')"}}
           data-ai-hint="hardware store background">
             <div className="absolute inset-0 bg-black/50"></div>
