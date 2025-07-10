@@ -59,17 +59,17 @@ export default function SalesLayout({
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/quotes')} tooltip="Cotizaciones">
-                  <Link href="#"><Star /><span>Cotizaciones</span></Link>
+                  <Link href="/sales/quotes"><Star /><span>Cotizaciones</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/products')} tooltip="Productos">
-                  <Link href="#"><ShoppingCart /><span>Productos</span></Link>
+                  <Link href="/products"><ShoppingCart /><span>Productos</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/customers')} tooltip="Clientes">
-                  <Link href="#"><Users /><span>Clientes</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/customers')} tooltip="Clientes">
+                  <Link href="/sales/customers"><Users /><span>Clientes</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
