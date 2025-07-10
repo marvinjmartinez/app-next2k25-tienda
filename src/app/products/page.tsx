@@ -22,6 +22,7 @@ import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProductCard } from '@/components/product-card';
+import { ImageViewerDialog } from '@/components/image-viewer-dialog';
 
 
 function ProductsPageComponent() {
@@ -34,6 +35,16 @@ function ProductsPageComponent() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(searchParams.get('category'));
   const searchQuery = searchParams.get('search') || '';
   const [localSearch, setLocalSearch] = useState(searchQuery);
+
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerImages, setViewerImages] = useState<string[]>([]);
+  const [viewerProductName, setViewerProductName] = useState('');
+
+  const handleOpenImageViewer = (product: Product) => {
+    setViewerImages([product.image, ...(product.gallery || [])]);
+    setViewerProductName(product.name);
+    setIsViewerOpen(true);
+  };
 
   useEffect(() => {
     setLocalSearch(searchQuery);
@@ -86,6 +97,7 @@ function ProductsPageComponent() {
   }
 
   return (
+    <>
     <div className="flex flex-col min-h-screen">
       <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
@@ -201,6 +213,7 @@ function ProductsPageComponent() {
                   product={product}
                   categoryName={getCategoryName(product.category)}
                   onAddToCart={handleAddToCart}
+                  onImageClick={handleOpenImageViewer}
                 />
               ))}
             </div>
@@ -221,6 +234,13 @@ function ProductsPageComponent() {
         </div>
       </footer>
     </div>
+    <ImageViewerDialog
+        open={isViewerOpen}
+        onOpenChange={setIsViewerOpen}
+        images={viewerImages}
+        productName={viewerProductName}
+    />
+    </>
   );
 }
 

@@ -11,11 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { products, categories, type Product } from '@/lib/dummy-data';
 import { useRouter } from 'next/navigation';
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProductCard } from '@/components/product-card';
+import { ImageViewerDialog } from '@/components/image-viewer-dialog';
 
 
 const featuredProducts = products.filter(p => p.featured);
@@ -24,6 +25,17 @@ export default function HomePage() {
   const { addToCart, getCartItemCount } = useCart();
   const { user, logout } = useAuth();
   const router = useRouter();
+
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [viewerImages, setViewerImages] = useState<string[]>([]);
+  const [viewerProductName, setViewerProductName] = useState('');
+
+  const handleOpenImageViewer = (product: Product) => {
+    setViewerImages([product.image, ...(product.gallery || [])]);
+    setViewerProductName(product.name);
+    setIsViewerOpen(true);
+  };
+
 
   const handleAddToCart = (product: Product) => {
     addToCart({
@@ -57,10 +69,12 @@ export default function HomePage() {
   }
 
   const getCategoryName = (slug: string) => {
-    return categories.find(c => c.slug === slug)?.name || 'Sin categoría';
+    const category = categories.find(c => c.slug === slug);
+    return category ? category.name : 'Sin categoría';
   }
 
   return (
+    <>
     <div className="flex flex-col min-h-screen">
       <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
@@ -172,6 +186,7 @@ export default function HomePage() {
                   product={product}
                   categoryName={getCategoryName(product.category)}
                   onAddToCart={handleAddToCart}
+                  onImageClick={handleOpenImageViewer}
                 />
               ))}
             </div>
@@ -217,5 +232,12 @@ export default function HomePage() {
         </div>
       </footer>
     </div>
+    <ImageViewerDialog
+        open={isViewerOpen}
+        onOpenChange={setIsViewerOpen}
+        images={viewerImages}
+        productName={viewerProductName}
+    />
+    </>
   );
 }

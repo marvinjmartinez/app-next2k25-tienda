@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Maximize } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { Product } from '@/lib/dummy-data';
 
@@ -13,14 +13,19 @@ interface ProductCardProps {
   product: Product;
   categoryName: string;
   onAddToCart: (product: Product) => void;
+  onImageClick: (product: Product) => void;
 }
 
-export function ProductCard({ product, categoryName, onAddToCart }: ProductCardProps) {
+export function ProductCard({ product, categoryName, onAddToCart, onImageClick }: ProductCardProps) {
   const allImages = [product.image, ...(product.gallery || [])];
 
   return (
     <Card className="overflow-hidden group flex flex-col">
       <CardHeader className="p-0 relative">
+        <button onClick={() => onImageClick(product)} className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+          <Maximize className="h-8 w-8 text-white" />
+          <span className="sr-only">Ampliar imagen</span>
+        </button>
         {product.stock === 0 && (
           <Badge variant="destructive" className="absolute top-2 left-2 z-10">AGOTADO</Badge>
         )}
@@ -41,8 +46,8 @@ export function ProductCard({ product, categoryName, onAddToCart }: ProductCardP
           </CarouselContent>
           {allImages.length > 1 && (
             <>
-              <CarouselPrevious className="absolute left-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-              <CarouselNext className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CarouselPrevious className="absolute left-4 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
+              <CarouselNext className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
             </>
           )}
         </Carousel>
