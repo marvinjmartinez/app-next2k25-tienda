@@ -31,7 +31,7 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Logo } from '@/components/logo';
+import { LogoTienda } from '@/components/logo-tienda';
 
 export default function AccountLayout({
   children,
@@ -74,7 +74,7 @@ export default function AccountLayout({
         <Sidebar>
           <SidebarHeader>
             <Link href="/" className="flex items-center gap-2">
-                <Logo className="h-10 w-auto" />
+                <LogoTienda className="h-10 w-auto" />
                 <span className="font-semibold text-lg group-data-[state=expanded]:inline hidden">Mi Cuenta</span>
             </Link>
           </SidebarHeader>

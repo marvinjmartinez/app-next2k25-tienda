@@ -25,7 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Logo } from "@/components/logo";
+import { LogoTienda } from "@/components/logo-tienda";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor ingresa un correo válido." }),
@@ -76,7 +76,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <Link href="/" className="inline-block">
-              <Logo className="h-20 w-auto" />
+              <LogoTienda className="h-20 w-auto" />
           </Link>
         </div>
         <Card>

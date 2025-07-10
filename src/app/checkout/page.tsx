@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { CreditCard, Truck, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { Logo } from '@/components/logo';
+import { LogoTienda } from '@/components/logo-tienda';
 
 
 export default function CheckoutPage() {
@@ -57,7 +57,7 @@ export default function CheckoutPage() {
        <header className="bg-background">
         <div className="container mx-auto flex h-16 items-center justify-center px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <Logo className="h-10 w-auto" />
+            <LogoTienda className="h-10 w-auto" />
             <span className="font-bold text-xl font-headline text-foreground"> - Pago Seguro</span>
           </Link>
         </div>

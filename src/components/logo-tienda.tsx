@@ -1,12 +1,12 @@
-// src/components/logo.tsx
+// src/components/logo-tienda.tsx
 import { cn } from "@/lib/utils";
 import React from "react";
 
-interface LogoProps extends React.SVGProps<SVGSVGElement> {
+interface LogoTiendaProps extends React.SVGProps<SVGSVGElement> {
   // no custom props
 }
 
-export function Logo({ className, ...props }: LogoProps) {
+export function LogoTienda({ className, ...props }: LogoTiendaProps) {
   return (
     <svg
       viewBox="0 0 100 55"

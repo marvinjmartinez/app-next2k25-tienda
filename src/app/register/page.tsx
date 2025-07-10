@@ -25,7 +25,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Logo } from "@/components/logo";
+import { LogoTienda } from "@/components/logo-tienda";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "El nombre debe tener al menos 2 caracteres." }),
@@ -71,7 +71,7 @@ export default function RegisterPage() {
        <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <Link href="/" className="inline-block">
-              <Logo className="h-20 w-auto" />
+              <LogoTienda className="h-20 w-auto" />
           </Link>
         </div>
         <Card>

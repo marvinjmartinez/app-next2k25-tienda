@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, User, LogOut } from 'lucide-react';
+import { ShoppingCart, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -12,19 +12,27 @@ import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
-import { Logo } from '@/components/logo';
+import { LogoTienda } from '@/components/logo-tienda';
 
 export default function AboutPage() {
   const { getCartItemCount } = useCart();
   const { user, logout } = useAuth();
   const router = useRouter();
+  
+  const getDashboardPath = () => {
+    if (!user) return "/login";
+    if (user.role === 'admin' || user.role === 'vendedor') {
+      return "/sales/create-quote";
+    }
+    return "/account/dashboard";
+  }
 
   return (
     <div className="flex flex-col min-h-screen">
       <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <Logo className="h-10 w-auto" />
+            <LogoTienda className="h-10 w-auto" />
             <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
           </Link>
           <nav className="hidden md:flex gap-6 items-center">
@@ -63,12 +71,10 @@ export default function AboutPage() {
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                   {user.role === 'admin' && (
-                     <DropdownMenuItem onClick={() => router.push('/sales/create-quote')}>
-                        <Logo className="mr-2 h-4 w-4" />
-                        <span>Dashboard</span>
-                    </DropdownMenuItem>
-                  )}
+                  <DropdownMenuItem onClick={() => router.push(getDashboardPath())}>
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      <span>Mi Panel</span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Cerrar Sesión</span>
