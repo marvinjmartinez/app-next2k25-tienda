@@ -1,4 +1,5 @@
 // src/app/sales/customers/page.tsx
+"use client";
 
 import { PageHeader } from '@/components/page-header';
 import {
@@ -25,14 +26,19 @@ import {
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/context/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
-const dummyCustomers = [
+const dummyUsers = [
   {
     id: '1',
     name: 'Constructora Roble',
     email: 'compras@constructoraroble.com',
-    type: 'Cliente Especial',
+    role: 'cliente_especial',
     since: '2021-08-15',
     totalSpent: 150000,
   },
@@ -40,7 +46,7 @@ const dummyCustomers = [
     id: '2',
     name: 'Ana García',
     email: 'ana.garcia.pro@email.com',
-    type: 'Vendedor',
+    role: 'vendedor',
     since: '2023-01-20',
     totalSpent: 75000,
   },
@@ -48,7 +54,7 @@ const dummyCustomers = [
     id: '3',
     name: 'Carlos Mendoza',
     email: 'carlos.m@email.com',
-    type: 'Cliente',
+    role: 'cliente',
     since: '2024-03-10',
     totalSpent: 5200,
   },
@@ -56,10 +62,18 @@ const dummyCustomers = [
     id: '4',
     name: 'Proyectos Urbanos S.A.',
     email: 'proyectos@urbanos.com',
-    type: 'Cliente Especial',
+    role: 'cliente_especial',
     since: '2020-05-30',
     totalSpent: 320500,
   },
+  {
+    id: '5',
+    name: 'Nuevo Usuario',
+    email: 'nuevo@email.com',
+    role: 'cliente',
+    since: '2024-07-15',
+    totalSpent: 0,
+  }
 ];
 
 const formatCurrency = (amount: number) => {
@@ -77,19 +91,44 @@ const formatDate = (dateString: string) => {
     })
 }
 
+const roleBadges: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
+    admin: 'destructive',
+    vendedor: 'default',
+    cliente_especial: 'secondary',
+    cliente: 'outline',
+}
+
+const roleNames: { [key: string]: string } = {
+    admin: 'Administrador',
+    vendedor: 'Vendedor',
+    cliente_especial: 'Cliente Especial',
+    cliente: 'Cliente',
+}
 
 export default function CustomersPage() {
+    const { user } = useAuth();
+    const { toast } = useToast();
+    const isAdmin = user?.role === 'admin';
+
+    const handleChangeRole = (userName: string, newRole: string) => {
+        // En una aplicación real, aquí llamarías a una API para actualizar el rol.
+        toast({
+            title: "Rol Actualizado (Simulación)",
+            description: `El rol de ${userName} ha sido cambiado a ${roleNames[newRole]}.`,
+        })
+    }
+
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Gestión de Clientes"
-        description="Visualiza y administra tus clientes y vendedores."
+        title="Gestión de Registrados"
+        description="Visualiza y administra todos los usuarios registrados en el sistema."
       />
       <Card>
         <CardHeader>
-          <CardTitle>Lista de Clientes</CardTitle>
+          <CardTitle>Lista de Registrados</CardTitle>
           <CardDescription>
-            Aquí puedes ver a todos los usuarios registrados.
+            Usuarios registrados en la plataforma. Solo los administradores pueden cambiar roles.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -97,22 +136,22 @@ export default function CustomersPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
-                <TableHead>Tipo de Cliente</TableHead>
+                <TableHead>Rol</TableHead>
                 <TableHead className="text-right">Total Gastado</TableHead>
-                <TableHead>Cliente Desde</TableHead>
+                <TableHead>Registrado Desde</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {dummyCustomers.map((customer) => (
+              {dummyUsers.map((customer) => (
                 <TableRow key={customer.id}>
                   <TableCell>
                     <div className="font-medium">{customer.name}</div>
                     <div className="text-sm text-muted-foreground">{customer.email}</div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={customer.type === 'Cliente Especial' ? 'default' : 'secondary'}>
-                        {customer.type}
+                    <Badge variant={roleBadges[customer.role] || 'outline'}>
+                        {roleNames[customer.role] || customer.role}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">{formatCurrency(customer.totalSpent)}</TableCell>
@@ -120,15 +159,26 @@ export default function CustomersPage() {
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" disabled={!isAdmin}>
                           <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Acciones</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem>Editar</DropdownMenuItem>
-                        <DropdownMenuItem>Ver Pedidos</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                        <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
+                        {isAdmin && (
+                            <DropdownMenuSub>
+                                <DropdownMenuSubTrigger>Cambiar Rol</DropdownMenuSubTrigger>
+                                <DropdownMenuSubContent>
+                                    <DropdownMenuItem onClick={() => handleChangeRole(customer.name, 'cliente')}>Cliente</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleChangeRole(customer.name, 'cliente_especial')}>Cliente Especial</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleChangeRole(customer.name, 'vendedor')}>Vendedor</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleChangeRole(customer.name, 'admin')}>Administrador</DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                        )}
+                        <DropdownMenuItem className="text-destructive">Eliminar Usuario</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

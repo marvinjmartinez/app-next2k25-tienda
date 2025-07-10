@@ -68,8 +68,8 @@ export default function SalesLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/customers')} tooltip="Clientes">
-                  <Link href="/sales/customers"><Users /><span>Clientes</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/customers')} tooltip="Registrados">
+                  <Link href="/sales/customers"><Users /><span>Registrados</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
