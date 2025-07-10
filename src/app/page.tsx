@@ -37,7 +37,7 @@ export default function HomePage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
             <Wrench className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl font-headline text-foreground">El Martillo de Oro</span>
+            <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
           </Link>
           <nav className="hidden md:flex gap-6 items-center">
             <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">Productos</Link>
@@ -137,7 +137,7 @@ export default function HomePage() {
         <div className="container mx-auto py-8 px-4 md:px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="font-bold text-lg mb-2">El Martillo de Oro</h3>
+              <h3 className="font-bold text-lg mb-2">Distrimin SAS</h3>
               <p className="text-sm text-muted-foreground">© 2024. Todos los derechos reservados.</p>
             </div>
             <div>

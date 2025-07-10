@@ -42,7 +42,7 @@ export default function SalesLayout({
           <SidebarHeader>
             <Link href="/" className="flex items-center gap-2">
                 <Wrench className="h-6 w-6 text-primary" />
-                <span className="font-semibold text-lg">El Martillo de Oro</span>
+                <span className="font-semibold text-lg">Distrimin SAS</span>
             </Link>
           </SidebarHeader>
           <SidebarContent>
@@ -84,7 +84,7 @@ export default function SalesLayout({
                   </Avatar>
                   <div className="text-left hidden group-data-[state=expanded]:block">
                     <p className="font-medium text-sm">Agente de Ventas</p>
-                    <p className="text-xs text-muted-foreground">ventas@elmartillo.com</p>
+                    <p className="text-xs text-muted-foreground">ventas@distriminsas.com</p>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
@@ -93,7 +93,7 @@ export default function SalesLayout({
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">Agente de Ventas</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      ventas@elmartillo.com
+                      ventas@distriminsas.com
                     </p>
                   </div>
                 </DropdownMenuLabel>

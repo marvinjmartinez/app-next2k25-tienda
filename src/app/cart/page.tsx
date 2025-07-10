@@ -27,7 +27,7 @@ export default function CartPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
             <Wrench className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl font-headline text-foreground">El Martillo de Oro</span>
+            <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
           </Link>
           <div className="flex items-center gap-4">
              <Button variant="ghost" size="icon" asChild>

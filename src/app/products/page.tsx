@@ -42,7 +42,7 @@ export default function ProductsPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
             <Wrench className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl font-headline text-foreground">El Martillo de Oro</span>
+            <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
           </Link>
           <nav className="hidden md:flex gap-6 items-center">
             <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">Productos</Link>
@@ -73,7 +73,7 @@ export default function ProductsPage() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
             <h1 className="text-4xl font-bold font-headline">Todos Nuestros Productos</h1>
-            <p className="text-muted-foreground mt-2">Explora el catálogo completo de El Martillo de Oro.</p>
+            <p className="text-muted-foreground mt-2">Explora el catálogo completo de Distrimin SAS.</p>
           </div>
           
           <div className="flex justify-center gap-2 mb-10 flex-wrap">
@@ -124,7 +124,7 @@ export default function ProductsPage() {
 
       <footer className="bg-foreground text-background">
         <div className="container mx-auto py-8 px-4 md:px-6">
-            <p className="text-center text-sm text-muted-foreground">© 2024 El Martillo de Oro. Todos los derechos reservados.</p>
+            <p className="text-center text-sm text-muted-foreground">© 2024 Distrimin SAS. Todos los derechos reservados.</p>
         </div>
       </footer>
     </div>

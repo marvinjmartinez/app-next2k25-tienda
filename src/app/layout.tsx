@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { CartProvider } from '@/context/cart-context';
 
 export const metadata: Metadata = {
-  title: 'Ferretería "El Martillo de Oro"',
+  title: 'Distrimin SAS',
   description: 'Todo lo que necesitas para tu hogar y proyectos.',
 };
 

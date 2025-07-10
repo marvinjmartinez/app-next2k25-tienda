@@ -32,7 +32,7 @@ export default function ContactPage() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
             <Wrench className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl font-headline text-foreground">El Martillo de Oro</span>
+            <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
           </Link>
           <nav className="hidden md:flex gap-6 items-center">
             <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">Productos</Link>
@@ -106,7 +106,7 @@ export default function ContactPage() {
                       </div>
                       <div className="flex items-center gap-4">
                           <Mail className="h-6 w-6 text-primary" />
-                          <p className="text-muted-foreground">contacto@elmartillodeoro.com</p>
+                          <p className="text-muted-foreground">contacto@distriminsas.com</p>
                       </div>
                   </div>
               </div>
@@ -135,7 +135,7 @@ export default function ContactPage() {
 
       <footer className="bg-foreground text-background">
         <div className="container mx-auto py-8 px-4 md:px-6">
-          <p className="text-center text-sm text-muted-foreground">© 2024 El Martillo de Oro. Todos los derechos reservados.</p>
+          <p className="text-center text-sm text-muted-foreground">© 2024 Distrimin SAS. Todos los derechos reservados.</p>
         </div>
       </footer>
     </div>
