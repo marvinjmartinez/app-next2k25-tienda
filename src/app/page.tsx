@@ -1,32 +1,42 @@
+// This component is now a client component to use the cart context
+"use client";
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ShoppingCart, Wrench, User, Search, HardHat, Paintbrush, Drill } from 'lucide-react';
 import Image from 'next/image';
+import { useCart } from '@/context/cart-context'; // Import the cart context
+import { Badge } from '@/components/ui/badge'; // Import Badge
+import { toast } from '@/hooks/use-toast';
 
 const featuredProducts = [
   {
+    id: "prod_1",
     name: "Taladro Percutor Inalámbrico",
-    price: "$1,899.00",
+    price: 1899.00,
     image: "https://placehold.co/300x300.png",
     hint: "power tool"
   },
   {
+    id: "prod_2",
     name: "Juego de Destornilladores 25 pzs",
-    price: "$499.00",
+    price: 499.00,
     image: "https://placehold.co/300x300.png",
     hint: "hand tools"
   },
   {
+    id: "prod_3",
     name: "Pintura Vinílica Blanca 19L",
-    price: "$1,250.00",
+    price: 1250.00,
     image: "https://placehold.co/300x300.png",
     hint: "paint can"
   },
   {
+    id: "prod_4",
     name: "Escalera de Tijera de Aluminio",
-    price: "$980.00",
+    price: 980.00,
     image: "https://placehold.co/300x300.png",
     hint: "ladder"
   },
@@ -40,6 +50,22 @@ const categories = [
 ]
 
 export default function HomePage() {
+  const { addToCart, getCartItemCount } = useCart();
+
+  const handleAddToCart = (product: typeof featuredProducts[0]) => {
+    addToCart({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        quantity: 1,
+    });
+    toast({
+      title: "Producto agregado",
+      description: `${product.name} se ha añadido a tu carrito.`,
+    });
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50">
@@ -54,9 +80,14 @@ export default function HomePage() {
             <Link href="#" className="text-sm font-medium hover:text-primary transition-colors">Contacto</Link>
           </nav>
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon">
-              <ShoppingCart className="h-5 w-5" />
-              <span className="sr-only">Carrito</span>
+            <Button variant="ghost" size="icon" asChild>
+                <Link href="/cart" className="relative">
+                    <ShoppingCart className="h-5 w-5" />
+                    {getCartItemCount() > 0 && (
+                        <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 justify-center p-1 text-xs">{getCartItemCount()}</Badge>
+                    )}
+                    <span className="sr-only">Carrito</span>
+                </Link>
             </Button>
             <Link href="/sales/create-quote">
                 <Button variant="outline">
@@ -107,16 +138,16 @@ export default function HomePage() {
             <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10">Los favoritos de nuestros clientes, seleccionados por su calidad y precio.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {featuredProducts.map((product) => (
-                <Card key={product.name} className="overflow-hidden group">
+                <Card key={product.id} className="overflow-hidden group">
                   <CardHeader className="p-0">
                     <Image src={product.image} alt={product.name} width={300} height={300} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={product.hint} />
                   </CardHeader>
                   <CardContent className="p-4">
                     <CardTitle className="text-lg h-12">{product.name}</CardTitle>
-                    <CardDescription className="text-primary font-semibold text-lg mt-2">{product.price}</CardDescription>
+                    <CardDescription className="text-primary font-semibold text-lg mt-2">${product.price.toFixed(2)}</CardDescription>
                   </CardContent>
                   <CardFooter className="p-4 pt-0">
-                    <Button className="w-full">
+                    <Button className="w-full" onClick={() => handleAddToCart(product)}>
                       <ShoppingCart className="mr-2 h-4 w-4" />
                       Agregar al carrito
                     </Button>
