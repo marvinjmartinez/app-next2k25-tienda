@@ -11,12 +11,15 @@ import { useCart } from '@/context/cart-context';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { products, categories, type Product } from '@/lib/dummy-data';
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { cn } from '@/lib/utils';
+import { useSearchParams } from 'next/navigation';
 
-export default function ProductsPage() {
+function ProductsPageComponent() {
   const { addToCart, getCartItemCount } = useCart();
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get('search') || '';
 
   const handleAddToCart = (product: Product) => {
     addToCart({
@@ -32,9 +35,11 @@ export default function ProductsPage() {
     });
   };
 
-  const filteredProducts = selectedCategory
-    ? products.filter((p) => p.category === selectedCategory)
-    : products;
+  const filteredProducts = products.filter(p => {
+    const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
+    const matchesSearch = searchQuery ? p.name.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -73,8 +78,12 @@ export default function ProductsPage() {
       <main className="flex-1 py-12">
         <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-10">
-            <h1 className="text-4xl font-bold font-headline">Todos Nuestros Productos</h1>
-            <p className="text-muted-foreground mt-2">Explora el catálogo completo de Distrimin SAS.</p>
+            <h1 className="text-4xl font-bold font-headline">
+              {searchQuery ? `Resultados para "${searchQuery}"` : "Todos Nuestros Productos"}
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              {searchQuery ? `Encontramos ${filteredProducts.length} productos` : "Explora el catálogo completo de Distrimin SAS."}
+            </p>
           </div>
           
           <div className="flex justify-center gap-2 mb-10 flex-wrap">
@@ -95,31 +104,40 @@ export default function ProductsPage() {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {filteredProducts.map((product) => (
-              <Card key={product.id} className="overflow-hidden group flex flex-col">
-                <CardHeader className="p-0 relative">
-                  {product.stock === 0 && (
-                    <Badge variant="destructive" className="absolute top-2 left-2 z-10">AGOTADO</Badge>
-                  )}
-                  <Image src={product.image} alt={product.name} width={300} height={300} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={product.hint} />
-                </CardHeader>
-                <CardContent className="p-4 flex-grow">
-                  <CardTitle className="text-lg h-12">{product.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {product.stock > 0 ? `${product.stock} en existencia` : "Sin existencias"}
-                  </p>
-                  <CardDescription className="text-primary font-semibold text-lg mt-2">${product.price.toFixed(2)}</CardDescription>
-                </CardContent>
-                <CardFooter className="p-4 pt-0">
-                  <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => handleAddToCart(product)} disabled={product.stock === 0}>
-                    <ShoppingCart className="mr-2 h-4 w-4" />
-                    {product.stock > 0 ? 'Agregar al carrito' : 'No disponible'}
-                  </Button>
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
+          {filteredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+              {filteredProducts.map((product) => (
+                <Card key={product.id} className="overflow-hidden group flex flex-col">
+                  <CardHeader className="p-0 relative">
+                    {product.stock === 0 && (
+                      <Badge variant="destructive" className="absolute top-2 left-2 z-10">AGOTADO</Badge>
+                    )}
+                    <Image src={product.image} alt={product.name} width={300} height={300} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={product.hint} />
+                  </CardHeader>
+                  <CardContent className="p-4 flex-grow">
+                    <CardTitle className="text-lg h-12">{product.name}</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {product.stock > 0 ? `${product.stock} en existencia` : "Sin existencias"}
+                    </p>
+                    <CardDescription className="text-primary font-semibold text-lg mt-2">${product.price.toFixed(2)}</CardDescription>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0">
+                    <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={() => handleAddToCart(product)} disabled={product.stock === 0}>
+                      <ShoppingCart className="mr-2 h-4 w-4" />
+                      {product.stock > 0 ? 'Agregar al carrito' : 'No disponible'}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+             <div className="text-center py-16">
+              <p className="text-muted-foreground">No se encontraron productos que coincidan con tu búsqueda.</p>
+              <Button asChild className="mt-4">
+                  <Link href="/products">Ver todos los productos</Link>
+              </Button>
+            </div>
+          )}
         </div>
       </main>
 
@@ -129,5 +147,13 @@ export default function ProductsPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <ProductsPageComponent />
+    </Suspense>
   );
 }

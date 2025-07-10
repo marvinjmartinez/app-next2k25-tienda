@@ -11,11 +11,14 @@ import { useCart } from '@/context/cart-context';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { products, categories, type Product } from '@/lib/dummy-data';
+import { useRouter } from 'next/navigation';
+import React from 'react';
 
 const featuredProducts = products.filter(p => p.featured);
 
 export default function HomePage() {
   const { addToCart, getCartItemCount } = useCart();
+  const router = useRouter();
 
   const handleAddToCart = (product: Product) => {
     addToCart({
@@ -30,6 +33,15 @@ export default function HomePage() {
       description: `${product.name} se ha añadido a tu carrito.`,
     });
   }
+
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const searchQuery = formData.get('search') as string;
+    if (searchQuery.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -71,12 +83,12 @@ export default function HomePage() {
             <div className="relative container mx-auto px-4 md:px-6">
                 <h1 className="text-4xl md:text-6xl font-bold font-headline mb-4">Tu proyecto empieza aquí</h1>
                 <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8">Encuentra todo lo que necesitas, desde un tornillo hasta maquinaria pesada.</p>
-                <div className="relative max-w-xl mx-auto">
-                    <Input type="search" placeholder="Buscar producto..." className="w-full h-12 pr-12 text-black" />
-                    <Button size="icon" className="absolute right-1 top-1 h-10 w-10 bg-accent hover:bg-accent/90">
+                <form onSubmit={handleSearch} className="relative max-w-xl mx-auto">
+                    <Input name="search" type="search" placeholder="Buscar producto..." className="w-full h-12 pr-12 text-black" />
+                    <Button type="submit" size="icon" className="absolute right-1 top-1 h-10 w-10 bg-accent hover:bg-accent/90">
                         <Search className="h-5 w-5"/>
                     </Button>
-                </div>
+                </form>
             </div>
         </section>
 
