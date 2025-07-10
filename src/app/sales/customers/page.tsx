@@ -1,8 +1,7 @@
-
 // src/app/sales/customers/page.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -21,7 +20,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, PlusCircle, UserCheck, UserX } from 'lucide-react';
+import { MoreHorizontal, Search, PlusCircle, UserCheck, UserX, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -40,10 +39,20 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import usersData from '@/data/users.json';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
+
+type UserRole = 'admin' | 'vendedor' | 'cliente_especial' | 'cliente';
 type UserStatus = 'activo' | 'inactivo';
 
-const dummyUsers = usersData.map(u => ({...u, status: u.status as UserStatus}));
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  since: string;
+  status: UserStatus;
+}
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -60,14 +69,14 @@ const formatDate = (dateString: string) => {
     })
 }
 
-const roleBadges: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
+const roleBadges: { [key in UserRole]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
     admin: 'destructive',
     vendedor: 'default',
     cliente_especial: 'secondary',
     cliente: 'outline',
 }
 
-const roleNames: { [key: string]: string } = {
+const roleNames: { [key in UserRole]: string } = {
     admin: 'Administrador',
     vendedor: 'Vendedor',
     cliente_especial: 'Cliente Especial',
@@ -78,29 +87,80 @@ export default function CustomersPage() {
     const { user } = useAuth();
     const { toast } = useToast();
     const isAdmin = user?.role === 'admin';
+
+    const [users, setUsers] = useState<User[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateUserDialogOpen, setCreateUserDialogOpen] = useState(false);
 
-    const handleCreateUser = (e: React.FormEvent) => {
+    useEffect(() => {
+        setUsers(usersData as User[]);
+    }, []);
+
+    const handleCreateUser = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const newUser: User = {
+            id: `user_${Date.now()}`,
+            name: formData.get('name') as string,
+            email: formData.get('email') as string,
+            role: formData.get('role') as UserRole,
+            since: new Date().toISOString().split('T')[0],
+            status: 'activo',
+        };
+
+        setUsers(prev => [newUser, ...prev]);
+
         toast({
-            title: "Usuario Creado (Simulación)",
-            description: "El nuevo usuario ha sido agregado al sistema.",
+            title: "Usuario Creado",
+            description: `El usuario ${newUser.name} ha sido agregado al sistema.`,
         });
         setCreateUserDialogOpen(false);
     }
     
-    const handleChangeRole = (userName: string, newRole: string) => {
+    const handleChangeRole = (userId: string, newRole: UserRole) => {
+        let userName = '';
+        setUsers(prev => prev.map(u => {
+            if (u.id === userId) {
+                userName = u.name;
+                return {...u, role: newRole};
+            }
+            return u;
+        }));
         toast({
-            title: "Rol Actualizado (Simulación)",
+            title: "Rol Actualizado",
             description: `El rol de ${userName} ha sido cambiado a ${roleNames[newRole]}.`,
         })
     }
     
-    const handleChangeStatus = (userName: string, newStatus: UserStatus) => {
+    const handleChangeStatus = (userId: string, newStatus: UserStatus) => {
+        let userName = '';
+        setUsers(prev => prev.map(u => {
+            if (u.id === userId) {
+                userName = u.name;
+                return {...u, status: newStatus};
+            }
+            return u;
+        }));
+
         toast({
-            title: "Estado Actualizado (Simulación)",
+            title: "Estado Actualizado",
             description: `El estado de ${userName} ha sido cambiado a ${newStatus}.`,
+        })
+    }
+
+    const handleDeleteUser = (userId: string) => {
+        let userName = '';
+        setUsers(prev => prev.filter(u => {
+            if (u.id === userId) {
+                userName = u.name;
+                return false;
+            }
+            return true;
+        }));
+         toast({
+            variant: "destructive",
+            title: "Usuario Eliminado",
+            description: `El usuario ${userName} ha sido eliminado del sistema.`,
         })
     }
 
@@ -111,7 +171,7 @@ export default function CustomersPage() {
         });
     };
 
-    const filteredUsers = dummyUsers.filter(u => 
+    const filteredUsers = users.filter(u => 
         u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -191,34 +251,53 @@ export default function CustomersPage() {
                             <DropdownMenuContent>
                                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                                 <DropdownMenuItem onClick={() => handleViewProfile(customer.name)}>Ver Perfil</DropdownMenuItem>
-                                {isAdmin && (
+                                {isAdmin && customer.id !== user?.id && (
                                     <>
                                         <DropdownMenuSub>
                                             <DropdownMenuSubTrigger>Cambiar Rol</DropdownMenuSubTrigger>
                                             <DropdownMenuSubContent>
-                                                <DropdownMenuItem onClick={() => handleChangeRole(customer.name, 'cliente')}>Cliente</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleChangeRole(customer.name, 'cliente_especial')}>Cliente Especial</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleChangeRole(customer.name, 'vendedor')}>Vendedor</DropdownMenuItem>
-                                                <DropdownMenuItem onClick={() => handleChangeRole(customer.name, 'admin')}>Administrador</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleChangeRole(customer.id, 'cliente')}>Cliente</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleChangeRole(customer.id, 'cliente_especial')}>Cliente Especial</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleChangeRole(customer.id, 'vendedor')}>Vendedor</DropdownMenuItem>
+                                                <DropdownMenuItem onClick={() => handleChangeRole(customer.id, 'admin')}>Administrador</DropdownMenuItem>
                                             </DropdownMenuSubContent>
                                         </DropdownMenuSub>
 
                                         <DropdownMenuSeparator />
                                         
                                         {customer.status === 'activo' ? (
-                                            <DropdownMenuItem onClick={() => handleChangeStatus(customer.name, 'inactivo')}>
+                                            <DropdownMenuItem onClick={() => handleChangeStatus(customer.id, 'inactivo')}>
                                                 <UserX className="mr-2 h-4 w-4" />
                                                 Desactivar
                                             </DropdownMenuItem>
                                         ) : (
-                                            <DropdownMenuItem onClick={() => handleChangeStatus(customer.name, 'activo')}>
+                                            <DropdownMenuItem onClick={() => handleChangeStatus(customer.id, 'activo')}>
                                                 <UserCheck className="mr-2 h-4 w-4" />
                                                 Activar
                                             </DropdownMenuItem>
                                         )}
                                     
                                         <DropdownMenuSeparator />
-                                        <DropdownMenuItem className="text-destructive">Eliminar Usuario</DropdownMenuItem>
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                                     <Trash2 className="mr-2 h-4 w-4" />
+                                                    Eliminar Usuario
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente al usuario <span className="font-bold">{customer.name}</span>.
+                                                </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeleteUser(customer.id)}>Eliminar</AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
                                     </>
                                 )}
                             </DropdownMenuContent>
@@ -244,19 +323,19 @@ export default function CustomersPage() {
                     <div className="grid gap-4 py-6">
                         <div className="space-y-2">
                             <Label htmlFor="name">Nombre Completo</Label>
-                            <Input id="name" placeholder="Ej: Juan Pérez" required />
+                            <Input id="name" name="name" placeholder="Ej: Juan Pérez" required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Correo Electrónico</Label>
-                            <Input id="email" type="email" placeholder="ejemplo@email.com" required />
+                            <Input id="email" name="email" type="email" placeholder="ejemplo@email.com" required />
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="password">Contraseña Temporal</Label>
-                            <Input id="password" type="password" required />
+                            <Input id="password" name="password" type="password" required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="role">Rol del Usuario</Label>
-                            <Select required>
+                            <Select name="role" required defaultValue="cliente">
                                 <SelectTrigger id="role">
                                     <SelectValue placeholder="Selecciona un rol" />
                                 </SelectTrigger>

@@ -30,6 +30,7 @@ import {
 import React, { useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SalesLayout({
   children,
@@ -37,11 +38,13 @@ export default function SalesLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
   useEffect(() => {
+    if (isLoading) return;
+
     if (!isAuthenticated) {
       router.push('/login');
       toast({
@@ -53,7 +56,7 @@ export default function SalesLayout({
     } 
     
     const allowedRoles = ['admin', 'vendedor'];
-    if (!user || !allowedRoles.includes(user.role)) {
+    if (user && !allowedRoles.includes(user.role)) {
        router.push('/account/dashboard'); // Redirect non-sales roles to their dashboard
        toast({
         variant: 'destructive',
@@ -62,14 +65,20 @@ export default function SalesLayout({
       });
     }
 
-  }, [isAuthenticated, user, router, toast]);
+  }, [isAuthenticated, user, router, toast, isLoading]);
 
   const isAdmin = user?.role === 'admin';
 
-  if (!user || !['admin', 'vendedor'].includes(user.role)) {
+  if (isLoading || !user || !['admin', 'vendedor'].includes(user.role)) {
     return (
         <div className="flex h-screen w-full items-center justify-center">
-            <p>Redirigiendo...</p>
+            <div className="flex items-center space-x-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                </div>
+            </div>
         </div>
     );
   }

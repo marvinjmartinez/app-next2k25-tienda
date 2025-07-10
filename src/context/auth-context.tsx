@@ -3,7 +3,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import usersData from '@/data/users.json';
 
 // Definir los tipos de roles
@@ -27,6 +27,7 @@ interface AuthContextType {
   logout: () => void;
   register: (name: string, email: string, password: string) => { success: boolean, message?: string, user?: User };
   isAuthenticated: boolean;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,8 +42,8 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
   const router = useRouter();
-  const pathname = usePathname();
 
   // Cargar usuario desde localStorage al iniciar
   useEffect(() => {
@@ -51,21 +52,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (storedUser) {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
-        
-        // Redirection logic on initial load
-        const currentPath = pathname;
-        const userRole = parsedUser.role;
-
-        if ((userRole === 'admin' || userRole === 'vendedor') && !currentPath.startsWith('/sales')) {
-            // router.push('/sales/create-quote');
-        } else if (userRole.includes('cliente') && !currentPath.startsWith('/account') && !['/', '/products', '/cart', '/about', '/contact', '/checkout', '/category'].some(p => currentPath.startsWith(p))) {
-            // router.push('/account/dashboard');
-        }
-
       }
     } catch (error) {
       console.error("Failed to parse user from localStorage", error);
       localStorage.removeItem('user');
+    } finally {
+        setIsLoading(false);
     }
   }, []);
 
@@ -150,6 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     logout,
     register,
     isAuthenticated: !!user,
+    isLoading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
