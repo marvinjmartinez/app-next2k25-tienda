@@ -7,7 +7,7 @@ config();
 export const ai = genkit({
   plugins: [
     googleAI({
-      apiKey: process.env.GOOGLE_API_KEY,
+      apiKey: "AIzaSyCMNE22ggOfxihIWnBk4L7CcELznha5wWQ",
     }),
   ],
   model: 'googleai/gemini-2.0-flash',
