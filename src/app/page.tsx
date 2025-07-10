@@ -56,6 +56,10 @@ export default function HomePage() {
     return "/account/dashboard";
   }
 
+  const getCategoryName = (slug: string) => {
+    return categories.find(c => c.slug === slug)?.name || 'Sin categoría';
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
@@ -172,6 +176,7 @@ export default function HomePage() {
                   </CardHeader>
                   <CardContent className="p-4 flex-grow">
                     <CardTitle className="text-lg h-12">{product.name}</CardTitle>
+                    <p className="text-xs uppercase font-medium text-muted-foreground tracking-wider mt-1">{getCategoryName(product.category)}</p>
                      <p className="text-sm text-muted-foreground mt-1">
                       {product.stock > 0 ? `${product.stock} en existencia` : "Sin existencias"}
                     </p>
