@@ -1,6 +1,6 @@
 "use client";
 
-import { Package2, Home, ShoppingCart, Users, Star, PlusCircle } from 'lucide-react';
+import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Wrench } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -41,8 +41,8 @@ export default function SalesLayout({
         <Sidebar>
           <SidebarHeader>
             <Link href="/" className="flex items-center gap-2">
-                <Package2 className="h-6 w-6 text-primary" />
-                <span className="font-semibold text-lg">Quoter</span>
+                <Wrench className="h-6 w-6 text-primary" />
+                <span className="font-semibold text-lg">El Martillo de Oro</span>
             </Link>
           </SidebarHeader>
           <SidebarContent>
@@ -84,7 +84,7 @@ export default function SalesLayout({
                   </Avatar>
                   <div className="text-left hidden group-data-[state=expanded]:block">
                     <p className="font-medium text-sm">Agente de Ventas</p>
-                    <p className="text-xs text-muted-foreground">ventas@quoter.com</p>
+                    <p className="text-xs text-muted-foreground">ventas@elmartillo.com</p>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
@@ -93,7 +93,7 @@ export default function SalesLayout({
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none">Agente de Ventas</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      ventas@quoter.com
+                      ventas@elmartillo.com
                     </p>
                   </div>
                 </DropdownMenuLabel>
