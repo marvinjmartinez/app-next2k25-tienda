@@ -1,7 +1,7 @@
 // src/app/sales/customers/page.tsx
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Search, PlusCircle, UserCheck, UserX, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Search, PlusCircle, UserCheck, UserX, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -88,6 +88,8 @@ export default function CustomersPage() {
     const [isCreateUserDialogOpen, setCreateUserDialogOpen] = useState(false);
     const [isProfileDialogOpen, setProfileDialogOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
 
     useEffect(() => {
         setUsers(usersData as User[]);
@@ -191,12 +193,27 @@ export default function CustomersPage() {
         setProfileDialogOpen(false);
     }
 
-    const filteredUsers = users.filter(u => {
-        const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                              u.email.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesRole = roleFilter === 'all' || u.role === roleFilter;
-        return matchesSearch && matchesRole;
-    });
+    const filteredUsers = useMemo(() => {
+        return users.filter(u => {
+            const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                  u.email.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+            return matchesSearch && matchesRole;
+        });
+    }, [users, searchQuery, roleFilter]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, roleFilter, itemsPerPage]);
+
+    const totalPages = itemsPerPage === 0 ? 1 : Math.ceil(filteredUsers.length / itemsPerPage);
+    const paginatedUsers = useMemo(() => {
+        if (itemsPerPage === 0) return filteredUsers;
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        return filteredUsers.slice(startIndex, endIndex);
+    }, [filteredUsers, currentPage, itemsPerPage]);
 
     return (
     <>
@@ -254,7 +271,7 @@ export default function CustomersPage() {
                     </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {filteredUsers.map((customer) => (
+                    {paginatedUsers.map((customer) => (
                         <TableRow key={customer.id}>
                         <TableCell>
                             <div className="font-medium">{customer.name}</div>
@@ -344,6 +361,50 @@ export default function CustomersPage() {
                     </div>
                 )}
                 </CardContent>
+                <CardFooter>
+                   <div className="flex items-center justify-between w-full text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                             <span>Filas por página:</span>
+                            <Select
+                                value={itemsPerPage.toString()}
+                                onValueChange={(value) => setItemsPerPage(Number(value))}
+                            >
+                                <SelectTrigger className="w-20 h-8">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="10">10</SelectItem>
+                                    <SelectItem value="50">50</SelectItem>
+                                    <SelectItem value="100">100</SelectItem>
+                                    <SelectItem value="0">Todos</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                         <div className="flex items-center gap-4">
+                            <span>Página {currentPage} de {totalPages}</span>
+                            <div className="flex gap-2">
+                                <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                                disabled={currentPage === 1}
+                                >
+                                <ChevronLeft className="h-4 w-4" />
+                                Anterior
+                                </Button>
+                                <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                                disabled={currentPage === totalPages}
+                                >
+                                Siguiente
+                                <ChevronRight className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </CardFooter>
             </Card>
         </div>
 
