@@ -54,7 +54,9 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { generateProductImageAction } from './actions';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
+const PRODUCTS_STORAGE_KEY = 'crud_products';
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-MX', {
@@ -65,7 +67,7 @@ const formatCurrency = (amount: number) => {
 
 export default function ProductsAdminPage() {
   const { toast } = useToast();
-  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -86,6 +88,30 @@ export default function ProductsAdminPage() {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  useEffect(() => {
+    try {
+        const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+        if (storedProducts) {
+            setProducts(JSON.parse(storedProducts));
+        } else {
+            setProducts(initialProducts);
+            localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
+        }
+    } catch (error) {
+        console.error("Failed to load products from localStorage", error);
+        setProducts(initialProducts);
+    }
+  }, []);
+
+  const updateProductsStateAndStorage = (newProducts: Product[]) => {
+      setProducts(newProducts);
+      try {
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(newProducts));
+      } catch (error) {
+        console.error("Failed to save products to localStorage", error);
+      }
+  };
 
   const resetFormState = () => {
     setProductName('');
@@ -124,11 +150,12 @@ export default function ProductsAdminPage() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (product: Product) => {
-    setProducts(prev => prev.filter(p => p.id !== product.id));
+  const handleDelete = (productToDelete: Product) => {
+    const updatedProducts = products.filter(p => p.id !== productToDelete.id)
+    updateProductsStateAndStorage(updatedProducts);
     toast({
-      title: "Producto Eliminado (Simulación)",
-      description: `El producto "${product.name}" ha sido eliminado.`,
+      title: "Producto Eliminado",
+      description: `El producto "${productToDelete.name}" ha sido eliminado.`,
     });
   };
 
@@ -146,18 +173,21 @@ export default function ProductsAdminPage() {
       gallery: galleryUrls,
     };
 
+    let updatedProducts;
     if (selectedProduct) {
-      setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p));
+      updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
     } else {
       const newProduct: Product = {
         id: `prod_${Date.now()}`,
         ...newProductData
       }
-      setProducts(prev => [newProduct, ...prev]);
+      updatedProducts = [newProduct, ...products];
     }
+    
+    updateProductsStateAndStorage(updatedProducts);
       
     toast({
-        title: `Producto ${selectedProduct ? 'Actualizado' : 'Creado'} (Simulación)`,
+        title: `Producto ${selectedProduct ? 'Actualizado' : 'Creado'}`,
         description: `El producto se ha guardado correctamente.`,
     })
     setIsDialogOpen(false);
@@ -186,13 +216,15 @@ export default function ProductsAdminPage() {
 
   const handleChangeStatus = (productId: string, newStatus: 'activo' | 'inactivo') => {
     let productName = '';
-    setProducts(prev => prev.map(p => {
+    const updatedProducts = products.map(p => {
         if (p.id === productId) {
             productName = p.name;
             return { ...p, status: newStatus };
         }
         return p;
-    }));
+    });
+    updateProductsStateAndStorage(updatedProducts);
+
     toast({
         title: "Estado del Producto Actualizado",
         description: `El producto "${productName}" ahora está ${newStatus}.`,
@@ -355,12 +387,26 @@ export default function ProductsAdminPage() {
                                 </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={() => handleDelete(product)}
-                            >
-                                Eliminar
-                            </DropdownMenuItem>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Eliminar
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Esto eliminará permanentemente el producto <span className="font-bold">{product.name}</span>.
+                                    </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDelete(product)}>Eliminar</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                             </DropdownMenuContent>
                         </DropdownMenu>
                         </TableCell>
