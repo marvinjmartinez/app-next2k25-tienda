@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Plus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -71,6 +71,7 @@ export default function ProductsAdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isGalleryImagePending, startGalleryImageTransition] = useTransition();
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -83,6 +84,7 @@ export default function ProductsAdminPage() {
   const [productImage, setProductImage] = useState('');
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
+  const [galleryHint, setGalleryHint] = useState('');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -124,6 +126,7 @@ export default function ProductsAdminPage() {
     setProductImage('https://placehold.co/300x300.png');
     setGalleryUrls([]);
     setNewGalleryUrl('');
+    setGalleryHint('');
   };
   
   const populateFormState = (product: Product) => {
@@ -193,21 +196,31 @@ export default function ProductsAdminPage() {
     setIsDialogOpen(false);
   }
   
-  const handleGenerateImage = () => {
-    startTransition(async () => {
-        if (!productHint || productHint.length < 3) {
+  const handleGenerateImage = (target: 'main' | 'gallery') => {
+    const hint = target === 'main' ? productHint : galleryHint;
+
+    const transition = target === 'main' ? startTransition : startGalleryImageTransition;
+
+    transition(async () => {
+        if (!hint || hint.length < 3) {
             toast({ variant: 'destructive', title: "Pista inválida", description: "La pista de IA debe tener al menos 3 caracteres."});
             return;
         }
 
         const formData = new FormData();
-        formData.append("hint", productHint);
+        formData.append("hint", hint);
         
         const result = await generateProductImageAction(formData);
 
         if (result.success && result.data?.imageUrl) {
-            setProductImage(result.data.imageUrl);
-            toast({ title: "Imagen Generada", description: "La imagen de perfil del producto ha sido generada y actualizada." });
+            if (target === 'main') {
+              setProductImage(result.data.imageUrl);
+              toast({ title: "Imagen Principal Generada", description: "La imagen ha sido generada y actualizada." });
+            } else {
+              setGalleryUrls(prev => [...prev, result.data.imageUrl]);
+              setGalleryHint('');
+              toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido a la galería." });
+            }
         } else {
             toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error });
         }
@@ -232,7 +245,7 @@ export default function ProductsAdminPage() {
   };
 
   const handleAddGalleryUrl = () => {
-      if (newGalleryUrl.trim() && (newGalleryUrl.startsWith('http://') || newGalleryUrl.startsWith('https://'))) {
+      if (newGalleryUrl.trim() && (newGalleryUrl.startsWith('http://') || newGalleryUrl.startsWith('https://') || newGalleryUrl.startsWith('data:'))) {
           setGalleryUrls(prev => [...prev, newGalleryUrl]);
           setNewGalleryUrl('');
       } else {
@@ -482,7 +495,7 @@ export default function ProductsAdminPage() {
             </DialogHeader>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6 max-h-[70vh] overflow-y-auto pr-4">
                 {/* Product Info */}
-                <div className="md:col-span-2 space-y-4">
+                <div className="space-y-4">
                     <Card>
                         <CardHeader>
                             <CardTitle>Información Básica</CardTitle>
@@ -517,10 +530,10 @@ export default function ProductsAdminPage() {
                                     <Input id="stock" name="stock" type="number" value={productStock} onChange={(e) => setProductStock(parseInt(e.target.value))} required />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="hint">Pista de IA para la imagen</Label>
+                                    <Label htmlFor="hint">Pista de IA para imagen principal</Label>
                                     <div className="flex gap-2">
                                         <Input id="hint" name="hint" value={productHint} onChange={(e) => setProductHint(e.target.value)} placeholder="Ej: power tool" />
-                                        <Button type="button" variant="outline" size="icon" onClick={handleGenerateImage} disabled={isPending}>
+                                        <Button type="button" variant="outline" size="icon" onClick={() => handleGenerateImage('main')} disabled={isPending}>
                                             <Sparkles className={`h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
                                         </Button>
                                     </div>
@@ -540,7 +553,7 @@ export default function ProductsAdminPage() {
                     </Card>
                 </div>
                 {/* Image Management */}
-                 <div className="md:col-span-2 space-y-4">
+                 <div className="space-y-4">
                      <Card>
                         <CardHeader>
                             <CardTitle>Imágenes del Producto</CardTitle>
@@ -555,26 +568,38 @@ export default function ProductsAdminPage() {
                             </div>
                              <div className="space-y-2">
                                 <Label>Galería de Imágenes</Label>
-                                <div className="space-y-2">
+                                <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
                                     {galleryUrls.map((url, index) => (
                                         <div key={index} className="flex items-center gap-2">
-                                            <Input value={url} readOnly className="bg-muted"/>
-                                            <Button type="button" variant="ghost" size="icon" onClick={() => handleRemoveGalleryUrl(url)}>
+                                            <Input value={url} readOnly className="bg-muted h-8"/>
+                                            <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleRemoveGalleryUrl(url)}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
                                         </div>
                                     ))}
                                     {galleryUrls.length === 0 && <p className="text-sm text-muted-foreground">No hay imágenes en la galería.</p>}
                                 </div>
-                                <div className="flex items-center gap-2 pt-2">
+                                <p className="text-xs text-muted-foreground pt-2">Añade imágenes a la galería.</p>
+                                <div className="flex items-center gap-2">
                                     <Input 
-                                        placeholder="https://.../imagen.png" 
+                                        placeholder="Añadir URL manual" 
                                         value={newGalleryUrl}
                                         onChange={(e) => setNewGalleryUrl(e.target.value)}
+                                        className="h-9"
                                     />
-                                    <Button type="button" variant="outline" onClick={handleAddGalleryUrl}>Añadir</Button>
+                                    <Button type="button" variant="outline" size="sm" onClick={handleAddGalleryUrl}>Añadir</Button>
                                 </div>
-                                <p className="text-xs text-muted-foreground">Añade URLs a la galería para mostrar más imágenes del producto.</p>
+                                <div className="flex items-center gap-2">
+                                    <Input 
+                                        placeholder="Generar con IA..." 
+                                        value={galleryHint}
+                                        onChange={(e) => setGalleryHint(e.target.value)}
+                                        className="h-9"
+                                    />
+                                    <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isGalleryImagePending}>
+                                        <Sparkles className={`h-4 w-4 ${isGalleryImagePending ? 'animate-spin' : ''}`} />
+                                    </Button>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
