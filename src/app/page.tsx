@@ -1,3 +1,4 @@
+
 // This component is now a client component to use the cart context
 "use client";
 
@@ -141,8 +142,11 @@ export default function HomePage() {
       </header>
 
       <main className="flex-1">
-        <section className="relative h-[60vh] flex items-center justify-center text-center text-white bg-no-repeat bg-cover bg-center" style={{backgroundImage: "url('https://placehold.co/1920x1080.png')"}}>
-            <div className="absolute inset-0 bg-black/50" data-ai-hint="construction hardware store"></div>
+        <section 
+          className="relative h-[60vh] flex items-center justify-center text-center text-white bg-no-repeat bg-cover bg-center" 
+          style={{backgroundImage: "url('https://placehold.co/1920x1080.png')"}}
+          data-ai-hint="hardware store background">
+            <div className="absolute inset-0 bg-black/50"></div>
             <div className="relative container mx-auto px-4 md:px-6">
                 <h1 className="text-4xl md:text-6xl font-bold font-headline mb-4">Tu proyecto empieza aquí</h1>
                 <p className="text-lg md:text-xl max-w-3xl mx-auto mb-8">Encuentra todo lo que necesitas, desde un tornillo hasta maquinaria pesada.</p>
