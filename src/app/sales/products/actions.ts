@@ -1,7 +1,7 @@
 // src/app/sales/products/actions.ts
 "use server";
 
-import { generateProductImage } from "@/ai/flows/generate-product-image";
+import { generateProductImage, GenerateProductImageInput } from "@/ai/flows/generate-product-image";
 import { z } from "zod";
 
 const formSchema = z.object({
