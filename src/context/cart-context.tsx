@@ -1,7 +1,8 @@
+
 // src/context/cart-context.tsx
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 // Define the shape of a cart item
 interface CartItem {
@@ -35,9 +36,38 @@ export function useCart() {
   return context;
 }
 
+const CART_STORAGE_KEY = 'distrimin_cart';
+
 // Create the provider component
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load cart from localStorage on initial mount
+  useEffect(() => {
+    try {
+      const storedCart = localStorage.getItem(CART_STORAGE_KEY);
+      if (storedCart) {
+        setCartItems(JSON.parse(storedCart));
+      }
+    } catch (error) {
+        console.error("Failed to load cart from localStorage", error);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  // Save cart to localStorage whenever it changes
+  useEffect(() => {
+    // We only save to localStorage after the initial load to avoid overwriting it
+    if (isLoaded) {
+      try {
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+      } catch (error) {
+        console.error("Failed to save cart to localStorage", error);
+      }
+    }
+  }, [cartItems, isLoaded]);
+
 
   const addToCart = (item: CartItem) => {
     setCartItems(prevItems => {
