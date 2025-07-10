@@ -15,6 +15,7 @@ export interface Product {
   category: string;
   featured?: boolean;
   gallery?: string[];
+  status: 'activo' | 'inactivo';
 }
 
 export interface Category {
@@ -36,4 +37,4 @@ export const categories: Category[] = categoriesData.map(cat => ({
     icon: categoryIcons[cat.slug]
 }));
 
-export const products: Product[] = productsData;
+export const products: Product[] = productsData as Product[];

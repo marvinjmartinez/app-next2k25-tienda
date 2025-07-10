@@ -87,9 +87,10 @@ function ProductsPageComponent() {
   };
 
   const filteredProducts = products.filter(p => {
+    const isActive = p.status === 'activo';
     const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
     const matchesSearch = searchQuery ? p.name.toLowerCase().includes(searchQuery.toLowerCase()) : true;
-    return matchesCategory && matchesSearch;
+    return isActive && matchesCategory && matchesSearch;
   });
 
   const getCategoryName = (slug: string) => {

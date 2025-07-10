@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -30,7 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { products as allProducts, categories, type Product } from '@/lib/dummy-data';
+import { products as initialProducts, categories, type Product } from '@/lib/dummy-data';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -52,6 +52,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 
 
 const formatCurrency = (amount: number) => {
@@ -63,14 +64,13 @@ const formatCurrency = (amount: number) => {
 
 export default function ProductsAdminPage() {
   const { toast } = useToast();
+  const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
-  // State for gallery management in the dialog
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
 
-  // State for filtering and pagination
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -89,7 +89,7 @@ export default function ProductsAdminPage() {
   };
 
   const handleDelete = (product: Product) => {
-    // En una aplicación real, aquí llamarías a una API para eliminar.
+    setProducts(prev => prev.filter(p => p.id !== product.id));
     toast({
       title: "Producto Eliminado (Simulación)",
       description: `El producto "${product.name}" ha sido eliminado.`,
@@ -97,14 +97,51 @@ export default function ProductsAdminPage() {
   };
 
   const handleSave = (e: React.FormEvent) => {
-      e.preventDefault();
-      // En una aplicación real, se enviaría el formulario a la API.
-      toast({
-          title: `Producto ${selectedProduct ? 'Actualizado' : 'Creado'} (Simulación)`,
-          description: `El producto se ha guardado correctamente.`,
-      })
-      setIsDialogOpen(false);
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const newProductData = {
+      name: formData.get('name') as string,
+      category: formData.get('category') as string,
+      price: parseFloat(formData.get('price') as string),
+      stock: parseInt(formData.get('stock') as string),
+      hint: formData.get('hint') as string,
+      featured: formData.get('featured') === 'on',
+      image: formData.get('image') as string,
+      status: (formData.get('status') === 'on' ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
+      gallery: galleryUrls,
+    };
+
+    if (selectedProduct) {
+      setProducts(prev => prev.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p));
+    } else {
+      const newProduct: Product = {
+        id: `prod_${Date.now()}`,
+        ...newProductData
+      }
+      setProducts(prev => [newProduct, ...prev]);
+    }
+      
+    toast({
+        title: `Producto ${selectedProduct ? 'Actualizado' : 'Creado'} (Simulación)`,
+        description: `El producto se ha guardado correctamente.`,
+    })
+    setIsDialogOpen(false);
   }
+
+  const handleChangeStatus = (productId: string, newStatus: 'activo' | 'inactivo') => {
+    let productName = '';
+    setProducts(prev => prev.map(p => {
+        if (p.id === productId) {
+            productName = p.name;
+            return { ...p, status: newStatus };
+        }
+        return p;
+    }));
+    toast({
+        title: "Estado del Producto Actualizado",
+        description: `El producto "${productName}" ahora está ${newStatus}.`,
+    });
+  };
 
   const handleAddGalleryUrl = () => {
       if (newGalleryUrl.trim() && (newGalleryUrl.startsWith('http://') || newGalleryUrl.startsWith('https://'))) {
@@ -128,14 +165,13 @@ export default function ProductsAdminPage() {
   }
 
   const filteredProducts = useMemo(() => {
-    return allProducts.filter(p => {
+    return products.filter(p => {
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
         return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, categoryFilter]);
+  }, [products, searchQuery, categoryFilter]);
 
-  // Reset to page 1 when filters change
   useEffect(() => {
       setCurrentPage(1);
   }, [searchQuery, categoryFilter, itemsPerPage]);
@@ -196,6 +232,7 @@ export default function ProductsAdminPage() {
                 <TableRow>
                   <TableHead className="w-[80px]">Imagen</TableHead>
                   <TableHead>Nombre</TableHead>
+                  <TableHead>Estado</TableHead>
                   <TableHead>Categoría</TableHead>
                   <TableHead>Precio</TableHead>
                   <TableHead>Stock</TableHead>
@@ -218,10 +255,15 @@ export default function ProductsAdminPage() {
                         />
                         </TableCell>
                         <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>
+                           <Badge variant={product.status === 'activo' ? 'default' : 'outline'}>
+                                {product.status === 'activo' ? 'Activo' : 'Inactivo'}
+                            </Badge>
+                        </TableCell>
                         <TableCell>{getCategoryName(product.category)}</TableCell>
                         <TableCell>{formatCurrency(product.price)}</TableCell>
                         <TableCell>
-                        <Badge variant={product.stock > 0 ? 'default' : 'destructive'}>
+                        <Badge variant={product.stock > 0 ? 'secondary' : 'destructive'}>
                             {product.stock > 0 ? `${product.stock} unidades` : 'Agotado'}
                         </Badge>
                         </TableCell>
@@ -245,6 +287,17 @@ export default function ProductsAdminPage() {
                             <DropdownMenuItem onClick={() => handleEdit(product)}>
                                 Editar
                             </DropdownMenuItem>
+                             {product.status === 'activo' ? (
+                                <DropdownMenuItem onClick={() => handleChangeStatus(product.id, 'inactivo')}>
+                                    <PowerOff className="mr-2 h-4 w-4" />
+                                    Desactivar
+                                </DropdownMenuItem>
+                            ) : (
+                                <DropdownMenuItem onClick={() => handleChangeStatus(product.id, 'activo')}>
+                                    <Power className="mr-2 h-4 w-4" />
+                                    Activar
+                                </DropdownMenuItem>
+                            )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                                 className="text-destructive"
@@ -259,7 +312,7 @@ export default function ProductsAdminPage() {
                     ))
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
+                        <TableCell colSpan={8} className="text-center h-24 text-muted-foreground">
                             No se encontraron productos que coincidan con los filtros.
                         </TableCell>
                     </TableRow>
@@ -335,12 +388,12 @@ export default function ProductsAdminPage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nombre del Producto</Label>
-                                <Input id="name" defaultValue={selectedProduct?.name} required />
+                                <Input id="name" name="name" defaultValue={selectedProduct?.name} required />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="category">Categoría</Label>
-                                    <Select defaultValue={selectedProduct?.category}>
+                                    <Select name="category" defaultValue={selectedProduct?.category}>
                                         <SelectTrigger id="category">
                                             <SelectValue placeholder="Selecciona una categoría" />
                                         </SelectTrigger>
@@ -353,24 +406,28 @@ export default function ProductsAdminPage() {
                                 </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="price">Precio</Label>
-                                    <Input id="price" type="number" step="0.01" defaultValue={selectedProduct?.price} required />
+                                    <Input id="price" name="price" type="number" step="0.01" defaultValue={selectedProduct?.price} required />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="stock">Stock</Label>
-                                    <Input id="stock" type="number" defaultValue={selectedProduct?.stock} required />
+                                    <Input id="stock" name="stock" type="number" defaultValue={selectedProduct?.stock} required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="hint">Pista de IA para la imagen</Label>
-                                    <Input id="hint" defaultValue={selectedProduct?.hint} placeholder="Ej: power tool" />
+                                    <Input id="hint" name="hint" defaultValue={selectedProduct?.hint} placeholder="Ej: power tool" />
                                 </div>
                             </div>
-                             <div className="flex items-center space-x-2 pt-4">
-                                <Checkbox id="featured" defaultChecked={selectedProduct?.featured} />
+                            <div className="flex items-center space-x-2 pt-4">
+                                <Checkbox id="featured" name="featured" defaultChecked={selectedProduct?.featured} />
                                 <Label htmlFor="featured" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                                 Marcar como producto destacado
                                 </Label>
+                            </div>
+                             <div className="flex items-center space-x-2 pt-4">
+                                <Switch id="status" name="status" defaultChecked={selectedProduct?.status === 'activo' || !selectedProduct} />
+                                <Label htmlFor="status">Producto Activo</Label>
                             </div>
                         </CardContent>
                     </Card>
@@ -384,7 +441,7 @@ export default function ProductsAdminPage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="image">URL de la Imagen Principal</Label>
-                                <Input id="image" defaultValue={selectedProduct?.image || 'https://placehold.co/300x300.png'} />
+                                <Input id="image" name="image" defaultValue={selectedProduct?.image || 'https://placehold.co/300x300.png'} />
                             </div>
                              <div className="space-y-2">
                                 <Label>Galería de Imágenes</Label>

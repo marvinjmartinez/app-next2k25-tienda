@@ -19,7 +19,7 @@ import { ProductCard } from '@/components/product-card';
 import { ImageViewerDialog } from '@/components/image-viewer-dialog';
 
 
-const featuredProducts = products.filter(p => p.featured);
+const featuredProducts = products.filter(p => p.featured && p.status === 'activo');
 
 export default function HomePage() {
   const { addToCart, getCartItemCount } = useCart();

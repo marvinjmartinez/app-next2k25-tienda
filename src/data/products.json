@@ -9,6 +9,7 @@
     "stock": 15,
     "category": "herramientas",
     "featured": true,
+    "status": "activo",
     "gallery": [
       "https://placehold.co/600x600/1.png",
       "https://placehold.co/600x600/2.png",
@@ -22,7 +23,8 @@
     "image": "https://placehold.co/300x300.png",
     "hint": "hand tools",
     "stock": 30,
-    "category": "herramientas"
+    "category": "herramientas",
+    "status": "activo"
   },
   {
     "id": "prod_3",
@@ -33,6 +35,7 @@
     "stock": 8,
     "category": "pintura",
     "featured": true,
+    "status": "activo",
     "gallery": [
        "https://placehold.co/600x600/4.png"
     ]
@@ -45,7 +48,8 @@
     "hint": "ladder",
     "stock": 0,
     "category": "herramientas",
-    "featured": true
+    "featured": true,
+    "status": "inactivo"
   },
   {
     "id": "prod_5",
@@ -54,7 +58,8 @@
     "image": "https://placehold.co/300x300.png",
     "hint": "cement bag",
     "stock": 50,
-    "category": "construccion"
+    "category": "construccion",
+    "status": "activo"
   },
   {
     "id": "prod_6",
@@ -63,7 +68,8 @@
     "image": "https://placehold.co/300x300.png",
     "hint": "pvc pipe",
     "stock": 100,
-    "category": "plomeria"
+    "category": "plomeria",
+    "status": "activo"
   },
   {
     "id": "prod_7",
@@ -73,7 +79,8 @@
     "hint": "toolbox",
     "stock": 12,
     "category": "herramientas",
-    "featured": true
+    "featured": true,
+    "status": "activo"
   },
   {
     "id": "prod_8",
@@ -82,7 +89,8 @@
     "image": "https://placehold.co/300x300.png",
     "hint": "paintbrush",
     "stock": 45,
-    "category": "pintura"
+    "category": "pintura",
+    "status": "activo"
   },
    {
     "id": "prod_9",
@@ -91,7 +99,8 @@
     "image": "https://placehold.co/300x300.png",
     "hint": "rebar",
     "stock": 200,
-    "category": "construccion"
+    "category": "construccion",
+    "status": "activo"
   },
   {
     "id": "prod_10",
@@ -100,7 +109,8 @@
     "image": "https://placehold.co/300x300.png",
     "hint": "water heater",
     "stock": 5,
-    "category": "plomeria"
+    "category": "plomeria",
+    "status": "activo"
   },
    {
     "id": "prod_11",
@@ -109,7 +119,8 @@
     "image": "https://placehold.co/300x300.png",
     "hint": "angle grinder",
     "stock": 18,
-    "category": "herramientas"
+    "category": "herramientas",
+    "status": "activo"
   },
   {
     "id": "prod_12",
@@ -118,6 +129,7 @@
     "image": "https://placehold.co/300x300.png",
     "hint": "waterproofing bucket",
     "stock": 7,
-    "category": "pintura"
+    "category": "pintura",
+    "status": "activo"
   }
 ]
