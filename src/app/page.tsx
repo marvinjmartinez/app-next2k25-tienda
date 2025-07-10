@@ -17,28 +17,32 @@ const featuredProducts = [
     name: "Taladro Percutor Inalámbrico",
     price: 1899.00,
     image: "https://placehold.co/300x300.png",
-    hint: "power tool"
+    hint: "power tool",
+    stock: 15,
   },
   {
     id: "prod_2",
     name: "Juego de Destornilladores 25 pzs",
     price: 499.00,
     image: "https://placehold.co/300x300.png",
-    hint: "hand tools"
+    hint: "hand tools",
+    stock: 30,
   },
   {
     id: "prod_3",
     name: "Pintura Vinílica Blanca 19L",
     price: 1250.00,
     image: "https://placehold.co/300x300.png",
-    hint: "paint can"
+    hint: "paint can",
+    stock: 8,
   },
   {
     id: "prod_4",
     name: "Escalera de Tijera de Aluminio",
     price: 980.00,
     image: "https://placehold.co/300x300.png",
-    hint: "ladder"
+    hint: "ladder",
+    stock: 0,
   },
 ];
 
@@ -138,18 +142,24 @@ export default function HomePage() {
             <p className="text-muted-foreground text-center max-w-2xl mx-auto mb-10">Los favoritos de nuestros clientes, seleccionados por su calidad y precio.</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
               {featuredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden group">
-                  <CardHeader className="p-0">
+                <Card key={product.id} className="overflow-hidden group flex flex-col">
+                  <CardHeader className="p-0 relative">
+                     {product.stock === 0 && (
+                      <Badge variant="destructive" className="absolute top-2 left-2 z-10">AGOTADO</Badge>
+                    )}
                     <Image src={product.image} alt={product.name} width={300} height={300} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" data-ai-hint={product.hint} />
                   </CardHeader>
-                  <CardContent className="p-4">
+                  <CardContent className="p-4 flex-grow">
                     <CardTitle className="text-lg h-12">{product.name}</CardTitle>
+                     <p className="text-sm text-muted-foreground mt-1">
+                      {product.stock > 0 ? `${product.stock} en existencia` : "Sin existencias"}
+                    </p>
                     <CardDescription className="text-primary font-semibold text-lg mt-2">${product.price.toFixed(2)}</CardDescription>
                   </CardContent>
                   <CardFooter className="p-4 pt-0">
-                    <Button className="w-full" onClick={() => handleAddToCart(product)}>
+                    <Button className="w-full" onClick={() => handleAddToCart(product)} disabled={product.stock === 0}>
                       <ShoppingCart className="mr-2 h-4 w-4" />
-                      Agregar al carrito
+                      {product.stock > 0 ? 'Agregar al carrito' : 'No disponible'}
                     </Button>
                   </CardFooter>
                 </Card>
