@@ -1,7 +1,7 @@
 // src/app/sales/products/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useTransition } from 'react';
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -53,6 +53,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
+import { generateProductImageAction } from './actions';
 
 
 const formatCurrency = (amount: number) => {
@@ -67,7 +68,17 @@ export default function ProductsAdminPage() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isPending, startTransition] = useTransition();
   
+  // States for the form inside the dialog
+  const [productName, setProductName] = useState('');
+  const [productCategory, setProductCategory] = useState('');
+  const [productPrice, setProductPrice] = useState(0);
+  const [productStock, setProductStock] = useState(0);
+  const [productHint, setProductHint] = useState('');
+  const [productFeatured, setProductFeatured] = useState(false);
+  const [productStatus, setProductStatus] = useState(true);
+  const [productImage, setProductImage] = useState('');
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
 
@@ -76,15 +87,40 @@ export default function ProductsAdminPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
+  const resetFormState = () => {
+    setProductName('');
+    setProductCategory('');
+    setProductPrice(0);
+    setProductStock(0);
+    setProductHint('');
+    setProductFeatured(false);
+    setProductStatus(true);
+    setProductImage('https://placehold.co/300x300.png');
+    setGalleryUrls([]);
+    setNewGalleryUrl('');
+  };
+  
+  const populateFormState = (product: Product) => {
+    setProductName(product.name);
+    setProductCategory(product.category);
+    setProductPrice(product.price);
+    setProductStock(product.stock);
+    setProductHint(product.hint);
+    setProductFeatured(product.featured || false);
+    setProductStatus(product.status === 'activo');
+    setProductImage(product.image);
+    setGalleryUrls(product.gallery || []);
+  };
+
   const handleAddNew = () => {
     setSelectedProduct(null);
-    setGalleryUrls([]);
+    resetFormState();
     setIsDialogOpen(true);
   };
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
-    setGalleryUrls(product.gallery || []);
+    populateFormState(product);
     setIsDialogOpen(true);
   };
 
@@ -98,16 +134,15 @@ export default function ProductsAdminPage() {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
     const newProductData = {
-      name: formData.get('name') as string,
-      category: formData.get('category') as string,
-      price: parseFloat(formData.get('price') as string),
-      stock: parseInt(formData.get('stock') as string),
-      hint: formData.get('hint') as string,
-      featured: formData.get('featured') === 'on',
-      image: formData.get('image') as string,
-      status: (formData.get('status') === 'on' ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
+      name: productName,
+      category: productCategory,
+      price: productPrice,
+      stock: productStock,
+      hint: productHint,
+      featured: productFeatured,
+      image: productImage,
+      status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
       gallery: galleryUrls,
     };
 
@@ -127,6 +162,27 @@ export default function ProductsAdminPage() {
     })
     setIsDialogOpen(false);
   }
+  
+  const handleGenerateImage = () => {
+    startTransition(async () => {
+        if (!productHint || productHint.length < 3) {
+            toast({ variant: 'destructive', title: "Pista inválida", description: "La pista de IA debe tener al menos 3 caracteres."});
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("hint", productHint);
+        
+        const result = await generateProductImageAction(formData);
+
+        if (result.success && result.data?.imageUrl) {
+            setProductImage(result.data.imageUrl);
+            toast({ title: "Imagen Generada", description: "La imagen de perfil del producto ha sido generada y actualizada." });
+        } else {
+            toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error });
+        }
+    });
+  };
 
   const handleChangeStatus = (productId: string, newStatus: 'activo' | 'inactivo') => {
     let productName = '';
@@ -388,12 +444,12 @@ export default function ProductsAdminPage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nombre del Producto</Label>
-                                <Input id="name" name="name" defaultValue={selectedProduct?.name} required />
+                                <Input id="name" name="name" value={productName} onChange={(e) => setProductName(e.target.value)} required />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="category">Categoría</Label>
-                                    <Select name="category" defaultValue={selectedProduct?.category}>
+                                    <Select name="category" value={productCategory} onValueChange={setProductCategory}>
                                         <SelectTrigger id="category">
                                             <SelectValue placeholder="Selecciona una categoría" />
                                         </SelectTrigger>
@@ -406,27 +462,32 @@ export default function ProductsAdminPage() {
                                 </div>
                                  <div className="space-y-2">
                                     <Label htmlFor="price">Precio</Label>
-                                    <Input id="price" name="price" type="number" step="0.01" defaultValue={selectedProduct?.price} required />
+                                    <Input id="price" name="price" type="number" step="0.01" value={productPrice} onChange={(e) => setProductPrice(parseFloat(e.target.value))} required />
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="stock">Stock</Label>
-                                    <Input id="stock" name="stock" type="number" defaultValue={selectedProduct?.stock} required />
+                                    <Input id="stock" name="stock" type="number" value={productStock} onChange={(e) => setProductStock(parseInt(e.target.value))} required />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="hint">Pista de IA para la imagen</Label>
-                                    <Input id="hint" name="hint" defaultValue={selectedProduct?.hint} placeholder="Ej: power tool" />
+                                    <div className="flex gap-2">
+                                        <Input id="hint" name="hint" value={productHint} onChange={(e) => setProductHint(e.target.value)} placeholder="Ej: power tool" />
+                                        <Button type="button" variant="outline" size="icon" onClick={handleGenerateImage} disabled={isPending}>
+                                            <Sparkles className={`h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                             <div className="flex items-center space-x-2 pt-4">
-                                <Checkbox id="featured" name="featured" defaultChecked={selectedProduct?.featured} />
+                                <Checkbox id="featured" name="featured" checked={productFeatured} onCheckedChange={(checked) => setProductFeatured(Boolean(checked))} />
                                 <Label htmlFor="featured" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                                 Marcar como producto destacado
                                 </Label>
                             </div>
                              <div className="flex items-center space-x-2 pt-4">
-                                <Switch id="status" name="status" defaultChecked={selectedProduct?.status === 'activo' || !selectedProduct} />
+                                <Switch id="status" name="status" checked={productStatus} onCheckedChange={setProductStatus} />
                                 <Label htmlFor="status">Producto Activo</Label>
                             </div>
                         </CardContent>
@@ -441,7 +502,10 @@ export default function ProductsAdminPage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="image">URL de la Imagen Principal</Label>
-                                <Input id="image" name="image" defaultValue={selectedProduct?.image || 'https://placehold.co/300x300.png'} />
+                                <Input id="image" name="image" value={productImage} onChange={(e) => setProductImage(e.target.value)} />
+                                {productImage && productImage.startsWith('data:image') && (
+                                     <Image src={productImage} alt="Preview" width={80} height={80} className="mt-2 rounded-md object-cover border" />
+                                )}
                             </div>
                              <div className="space-y-2">
                                 <Label>Galería de Imágenes</Label>
