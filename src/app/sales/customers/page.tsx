@@ -84,6 +84,7 @@ export default function CustomersPage() {
 
     const [users, setUsers] = useState<User[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [roleFilter, setRoleFilter] = useState('all');
     const [isCreateUserDialogOpen, setCreateUserDialogOpen] = useState(false);
     const [isProfileDialogOpen, setProfileDialogOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -190,10 +191,12 @@ export default function CustomersPage() {
         setProfileDialogOpen(false);
     }
 
-    const filteredUsers = users.filter(u => 
-        u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        u.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredUsers = users.filter(u => {
+        const matchesSearch = u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                              u.email.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesRole = roleFilter === 'all' || u.role === roleFilter;
+        return matchesSearch && matchesRole;
+    });
 
     return (
     <>
@@ -212,23 +215,32 @@ export default function CustomersPage() {
             </div>
             <Card>
                 <CardHeader>
-                <div className="flex justify-between items-center">
-                    <div>
-                        <CardTitle>Lista de Registrados</CardTitle>
-                        <CardDescription>
-                            Usuarios registrados en la plataforma. Solo los administradores pueden cambiar roles.
-                        </CardDescription>
+                    <CardTitle>Lista de Registrados</CardTitle>
+                    <CardDescription>
+                        Usuarios registrados en la plataforma. Solo los administradores pueden cambiar roles.
+                    </CardDescription>
+                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                        <div className="relative w-full">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Buscar por nombre o email..."
+                                className="pl-10"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                        <Select value={roleFilter} onValueChange={setRoleFilter}>
+                            <SelectTrigger className="w-full sm:w-[200px]">
+                                <SelectValue placeholder="Filtrar por rol" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Todos los Roles</SelectItem>
+                                {Object.entries(roleNames).map(([key, name]) => (
+                                    <SelectItem key={key} value={key}>{name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
-                    <div className="relative w-full max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Buscar por nombre o email..."
-                            className="pl-10"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                </div>
                 </CardHeader>
                 <CardContent>
                 <Table>
@@ -326,6 +338,11 @@ export default function CustomersPage() {
                     ))}
                     </TableBody>
                 </Table>
+                 {filteredUsers.length === 0 && (
+                    <div className="text-center p-8 text-muted-foreground">
+                        No se encontraron usuarios que coincidan con los filtros.
+                    </div>
+                )}
                 </CardContent>
             </Card>
         </div>
