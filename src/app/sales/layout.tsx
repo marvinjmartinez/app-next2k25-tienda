@@ -48,28 +48,28 @@ export default function SalesLayout({
           <SidebarContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/dashboard')} tooltip="Dashboard">
-                    <Link href="#"><Home /><span>Dashboard</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/dashboard')} tooltip="Panel">
+                    <Link href="#"><Home /><span>Panel</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/create-quote')} tooltip="Create Quote">
-                  <Link href="/sales/create-quote"><PlusCircle /><span>Create Quote</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/create-quote')} tooltip="Crear Cotización">
+                  <Link href="/sales/create-quote"><PlusCircle /><span>Crear Cotización</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/quotes')} tooltip="Quotes">
-                  <Link href="#"><Star /><span>Quotes</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/quotes')} tooltip="Cotizaciones">
+                  <Link href="#"><Star /><span>Cotizaciones</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/products')} tooltip="Products">
-                  <Link href="#"><ShoppingCart /><span>Products</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/products')} tooltip="Productos">
+                  <Link href="#"><ShoppingCart /><span>Productos</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/customers')} tooltip="Customers">
-                  <Link href="#"><Users /><span>Customers</span></Link>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/customers')} tooltip="Clientes">
+                  <Link href="#"><Users /><span>Clientes</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -80,28 +80,28 @@ export default function SalesLayout({
                 <Button variant="ghost" className="justify-start gap-2 w-full px-2">
                   <Avatar className="h-8 w-8">
                     <AvatarImage src="https://placehold.co/40x40.png" alt="@salesperson" data-ai-hint="person portrait" />
-                    <AvatarFallback>SP</AvatarFallback>
+                    <AvatarFallback>AV</AvatarFallback>
                   </Avatar>
                   <div className="text-left hidden group-data-[state=expanded]:block">
-                    <p className="font-medium text-sm">Sales Person</p>
-                    <p className="text-xs text-muted-foreground">sales@quoter.com</p>
+                    <p className="font-medium text-sm">Agente de Ventas</p>
+                    <p className="text-xs text-muted-foreground">ventas@quoter.com</p>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">Sales Person</p>
+                    <p className="text-sm font-medium leading-none">Agente de Ventas</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      sales@quoter.com
+                      ventas@quoter.com
                     </p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Profile</DropdownMenuItem>
-                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem>Perfil</DropdownMenuItem>
+                <DropdownMenuItem>Configuración</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>Log out</DropdownMenuItem>
+                <DropdownMenuItem>Cerrar sesión</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </SidebarFooter>
@@ -114,7 +114,7 @@ export default function SalesLayout({
                 </div>
                 <Button variant="outline" size="icon" className="rounded-full">
                 <Users className="h-5 w-5" />
-                <span className="sr-only">Manage Team</span>
+                <span className="sr-only">Gestionar Equipo</span>
                 </Button>
             </header>
             <main className="flex-1 p-4 sm:p-6">

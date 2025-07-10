@@ -7,20 +7,20 @@ export default function CreateQuotePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Create New Quote"
-        description="Use the AI assistant to get product suggestions based on your customer's needs."
+        title="Crear Nueva Cotización"
+        description="Usa el asistente de IA para obtener sugerencias de productos basadas en las necesidades de tu cliente."
       />
       <Separator />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2">
             <Card>
                 <CardHeader>
-                    <CardTitle>Quote Details</CardTitle>
-                    <CardDescription>Enter customer information and add products to the quote.</CardDescription>
+                    <CardTitle>Detalles de la Cotización</CardTitle>
+                    <CardDescription>Ingresa la información del cliente y agrega productos a la cotización.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-center h-48 border-2 border-dashed rounded-lg">
-                        <p className="text-muted-foreground">Quote form elements will be here...</p>
+                        <p className="text-muted-foreground">Los elementos del formulario de cotización estarán aquí...</p>
                     </div>
                 </CardContent>
             </Card>

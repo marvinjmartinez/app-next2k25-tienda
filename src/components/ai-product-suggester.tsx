@@ -31,7 +31,7 @@ import { Skeleton } from "./ui/skeleton";
 
 const formSchema = z.object({
   customerPreferences: z.string().min(10, {
-    message: "Please describe customer preferences in at least 10 characters.",
+    message: "Por favor, describe las preferencias del cliente en al menos 10 caracteres.",
   }),
   pastInteractions: z.string().optional(),
 });
@@ -68,8 +68,8 @@ export function AiProductSuggester() {
     } else {
         toast({
             variant: "destructive",
-            title: "Error suggesting products",
-            description: result.error || "An unexpected error occurred.",
+            title: "Error al sugerir productos",
+            description: result.error || "Ocurrió un error inesperado.",
         });
     }
   }
@@ -79,10 +79,10 @@ export function AiProductSuggester() {
       <CardHeader>
         <div className="flex items-center gap-2">
           <Sparkles className="h-6 w-6 text-primary" />
-          <CardTitle>AI Product Suggester</CardTitle>
+          <CardTitle>Sugeridor de Productos IA</CardTitle>
         </div>
         <CardDescription>
-          Describe your customer's needs and get instant product recommendations.
+          Describe las necesidades de tu cliente y obtén recomendaciones de productos al instante.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -93,10 +93,10 @@ export function AiProductSuggester() {
               name="customerPreferences"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Customer Preferences</FormLabel>
+                  <FormLabel>Preferencias del Cliente</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., 'Looking for a durable laptop for video editing, budget is around $1500.'"
+                      placeholder="Ej: 'Busca un portátil duradero para edición de video, presupuesto de unos $1500.'"
                       {...field}
                       rows={4}
                     />
@@ -110,10 +110,10 @@ export function AiProductSuggester() {
               name="pastInteractions"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Past Interactions (Optional)</FormLabel>
+                  <FormLabel>Interacciones Pasadas (Opcional)</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="e.g., 'Previously bought a high-end mouse and keyboard.'"
+                      placeholder="Ej: 'Compró anteriormente un mouse y teclado de gama alta.'"
                       {...field}
                       rows={2}
                     />
@@ -123,7 +123,7 @@ export function AiProductSuggester() {
               )}
             />
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Thinking...' : 'Get Suggestions'}
+              {isLoading ? 'Pensando...' : 'Obtener Sugerencias'}
               {!isLoading && <Sparkles className="ml-2 h-4 w-4" />}
             </Button>
           </form>
@@ -133,7 +133,7 @@ export function AiProductSuggester() {
         <CardFooter className="flex flex-col items-start gap-4 border-t px-6 py-4">
             <h3 className="font-semibold flex items-center gap-2 text-foreground">
                 <Lightbulb className="h-5 w-5" />
-                Suggestions
+                Sugerencias
             </h3>
             {isLoading && <SuggestionsSkeleton />}
             {suggestions && (
@@ -148,7 +148,7 @@ export function AiProductSuggester() {
                                 <PackageCheck className="h-5 w-5 text-primary" />
                                 <span className="font-medium">{product}</span>
                             </div>
-                            <Button size="sm" variant="outline">Add</Button>
+                            <Button size="sm" variant="outline">Añadir</Button>
                         </div>
                     ))}
                 </div>

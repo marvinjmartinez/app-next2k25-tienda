@@ -1,11 +1,11 @@
 // src/ai/flows/suggest-products-for-quote.ts
 'use server';
 /**
- * @fileOverview An AI agent to suggest products for a quote based on customer preferences.
+ * @fileOverview Un agente de IA para sugerir productos para una cotización basada en las preferencias del cliente.
  *
- * - suggestProductsForQuote - A function that handles the product suggestion process.
- * - SuggestProductsForQuoteInput - The input type for the suggestProductsForQuote function.
- * - SuggestProductsForQuoteOutput - The return type for the suggestProductsForQuote function.
+ * - suggestProductsForQuote - Una función que maneja el proceso de sugerencia de productos.
+ * - SuggestProductsForQuoteInput - El tipo de entrada para la función suggestProductsForQuote.
+ * - SuggestProductsForQuoteOutput - El tipo de retorno para la función suggestProductsForQuote.
  */
 
 import {ai} from '@/ai/genkit';
@@ -14,11 +14,11 @@ import {z} from 'genkit';
 const SuggestProductsForQuoteInputSchema = z.object({
   customerPreferences: z
     .string()
-    .describe('A description of the customer preferences.'),
+    .describe('Una descripción de las preferencias del cliente.'),
   pastInteractions: z
     .string()
     .optional()
-    .describe('A description of the past interactions with the customer.'),
+    .describe('Una descripción de las interacciones pasadas con el cliente.'),
 });
 export type SuggestProductsForQuoteInput = z.infer<
   typeof SuggestProductsForQuoteInputSchema
@@ -27,10 +27,10 @@ export type SuggestProductsForQuoteInput = z.infer<
 const SuggestProductsForQuoteOutputSchema = z.object({
   suggestedProducts: z
     .array(z.string())
-    .describe('A list of suggested product names for the quote.'),
+    .describe('Una lista de nombres de productos sugeridos para la cotización.'),
   reasoning: z
     .string()
-    .describe('The reasoning behind the suggested products.'),
+    .describe('El razonamiento detrás de los productos sugeridos.'),
 });
 export type SuggestProductsForQuoteOutput = z.infer<
   typeof SuggestProductsForQuoteOutputSchema
@@ -46,14 +46,14 @@ const prompt = ai.definePrompt({
   name: 'suggestProductsForQuotePrompt',
   input: {schema: SuggestProductsForQuoteInputSchema},
   output: {schema: SuggestProductsForQuoteOutputSchema},
-  prompt: `You are a helpful AI assistant that suggests products for a sales agent to add to a quote, based on customer preferences and past interactions.
+  prompt: `Eres un asistente de IA útil que sugiere productos para que un agente de ventas los agregue a una cotización, basándose en las preferencias del cliente y las interacciones pasadas.
 
-Customer Preferences: {{{customerPreferences}}}
-Past Interactions: {{{pastInteractions}}}
+Preferencias del Cliente: {{{customerPreferences}}}
+Interacciones Pasadas: {{{pastInteractions}}}
 
-Suggest a list of product names that would be relevant for the quote, and provide a brief reasoning for each suggestion.
+Sugiere una lista de nombres de productos que serían relevantes para la cotización y proporciona un breve razonamiento para cada sugerencia.
 
-Format your response as a JSON object with "suggestedProducts" and "reasoning" fields.
+Formatea tu respuesta como un objeto JSON con los campos "suggestedProducts" y "reasoning".
 `,
 });
 

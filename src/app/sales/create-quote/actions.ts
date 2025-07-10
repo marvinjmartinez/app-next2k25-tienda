@@ -4,7 +4,7 @@ import { suggestProductsForQuote as suggestProductsForQuoteFlow, SuggestProducts
 import { z } from "zod";
 
 const formSchema = z.object({
-    customerPreferences: z.string().min(10, "Please describe customer preferences in at least 10 characters."),
+    customerPreferences: z.string().min(10, "Por favor, describe las preferencias del cliente en al menos 10 caracteres."),
     pastInteractions: z.string().optional(),
 });
 
@@ -15,7 +15,7 @@ export async function suggestProductsForQuoteAction(formData: FormData) {
     if (!validation.success) {
         return {
             success: false,
-            error: validation.error.flatten().fieldErrors.customerPreferences?.[0] || "Invalid input."
+            error: validation.error.flatten().fieldErrors.customerPreferences?.[0] || "Entrada inválida."
         };
     }
     
@@ -30,6 +30,6 @@ export async function suggestProductsForQuoteAction(formData: FormData) {
         return { success: true, data: result };
     } catch (error) {
         console.error(error);
-        return { success: false, error: "An unexpected error occurred. Please try again." };
+        return { success: false, error: "Ocurrió un error inesperado. Por favor, inténtalo de nuevo." };
     }
 }
