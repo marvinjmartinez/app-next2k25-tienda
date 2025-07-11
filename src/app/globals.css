@@ -88,3 +88,20 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer utilities {
+  @media print {
+    .printable-content {
+      display: block !important;
+    }
+    .no-print {
+      display: none !important;
+    }
+    body {
+      background-color: white;
+    }
+    main {
+        padding: 0 !important;
+    }
+  }
+}

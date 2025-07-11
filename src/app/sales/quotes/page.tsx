@@ -44,6 +44,8 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { PrintableQuote } from '@/components/printable-quote';
+
 
 const initialDummyQuotes: Quote[] = [
   {
@@ -108,6 +110,7 @@ const statusBadges: { [key: string]: 'default' | 'secondary' | 'destructive' | '
 
 export default function QuotesPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
+    const [quoteToPrint, setQuoteToPrint] = useState<Quote | null>(null);
     const { toast } = useToast();
     const router = useRouter();
     const { addToCart } = useCart();
@@ -159,8 +162,12 @@ export default function QuotesPage() {
         router.push(`/sales/create-quote?edit=${quoteId}`);
     }
 
-    const handlePrint = () => {
+    const handlePrint = (quote: Quote) => {
+      setQuoteToPrint(quote);
+      setTimeout(() => {
         window.print();
+        setQuoteToPrint(null);
+      }, 100);
     }
 
     const deleteQuote = (quoteId: string) => {
@@ -184,105 +191,110 @@ export default function QuotesPage() {
     }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Gestión de Compras"
-        description="Visualiza, edita y da seguimiento a todas las cotizaciones generadas."
-      />
-      <Card>
-        <CardHeader>
-          <CardTitle>Compras Recientes</CardTitle>
-          <CardDescription>
-            Lista de las cotizaciones más recientes.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead># Cotización</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {quotes.length > 0 ? quotes.map((quote) => (
-                <TableRow key={quote.id}>
-                  <TableCell className="font-medium">{quote.id}</TableCell>
-                  <TableCell>{quote.customerName}</TableCell>
-                  <TableCell>{formatDate(quote.date)}</TableCell>
-                  <TableCell>
-                    <Badge variant={statusBadges[quote.status] || 'outline'}>
-                        {quote.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">{formatCurrency(quote.total)}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Acciones</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={handlePrint}>
-                            <Printer className="mr-2 h-4 w-4" />
-                            Imprimir
-                        </DropdownMenuItem>
-                         {quote.status !== 'Pagada' && (
-                             <DropdownMenuItem onClick={() => handleEdit(quote.id)}>
-                                <Pencil className="mr-2 h-4 w-4" />
-                                Editar
-                            </DropdownMenuItem>
-                         )}
-                        {quote.status !== 'Pagada' && (
-                          <DropdownMenuItem onClick={() => handleSendToCart(quote)}>
-                            <Send className="mr-2 h-4 w-4" />
-                            Enviar a Carrito
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuSeparator />
-                        <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Eliminar
-                                </DropdownMenuItem>
-                            </AlertDialogTrigger>
-                             <AlertDialogContent>
-                                <AlertDialogHeader>
-                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Esto eliminará permanentemente la cotización <span className="font-bold">{quote.id}</span>.
-                                </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => deleteQuote(quote.id)}>Eliminar</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+    <>
+      <div className="space-y-6 no-print">
+        <PageHeader
+          title="Gestión de Compras"
+          description="Visualiza, edita y da seguimiento a todas las cotizaciones generadas."
+        />
+        <Card>
+          <CardHeader>
+            <CardTitle>Compras Recientes</CardTitle>
+            <CardDescription>
+              Lista de las cotizaciones más recientes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead># Cotización</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Estado</TableHead>
+                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
-              )) : (
-                 <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                        No hay cotizaciones para mostrar.
+              </TableHeader>
+              <TableBody>
+                {quotes.length > 0 ? quotes.map((quote) => (
+                  <TableRow key={quote.id}>
+                    <TableCell className="font-medium">{quote.id}</TableCell>
+                    <TableCell>{quote.customerName}</TableCell>
+                    <TableCell>{formatDate(quote.date)}</TableCell>
+                    <TableCell>
+                      <Badge variant={statusBadges[quote.status] || 'outline'}>
+                          {quote.status}
+                      </Badge>
                     </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+                    <TableCell className="text-right">{formatCurrency(quote.total)}</TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Acciones</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => handlePrint(quote)}>
+                              <Printer className="mr-2 h-4 w-4" />
+                              Imprimir
+                          </DropdownMenuItem>
+                          {quote.status !== 'Pagada' && (
+                              <DropdownMenuItem onClick={() => handleEdit(quote.id)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Editar
+                              </DropdownMenuItem>
+                          )}
+                          {quote.status !== 'Pagada' && (
+                            <DropdownMenuItem onClick={() => handleSendToCart(quote)}>
+                              <Send className="mr-2 h-4 w-4" />
+                              Enviar a Carrito
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuSeparator />
+                          <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Eliminar
+                                  </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                      Esta acción no se puede deshacer. Esto eliminará permanentemente la cotización <span className="font-bold">{quote.id}</span>.
+                                  </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => deleteQuote(quote.id)}>Eliminar</AlertDialogAction>
+                                  </AlertDialogFooter>
+                              </AlertDialogContent>
+                          </AlertDialog>
+
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                          No hay cotizaciones para mostrar.
+                      </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+       <div className="hidden printable-content">
+          {quoteToPrint && <PrintableQuote quote={quoteToPrint} />}
+      </div>
+    </>
   );
 }
