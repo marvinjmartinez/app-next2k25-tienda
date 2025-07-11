@@ -55,6 +55,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { generateProductImageAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Textarea } from '@/components/ui/textarea';
 
 const PRODUCTS_STORAGE_KEY = 'crud_products';
 
@@ -75,6 +76,7 @@ export default function ProductsAdminPage() {
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
+  const [productDescription, setProductDescription] = useState('');
   const [productCategory, setProductCategory] = useState('');
   const [productPrice, setProductPrice] = useState(0);
   const [productStock, setProductStock] = useState(0);
@@ -117,6 +119,7 @@ export default function ProductsAdminPage() {
 
   const resetFormState = () => {
     setProductName('');
+    setProductDescription('');
     setProductCategory('');
     setProductPrice(0);
     setProductStock(0);
@@ -131,6 +134,7 @@ export default function ProductsAdminPage() {
   
   const populateFormState = (product: Product) => {
     setProductName(product.name);
+    setProductDescription(product.description || '');
     setProductCategory(product.category);
     setProductPrice(product.price);
     setProductStock(product.stock);
@@ -166,6 +170,7 @@ export default function ProductsAdminPage() {
     e.preventDefault();
     const newProductData = {
       name: productName,
+      description: productDescription,
       category: productCategory,
       price: productPrice,
       stock: productStock,
@@ -504,6 +509,10 @@ export default function ProductsAdminPage() {
                             <div className="space-y-2">
                                 <Label htmlFor="name">Nombre del Producto</Label>
                                 <Input id="name" name="name" value={productName} onChange={(e) => setProductName(e.target.value)} required />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="description">Descripción del Producto</Label>
+                                <Textarea id="description" name="description" value={productDescription} onChange={(e) => setProductDescription(e.target.value)} rows={4} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
