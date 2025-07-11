@@ -30,7 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { initialProducts, categories, type Product, getProducts } from '@/lib/dummy-data';
+import { initialProducts, categories, type Product } from '@/lib/dummy-data';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -94,19 +94,65 @@ export default function ProductsAdminPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
   useEffect(() => {
-    // This loads products and ensures they have images.
-    const loadedProducts = getProducts();
-    setProducts(loadedProducts);
+    let storedProducts: Product[] = [];
+    try {
+        const data = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+        if (data) {
+            storedProducts = JSON.parse(data);
+        } else {
+            storedProducts = initialProducts;
+        }
+    } catch (error) {
+        console.error("Failed to load products from localStorage", error);
+        storedProducts = initialProducts;
+    }
+
+    const productsWithImages = storedProducts.map(p => {
+        if (!p.image || p.image.startsWith('data:')) {
+            const initialData = initialProducts.find(ip => ip.id === p.id);
+            return { ...p, image: initialData?.image || 'https://placehold.co/300x300.png', hint: initialData?.hint || 'product' };
+        }
+        return p;
+    });
+
+    setProducts(productsWithImages);
+    updateProductsStateAndStorage(productsWithImages, false); // Update storage without recursion
   }, []);
 
-  const updateProductsStateAndStorage = (newProducts: Product[]) => {
+  const updateProductsStateAndStorage = (newProducts: Product[], showToast = true) => {
       setProducts(newProducts);
       try {
-        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(newProducts));
+        // Create a version of products for storage without large data URIs
+        const productsForStorage = newProducts.map(p => {
+          const { gallery, ...rest } = p; // Exclude gallery for now to be safe
+          const initialData = initialProducts.find(ip => ip.id === p.id);
+          return {
+            ...rest,
+            image: initialData?.image || 'https://placehold.co/300x300.png', // Always store placeholder URL
+            gallery: initialData?.gallery || []
+          };
+        });
+
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(productsForStorage));
+
+        if (showToast) {
+            toast({
+                title: `Productos ${selectedProduct ? 'actualizados' : 'guardados'}`,
+                description: `Los cambios se han guardado correctamente.`,
+            });
+        }
       } catch (error) {
         console.error("Failed to save products to localStorage", error);
+        if (showToast) {
+          toast({
+            variant: "destructive",
+            title: "Error al guardar",
+            description: "No se pudieron guardar los cambios. La cuota de almacenamiento puede estar llena.",
+          });
+        }
       }
   };
+
 
   const resetFormState = () => {
     setProductName('');
@@ -167,7 +213,8 @@ export default function ProductsAdminPage() {
       stock: productStock,
       hint: productHint,
       featured: productFeatured,
-      image: productImage,
+      // Use the image from the form state for immediate UI update, but it won't be persisted.
+      image: productImage, 
       status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
       gallery: galleryUrls,
     };
@@ -183,12 +230,7 @@ export default function ProductsAdminPage() {
       updatedProducts = [newProduct, ...products];
     }
     
-    updateProductsStateAndStorage(updatedProducts);
-      
-    toast({
-        title: `Producto ${selectedProduct ? 'Actualizado' : 'Creado'}`,
-        description: `El producto se ha guardado correctamente.`,
-    })
+    updateProductsStateAndStorage(updatedProducts, true);
     setIsDialogOpen(false);
   }
   
