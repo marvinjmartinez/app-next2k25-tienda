@@ -2,7 +2,7 @@
 "use client";
 
 import Image from 'next/image';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 interface ImageViewerDialogProps {
@@ -18,6 +18,7 @@ export function ImageViewerDialog({ images, open, onOpenChange, productName }: I
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl p-0 border-0 bg-transparent shadow-none">
+        <DialogTitle className="sr-only">{`Visor de imágenes de ${productName}`}</DialogTitle>
         <Carousel className="w-full" opts={{ loop: true }}>
           <CarouselContent>
             {images.map((img, index) => (
