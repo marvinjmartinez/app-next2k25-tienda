@@ -45,6 +45,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { PrintableQuote } from '@/components/printable-quote';
+import { getProducts } from '@/lib/dummy-data';
 
 
 const formatCurrency = (amount: number) => {
@@ -69,6 +70,8 @@ const statusBadges: { [key: string]: 'default' | 'secondary' | 'destructive' | '
     Cancelada: 'destructive',
 }
 
+const allProducts = getProducts();
+
 const initialDummyQuotes: Quote[] = [
     {
       id: 'COT-001',
@@ -77,16 +80,23 @@ const initialDummyQuotes: Quote[] = [
       date: '2024-07-08',
       total: 15890.50,
       status: 'Pagada',
-      items: [],
+      items: [
+          {...allProducts.find(p => p.id === 'prod_5')!, quantity: 50, price: 260.00},
+          {...allProducts.find(p => p.id === 'prod_9')!, quantity: 15, price: 180.00},
+      ],
     },
     {
       id: 'COT-002',
-      customerName: 'Ana García',
-      customerId: 'user-vendedor', // Dummy ID
+      customerName: 'Vendedor User',
+      customerId: 'user-vendedor',
       date: '2024-07-10',
       total: 3250.00,
       status: 'Borrador',
-      items: [],
+      items: [
+          {...allProducts.find(p => p.id === 'prod_1')!, quantity: 1, price: 1650.00},
+          {...allProducts.find(p => p.id === 'prod_2')!, quantity: 2, price: 425.00},
+          {...allProducts.find(p => p.id === 'prod_7')!, quantity: 1, price: 750.00},
+      ],
     },
     {
       id: 'COT-003',
@@ -95,16 +105,23 @@ const initialDummyQuotes: Quote[] = [
       date: '2024-07-11',
       total: 78500.00,
       status: 'Enviada',
-      items: [],
+       items: [
+          {...allProducts.find(p => p.id === 'prod_12')!, quantity: 40, price: 1700.00},
+          {...allProducts.find(p => p.id === 'prod_3')!, quantity: 10, price: 1050.00},
+      ],
     },
      {
       id: 'COT-004',
-      customerName: 'Carlos Mendoza',
-      customerId: 'user-cliente', // Dummy ID
+      customerName: 'Cliente Ejemplo',
+      customerId: 'user-cliente',
       date: '2024-07-12',
       total: 890.00,
       status: 'Borrador',
-      items: [],
+      items: [
+         {...allProducts.find(p => p.id === 'prod_6')!, quantity: 2, price: 150.00},
+         {...allProducts.find(p => p.id === 'prod_8')!, quantity: 4, price: 95.00},
+         {...allProducts.find(p => p.id === 'prod_2')!, quantity: 1, price: 210.00},
+      ],
     },
   ];
 
@@ -117,19 +134,28 @@ export default function QuotesPage() {
     
     useEffect(() => {
         try {
-            let savedQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
+            const savedQuotesJSON = localStorage.getItem('saved_quotes');
+            let savedQuotes: Quote[] = savedQuotesJSON ? JSON.parse(savedQuotesJSON) : [];
             
-            // Seed localStorage with dummy data only if it's empty
-            if (savedQuotes.length === 0) {
-                savedQuotes = initialDummyQuotes;
-                localStorage.setItem('saved_quotes', JSON.stringify(savedQuotes));
+            // One-time migration: Check if dummy quotes have empty items. If so, replace them.
+            const needsMigration = savedQuotes.some(q => 
+                initialDummyQuotes.some(dq => dq.id === q.id && q.items.length === 0)
+            );
+
+            if (savedQuotes.length === 0 || needsMigration) {
+                // Get existing user-created quotes (not part of dummy data)
+                const userCreatedQuotes = savedQuotes.filter(q => !initialDummyQuotes.some(dq => dq.id === q.id));
+                // Merge dummy data with user-created data
+                const updatedQuotes = [...initialDummyQuotes, ...userCreatedQuotes];
+                localStorage.setItem('saved_quotes', JSON.stringify(updatedQuotes));
+                savedQuotes = updatedQuotes;
             }
             
             setQuotes(savedQuotes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         } catch (error) {
             console.error("Failed to load quotes from localStorage", error);
-            // Fallback to initial data in case of parsing error
-            setQuotes(initialDummyQuotes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            const sortedInitial = initialDummyQuotes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            setQuotes(sortedInitial);
         }
     }, []);
 
@@ -176,7 +202,7 @@ export default function QuotesPage() {
             let savedQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
             const updatedSavedQuotes = savedQuotes.filter(q => q.id !== quoteId);
             localStorage.setItem('saved_quotes', JSON.stringify(updatedSavedQuotes));
-            setQuotes(updatedSavedQuotes); // Update state from the new localStorage data
+            setQuotes(updatedSavedQuotes);
         } catch (error) {
             console.error("Failed to update localStorage", error);
         }
