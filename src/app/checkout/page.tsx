@@ -2,6 +2,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCart } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -11,7 +12,6 @@ import { Separator } from '@/components/ui/separator';
 import { CreditCard, Truck, Lock, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { LogoTienda } from '@/components/logo-tienda';
 import { useAuth } from '@/context/auth-context';
 import type { Quote } from '@/app/sales/create-quote/page';
 
@@ -100,7 +100,7 @@ export default function CheckoutPage() {
        <header className="bg-background">
         <div className="container mx-auto flex h-16 items-center justify-center px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <LogoTienda className="h-10 w-auto" />
+            <Image src="https://firebasestorage.googleapis.com/v0/b/distrimnin-tienda.appspot.com/o/logo%20distrimin.png?alt=media&token=3933c4d7-2792-4919-86a3-a8647a74203a" alt="Distrimin SAS Logo" width={40} height={40} className="h-10 w-auto" />
             <span className="font-bold text-xl font-headline text-foreground"> - Pago Seguro</span>
           </Link>
         </div>

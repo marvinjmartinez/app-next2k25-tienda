@@ -1,6 +1,6 @@
 // src/components/printable-quote.tsx
 import type { Quote } from '@/app/sales/create-quote/page';
-import { LogoTienda } from './logo-tienda';
+import Image from 'next/image';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -26,7 +26,7 @@ export function PrintableQuote({ quote }: PrintableQuoteProps) {
     <div className="p-8 font-sans bg-white text-black">
       <header className="flex justify-between items-start pb-4 border-b-2 border-gray-200">
         <div>
-          <LogoTienda className="h-16 w-auto" />
+          <Image src="https://firebasestorage.googleapis.com/v0/b/distrimnin-tienda.appspot.com/o/logo%20distrimin.png?alt=media&token=3933c4d7-2792-4919-86a3-a8647a74203a" alt="Distrimin SAS Logo" width={64} height={64} className="h-16 w-auto" />
           <h1 className="text-2xl font-bold mt-2">Distrimin SAS</h1>
           <p className="text-sm">Av. de los Constructores 123, Colonia Industrial</p>
           <p className="text-sm">Ciudad Ejemplo, México</p>

@@ -3,6 +3,7 @@
 
 import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Package, LogOut, LayoutDashboard, User, DollarSign } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 
 import {
@@ -31,7 +32,6 @@ import React, { useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogoTienda } from '@/components/logo-tienda';
 
 export default function SalesLayout({
   children,
@@ -90,7 +90,7 @@ export default function SalesLayout({
         <Sidebar>
           <SidebarHeader>
             <Link href="/" className="flex items-center gap-2">
-                <LogoTienda className="h-10 w-auto" />
+                <Image src="https://firebasestorage.googleapis.com/v0/b/distrimnin-tienda.appspot.com/o/logo%20distrimin.png?alt=media&token=3933c4d7-2792-4919-86a3-a8647a74203a" alt="Distrimin SAS Logo" width={40} height={40} className="h-10 w-auto" />
                 <span className="font-semibold text-lg group-data-[state=expanded]:inline hidden">Distrimin SAS</span>
             </Link>
           </SidebarHeader>

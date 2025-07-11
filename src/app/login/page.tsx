@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,7 +26,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { LogoTienda } from "@/components/logo-tienda";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor ingresa un correo válido." }),
@@ -76,7 +76,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <Link href="/" className="inline-block">
-              <LogoTienda className="h-20 w-auto" />
+            <Image src="https://firebasestorage.googleapis.com/v0/b/distrimnin-tienda.appspot.com/o/logo%20distrimin.png?alt=media&token=3933c4d7-2792-4919-86a3-a8647a74203a" alt="Distrimin SAS Logo" width={80} height={80} className="h-20 w-auto" />
           </Link>
         </div>
         <Card>
