@@ -76,13 +76,14 @@ export default function CreateQuotePage() {
   }
   
   useEffect(() => {
-    setAllProducts(getProducts());
+    const allProducts = getProducts();
+    setAllProducts(allProducts);
 
     if (editQuoteId) {
       try {
-        const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]'
-        );
+        const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
         const quoteToEdit = existingQuotes.find(q => q.id === editQuoteId);
+
         if (quoteToEdit) {
           setIsEditing(true);
 
@@ -90,16 +91,23 @@ export default function CreateQuotePage() {
           setSelectedCustomer(customer);
           setSelectedCustomerId(quoteToEdit.customerId);
           
-          // Recalculate prices for items in the quote based on customer role
-          const updatedItems = quoteToEdit.items.map(item => {
-              const productData = getProducts().find(p => p.id === item.id);
-              if (productData && customer) {
-                  return { ...item, price: getPriceForCustomer(productData, customer.role) };
-              }
-              return item;
-          });
-          
-          setQuoteItems(updatedItems);
+          if (customer) {
+              const updatedItems = quoteToEdit.items.map(item => {
+                  const productData = allProducts.find(p => p.id === item.id);
+                  if (productData) {
+                      return { 
+                          ...productData, // Use full, fresh product data
+                          quantity: item.quantity, // Keep the saved quantity
+                          price: getPriceForCustomer(productData, customer.role) // Recalculate price
+                      };
+                  }
+                  return item; // Fallback for products not found (unlikely)
+              });
+              setQuoteItems(updatedItems);
+          } else {
+             setQuoteItems(quoteToEdit.items); // Load items without price recalculation if customer not found
+          }
+
         } else {
           toast({ variant: 'destructive', title: 'Error', description: 'No se encontró la cotización a editar.' });
           router.push('/sales/quotes');
