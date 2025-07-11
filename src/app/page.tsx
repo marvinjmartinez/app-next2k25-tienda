@@ -34,16 +34,25 @@ export default function HomePage() {
 
   useEffect(() => {
     try {
-        const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-        if (storedProducts) {
-            setProducts(JSON.parse(storedProducts));
+        const storedProductsRaw = localStorage.getItem(PRODUCTS_STORAGE_KEY);
+        if (storedProductsRaw) {
+            const storedProducts = JSON.parse(storedProductsRaw);
+            // Simple check to see if data is outdated (e.g., still has old placeholder)
+            // This forces a "migration" if the stored data is old.
+            if (storedProducts.some((p: Product) => p.image.includes('300x300'))) {
+                 setProducts(initialProducts);
+                 localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
+            } else {
+                setProducts(storedProducts);
+            }
         } else {
             setProducts(initialProducts);
             localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
         }
     } catch (error) {
-        console.error("Failed to load products from localStorage", error);
+        console.error("Failed to load products from localStorage, resetting to initial data.", error);
         setProducts(initialProducts);
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
     }
   }, []);
 
