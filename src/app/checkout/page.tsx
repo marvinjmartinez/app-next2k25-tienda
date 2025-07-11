@@ -14,6 +14,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import type { Quote } from '@/app/sales/create-quote/page';
+import { LogoTienda } from '@/components/logo-tienda';
 
 
 export default function CheckoutPage() {
@@ -100,7 +101,7 @@ export default function CheckoutPage() {
        <header className="bg-background">
         <div className="container mx-auto flex h-16 items-center justify-center px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
-            <Image src="https://firebasestorage.googleapis.com/v0/b/distrimnin-tienda.appspot.com/o/logo%20distrimin.png?alt=media&token=3933c4d7-2792-4919-86a3-a8647a74203a" alt="Distrimin SAS Logo" width={40} height={40} className="h-10 w-auto" />
+            <LogoTienda width={40} height={40} className="h-10 w-auto" />
             <span className="font-bold text-xl font-headline text-foreground"> - Pago Seguro</span>
           </Link>
         </div>
