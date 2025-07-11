@@ -5,10 +5,17 @@ import React from 'react';
 import productsData from '@/data/products.json';
 import categoriesData from '@/data/categories.json';
 
+export interface PriceTiers {
+    cliente: number;
+    cliente_especial: number;
+    vendedor: number;
+}
+
 export interface Product {
   id: string;
   name: string;
   price: number;
+  priceTiers?: PriceTiers;
   image: string;
   hint: string;
   description: string;

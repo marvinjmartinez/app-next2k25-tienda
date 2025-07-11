@@ -4,7 +4,12 @@
     "id": "prod_1",
     "name": "Taladro Percutor Inalámbrico 20V",
     "price": 1899.00,
-    "image": "https://placehold.co/300x300.png",
+    "priceTiers": {
+        "cliente": 1899.00,
+        "cliente_especial": 1750.00,
+        "vendedor": 1650.00
+    },
+    "image": "https://placehold.co/600x400.png",
     "hint": "power drill",
     "description": "Potente taladro percutor inalámbrico de 20V con batería de ión de litio de larga duración. Diseñado para los trabajos más exigentes, es ideal para perforar en concreto, madera y metal. Cuenta con un selector de 2 velocidades, 16 posiciones de torque y luz LED para iluminar el área de trabajo. Incluye dos baterías, cargador rápido y maletín de transporte.",
     "stock": 15,
@@ -12,30 +17,40 @@
     "featured": true,
     "status": "activo",
     "gallery": [
-      "https://placehold.co/600x600.png",
-      "https://placehold.co/600x600.png",
-      "https://placehold.co/600x600.png"
+      "https://placehold.co/600x400.png",
+      "https://placehold.co/600x400.png",
+      "https://placehold.co/600x400.png"
     ]
   },
   {
     "id": "prod_2",
     "name": "Juego de Destornilladores 25 pzs",
     "price": 499.00,
-    "image": "https://placehold.co/300x300.png",
+    "priceTiers": {
+        "cliente": 499.00,
+        "cliente_especial": 450.00,
+        "vendedor": 425.00
+    },
+    "image": "https://placehold.co/600x400.png",
     "hint": "hand tools",
     "description": "Completo y versátil juego de 25 destornilladores de precisión. Las puntas magnéticas están fabricadas en acero cromo-vanadio para máxima durabilidad y resistencia a la corrosión. El mango ergonómico antideslizante proporciona un agarre cómodo y seguro. Incluye estuche organizador.",
     "stock": 30,
     "category": "herramientas",
     "status": "activo",
     "gallery": [
-      "https://placehold.co/600x600.png"
+      "https://placehold.co/600x400.png"
     ]
   },
   {
     "id": "prod_3",
     "name": "Pintura Vinílica Blanca 19L",
     "price": 1250.00,
-    "image": "https://placehold.co/300x300.png",
+    "priceTiers": {
+        "cliente": 1250.00,
+        "cliente_especial": 1150.00,
+        "vendedor": 1100.00
+    },
+    "image": "https://placehold.co/600x400.png",
     "hint": "paint can",
     "description": "Pintura vinil-acrílica de calidad superior con excelente poder cubriente, ideal para interiores y exteriores. Su acabado mate es lavable, resistente a la formación de hongos y de secado rápido. Una cubeta rinde hasta 150 m², dejando un acabado uniforme y duradero.",
     "stock": 8,
@@ -43,14 +58,14 @@
     "featured": true,
     "status": "activo",
     "gallery": [
-       "https://placehold.co/600x600.png"
+       "https://placehold.co/600x400.png"
     ]
   },
   {
     "id": "prod_4",
     "name": "Escalera de Tijera de Aluminio 6 pies",
     "price": 980.00,
-    "image": "https://placehold.co/300x300.png",
+    "image": "https://placehold.co/600x400.png",
     "hint": "ladder",
     "description": "Escalera de tijera ligera y extremadamente resistente, fabricada en aluminio de alta calidad (Tipo III). Con una altura de 6 pies (1.83 m), soporta hasta 90 kg. Sus patas con goma antiderrapante y tirantes antipellizcos garantizan la máxima seguridad en cualquier tarea.",
     "stock": 0,
@@ -63,21 +78,26 @@
     "id": "prod_5",
     "name": "Saco de Cemento Gris 50kg",
     "price": 280.00,
-    "image": "https://placehold.co/300x300.png",
+    "priceTiers": {
+        "cliente": 280.00,
+        "cliente_especial": 260.00,
+        "vendedor": 250.00
+    },
+    "image": "https://placehold.co/600x400.png",
     "hint": "cement bag",
     "description": "Cemento Portland Compuesto (CPC 30R) de alta resistencia inicial y fraguado rápido. Perfecto para todo tipo de obras de construcción, desde cimentaciones y losas hasta castillos y columnas. Garantiza una mezcla trabajable y estructuras sólidas y duraderas.",
     "stock": 50,
     "category": "construccion",
     "status": "activo",
     "gallery": [
-      "https://placehold.co/600x600.png"
+      "https://placehold.co/600x400.png"
     ]
   },
   {
     "id": "prod_6",
     "name": "Tubo de PVC Sanitario 4 pulgadas",
     "price": 150.00,
-    "image": "https://placehold.co/300x300.png",
+    "image": "https://placehold.co/600x400.png",
     "hint": "pvc pipe",
     "description": "Tubo de PVC para uso sanitario de 4 pulgadas de diámetro por 6 metros de largo. Fabricado para resistir la corrosión y el ataque de productos químicos, asegurando un sistema de drenaje libre de fugas y de larga vida útil. Unión tipo cementar.",
     "stock": 100,
@@ -89,7 +109,7 @@
     "id": "prod_7",
     "name": "Caja de Herramientas Metálica 22 pulgadas",
     "price": 850.00,
-    "image": "https://placehold.co/300x300.png",
+    "image": "https://placehold.co/600x400.png",
     "hint": "toolbox",
     "description": "Caja de herramientas de uso rudo, fabricada en lámina de acero de 22 pulgadas. Incluye una charola interior extraíble para organizar piezas pequeñas. Sus broches metálicos de alta resistencia garantizan un cierre seguro para transportar tus herramientas a cualquier lugar.",
     "stock": 12,
@@ -97,14 +117,14 @@
     "featured": true,
     "status": "activo",
     "gallery": [
-      "https://placehold.co/600x600.png"
+      "https://placehold.co/600x400.png"
     ]
   },
   {
     "id": "prod_8",
     "name": "Brocha de Pelo de Camello 4 pulgadas",
     "price": 95.00,
-    "image": "https://placehold.co/300x300.png",
+    "image": "https://placehold.co/600x400.png",
     "hint": "paintbrush",
     "description": "Brocha profesional de 4 pulgadas con cerdas naturales de pelo de camello, que garantizan un acabado extrafino, suave y sin rayas. Es la elección ideal para la aplicación de esmaltes, barnices, lacas y selladores en superficies lisas.",
     "stock": 45,
@@ -116,7 +136,7 @@
     "id": "prod_9",
     "name": "Varilla Corrugada 3/8",
     "price": 180.00,
-    "image": "https://placehold.co/300x300.png",
+    "image": "https://placehold.co/600x400.png",
     "hint": "rebar",
     "description": "Varilla de acero corrugado de 3/8 de pulgada de diámetro y 12 metros de largo. Cumple con las más estrictas normas de calidad para el refuerzo de concreto en todo tipo de estructuras, proporcionando una adherencia superior y resistencia a la tensión.",
     "stock": 200,
@@ -128,7 +148,7 @@
     "id": "prod_10",
     "name": "Calentador de Agua de Paso 1 servicio",
     "price": 2500.00,
-    "image": "https://placehold.co/300x300.png",
+    "image": "https://placehold.co/600x400.png",
     "hint": "water heater",
     "description": "Moderno calentador de agua instantáneo (boiler de paso) para 1 servicio (6 L/min). Su encendido electrónico y alta eficiencia permiten un ahorro de hasta 70% en el consumo de gas. Incluye un display digital para controlar la temperatura con precisión.",
     "stock": 5,
@@ -140,7 +160,7 @@
     "id": "prod_11",
     "name": "Esmeriladora Angular 4 1/2 pulg",
     "price": 1100.00,
-    "image": "https://placehold.co/300x300.png",
+    "image": "https://placehold.co/600x400.png",
     "hint": "angle grinder",
     "description": "Esmeriladora angular de 4 1/2 pulgadas con un potente motor de 800W, ideal para cortar, desbastar y pulir metal. Su diseño compacto y ergonómico, junto con una guarda de protección ajustable, la hacen una herramienta segura y fácil de manejar.",
     "stock": 18,
@@ -152,7 +172,7 @@
     "id": "prod_12",
     "name": "Impermeabilizante Rojo 5 años 19L",
     "price": 1800.00,
-    "image": "https://placehold.co/300x300.png",
+    "image": "https://placehold.co/600x400.png",
     "hint": "waterproofing bucket",
     "description": "Impermeabilizante acrílico y elastomérico en color rojo terracota, con una durabilidad garantizada de 5 años. Su fórmula avanzada reduce la temperatura interior, resiste los rayos UV y previene la aparición de goteras y humedad. Cubeta de 19 litros.",
     "stock": 7,
