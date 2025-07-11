@@ -167,7 +167,7 @@ export default function CartPage() {
                       <p>{formatCurrency(getCartTotal())}</p>
                     </div>
                   </CardContent>
-                  <CardFooter>
+                  <CardFooter className="flex-col gap-2">
                     {isAuthenticated ? (
                         <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
                             <Link href="/checkout">Proceder al Pago</Link>
@@ -177,6 +177,9 @@ export default function CartPage() {
                             <Link href="/login">Iniciar Sesión para Pagar</Link>
                         </Button>
                     )}
+                     <Button variant="link" className="w-full" asChild>
+                        <Link href="/products">Continuar comprando</Link>
+                    </Button>
                   </CardFooter>
                 </Card>
               </div>
