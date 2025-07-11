@@ -4,7 +4,7 @@
 import { generateProductImage } from "@/ai/flows/generate-product-image";
 import { z } from "zod";
 import { storage } from "@/lib/firebase";
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 const formSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
@@ -29,13 +29,22 @@ export async function generateProductImageAction(formData: FormData) {
             throw new Error('La imagen generada no es un Data URI válido.');
         }
 
-        // 1. Create a reference in Firebase Storage
+        // 1. Convert Data URI to a Buffer
+        const base64Data = imageUrl.split(',')[1];
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+        
+        // 2. Create a reference in Firebase Storage
         const storageRef = ref(storage, `products/${Date.now()}-${validation.data.hint.replace(/\s+/g, '-')}.png`);
 
-        // 2. Upload the base64 string
-        await uploadString(storageRef, imageUrl, 'data_url');
+        // 3. Define metadata
+        const metadata = {
+          contentType: 'image/png',
+        };
+
+        // 4. Upload the Buffer using uploadBytes
+        await uploadBytes(storageRef, imageBuffer, metadata);
         
-        // 3. Get the public download URL
+        // 5. Get the public download URL
         const downloadURL = await getDownloadURL(storageRef);
 
         return { success: true, data: { imageUrl: downloadURL } };
