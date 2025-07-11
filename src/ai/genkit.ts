@@ -7,7 +7,7 @@ config();
 export const ai = genkit({
   plugins: [
     googleAI({
-      apiKey: "POR_FAVOR_REEMPLAZA_CON_TU_NUEVA_CLAVE_SIN_RESTRICCIONES",
+      apiKey: "AIzaSyDd_v-1kY5PTm0rk6Wv529CcYTdNRLV9_Q",
     }),
   ],
   model: 'googleai/gemini-pro',
