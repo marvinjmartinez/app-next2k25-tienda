@@ -4,12 +4,12 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ShoppingCart, User, Search, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingCart, User, Search, LogOut, LayoutDashboard, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '@/context/cart-context';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { categories, type Product, getProducts } from '@/lib/dummy-data';
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   Select,
@@ -41,10 +41,18 @@ function ProductsPageComponent() {
   const [isViewerOpen, setIsViewerOpen] = useState(false);
   const [viewerImages, setViewerImages] = useState<string[]>([]);
   const [viewerProductName, setViewerProductName] = useState('');
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
 
   useEffect(() => {
     setProducts(getProducts());
   }, []);
+  
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory]);
 
   const handleOpenImageViewer = (product: Product) => {
     setViewerImages([product.image, ...(product.gallery || [])]);
@@ -92,12 +100,22 @@ function ProductsPageComponent() {
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const filteredProducts = products.filter(p => {
-    const isActive = p.status === 'activo';
-    const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
-    const matchesSearch = searchQuery ? p.name.toLowerCase().includes(searchQuery.toLowerCase()) : true;
-    return isActive && matchesCategory && matchesSearch;
-  });
+  const filteredProducts = useMemo(() => {
+    return products.filter(p => {
+      const isActive = p.status === 'activo';
+      const matchesCategory = selectedCategory ? p.category === selectedCategory : true;
+      const matchesSearch = searchQuery ? p.name.toLowerCase().includes(searchQuery.toLowerCase()) : true;
+      return isActive && matchesCategory && matchesSearch;
+    });
+  }, [products, selectedCategory, searchQuery]);
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage, itemsPerPage]);
+
 
   const getCategoryName = (slug: string) => {
     return categories.find(c => c.slug === slug)?.name || 'Sin categoría';
@@ -218,18 +236,41 @@ function ProductsPageComponent() {
               </Select>
           </div>
           
-          {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-              {filteredProducts.map((product) => (
-                 <ProductCard
-                  key={product.id}
-                  product={product}
-                  categoryName={getCategoryName(product.category)}
-                  onAddToCart={handleAddToCart}
-                  onImageClick={handleOpenImageViewer}
-                />
-              ))}
-            </div>
+          {paginatedProducts.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {paginatedProducts.map((product) => (
+                   <ProductCard
+                    key={product.id}
+                    product={product}
+                    categoryName={getCategoryName(product.category)}
+                    onAddToCart={handleAddToCart}
+                    onImageClick={handleOpenImageViewer}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center justify-center gap-4 mt-12">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4"/>
+                  Anterior
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Página {currentPage} de {totalPages}
+                </span>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Siguiente
+                  <ChevronRight className="ml-2 h-4 w-4"/>
+                </Button>
+              </div>
+            </>
           ) : (
              <div className="text-center py-16">
               <p className="text-muted-foreground">No se encontraron productos que coincidan con tus filtros.</p>
