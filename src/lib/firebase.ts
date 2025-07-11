@@ -1,9 +1,10 @@
 // src/lib/firebase.ts
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getStorage } from "firebase/storage";
+import { API_KEY } from "@/ai/genkit";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDd_v-1kY5PTm0rk6Wv529CcYTdNRLV9_Q",
+  apiKey: API_KEY,
   authDomain: "distrimnin-tienda.firebaseapp.com",
   projectId: "distrimnin-tienda",
   storageBucket: "distrimnin-tienda.appspot.com",
