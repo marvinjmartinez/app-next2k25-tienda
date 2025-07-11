@@ -32,7 +32,7 @@ export async function generateProductImageAction(formData: FormData) {
 
         // 2. Upload the generated image to Firebase Storage
         const fileName = `product_${Date.now()}.png`;
-        const storagePath = `distrimin/productos/${fileName}`;
+        const storagePath = `distrimin/imagenes/productos/${fileName}`;
         const storageRef = ref(storage, storagePath);
         
         // Upload the Data URI string
