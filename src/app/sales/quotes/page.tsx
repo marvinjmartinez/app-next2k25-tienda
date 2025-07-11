@@ -47,45 +47,6 @@ import {
 import { PrintableQuote } from '@/components/printable-quote';
 
 
-const initialDummyQuotes: Quote[] = [
-  {
-    id: 'COT-001',
-    customerName: 'Constructora Roble',
-    customerId: 'user-roble',
-    date: '2024-07-08',
-    total: 15890.50,
-    status: 'Pagada',
-    items: [],
-  },
-  {
-    id: 'COT-002',
-    customerName: 'Ana García',
-    customerId: 'user-vendedor', // Dummy ID
-    date: '2024-07-10',
-    total: 3250.00,
-    status: 'Borrador',
-    items: [],
-  },
-  {
-    id: 'COT-003',
-    customerName: 'Proyectos Urbanos S.A.',
-    customerId: 'user-urbanos',
-    date: '2024-07-11',
-    total: 78500.00,
-    status: 'Enviada',
-    items: [],
-  },
-   {
-    id: 'COT-004',
-    customerName: 'Carlos Mendoza',
-    customerId: 'user-cliente', // Dummy ID
-    date: '2024-07-12',
-    total: 890.00,
-    status: 'Borrador',
-    items: [],
-  },
-];
-
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
@@ -108,6 +69,45 @@ const statusBadges: { [key: string]: 'default' | 'secondary' | 'destructive' | '
     Cancelada: 'destructive',
 }
 
+const initialDummyQuotes: Quote[] = [
+    {
+      id: 'COT-001',
+      customerName: 'Constructora Roble',
+      customerId: 'user-roble',
+      date: '2024-07-08',
+      total: 15890.50,
+      status: 'Pagada',
+      items: [],
+    },
+    {
+      id: 'COT-002',
+      customerName: 'Ana García',
+      customerId: 'user-vendedor', // Dummy ID
+      date: '2024-07-10',
+      total: 3250.00,
+      status: 'Borrador',
+      items: [],
+    },
+    {
+      id: 'COT-003',
+      customerName: 'Proyectos Urbanos S.A.',
+      customerId: 'user-urbanos',
+      date: '2024-07-11',
+      total: 78500.00,
+      status: 'Enviada',
+      items: [],
+    },
+     {
+      id: 'COT-004',
+      customerName: 'Carlos Mendoza',
+      customerId: 'user-cliente', // Dummy ID
+      date: '2024-07-12',
+      total: 890.00,
+      status: 'Borrador',
+      items: [],
+    },
+  ];
+
 export default function QuotesPage() {
     const [quotes, setQuotes] = useState<Quote[]>([]);
     const [quoteToPrint, setQuoteToPrint] = useState<Quote | null>(null);
@@ -117,18 +117,19 @@ export default function QuotesPage() {
     
     useEffect(() => {
         try {
-            const savedQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
-            // Combine initial dummy quotes with saved ones, avoiding duplicates by ID
-            const combined = [...initialDummyQuotes];
-            savedQuotes.forEach(savedQuote => {
-                if (!combined.some(q => q.id === savedQuote.id)) {
-                    combined.unshift(savedQuote);
-                }
-            });
-            setQuotes(combined.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+            let savedQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
+            
+            // Seed localStorage with dummy data only if it's empty
+            if (savedQuotes.length === 0) {
+                savedQuotes = initialDummyQuotes;
+                localStorage.setItem('saved_quotes', JSON.stringify(savedQuotes));
+            }
+            
+            setQuotes(savedQuotes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         } catch (error) {
             console.error("Failed to load quotes from localStorage", error);
-            setQuotes(initialDummyQuotes);
+            // Fallback to initial data in case of parsing error
+            setQuotes(initialDummyQuotes.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         }
     }, []);
 
@@ -171,15 +172,11 @@ export default function QuotesPage() {
     }
 
     const deleteQuote = (quoteId: string) => {
-        // Remove from local state
-        const updatedQuotes = quotes.filter(q => q.id !== quoteId);
-        setQuotes(updatedQuotes);
-
-        // Remove from localStorage
         try {
-            const savedQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
+            let savedQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
             const updatedSavedQuotes = savedQuotes.filter(q => q.id !== quoteId);
             localStorage.setItem('saved_quotes', JSON.stringify(updatedSavedQuotes));
+            setQuotes(updatedSavedQuotes); // Update state from the new localStorage data
         } catch (error) {
             console.error("Failed to update localStorage", error);
         }
