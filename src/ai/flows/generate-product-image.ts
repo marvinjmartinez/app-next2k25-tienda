@@ -31,27 +31,30 @@ export async function generateProductImage(
   return generateProductImageFlow(input);
 }
 
+// Flujo de diagnóstico: En lugar de generar una imagen real,
+// genera una URL de marcador de posición para probar la conectividad de la API.
 const generateProductImageFlow = ai.defineFlow(
   {
     name: 'generateProductImageFlow',
     inputSchema: GenerateProductImageInputSchema,
     outputSchema: GenerateProductImageOutputSchema,
   },
-  async input => {
-    const {media} = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-preview-image-generation',
-      prompt: `a professional, clean, commercial product photo of a ${input.hint}, on a plain white background`,
-      config: {
-        responseModalities: ['TEXT', 'IMAGE'],
-      },
+  async (input) => {
+    // Usamos el modelo de texto estándar para generar una URL de marcador de posición.
+    // Esto nos ayuda a verificar si la clave API y la API de lenguaje generativo básica funcionan.
+    const {text} = await ai.generate({
+      model: 'googleai/gemini-2.0-flash', // Usar el modelo de texto por defecto.
+      prompt: `Generate a placeholder image URL for a product described as: ${input.hint}. The url should be from placehold.co and be 600x400.`,
     });
-    
-    if (!media?.url) {
-        throw new Error('No se pudo generar la imagen.');
+
+    const url = text.trim();
+    if (!url.startsWith('https://placehold.co')) {
+        // Fallback en caso de que la IA no genere una URL válida
+        return { imageUrl: 'https://placehold.co/600x400.png' };
     }
 
     return {
-      imageUrl: media.url,
+      imageUrl: url,
     };
   }
 );
