@@ -53,7 +53,7 @@ const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000
 
 export const getProducts = (): Product[] => {
     if (typeof window === 'undefined') {
-        return initialProducts;
+        return initialProducts.map(p => ({ ...p, image: p.image || SVG_PLACEHOLDER }));
     }
     
     let products: Product[] = [];
@@ -72,19 +72,21 @@ export const getProducts = (): Product[] => {
 
     const productsWithImagesAndTiers = products.map(p => {
         const initialProductData = initialProducts.find(ip => ip.id === p.id);
-        const image = (p.image && !p.image.includes('placehold.co')) ? p.image : initialProductData?.image || SVG_PLACEHOLDER;
+        const image = (p.image && !p.image.includes('placehold.co')) ? p.image : (initialProductData?.image || SVG_PLACEHOLDER);
         const hint = p.hint || initialProductData?.hint || 'product';
         const priceTiers = p.priceTiers || initialProductData?.priceTiers || {
             cliente: p.price,
             cliente_especial: p.price * 0.9,
             vendedor: p.price * 0.85,
         };
+        const gallery = p.gallery?.map(g => (g && !g.includes('placehold.co') ? g : SVG_PLACEHOLDER)) || [];
         
         return { 
             ...p,
             image,
             hint,
-            priceTiers
+            priceTiers,
+            gallery,
         };
     });
 
