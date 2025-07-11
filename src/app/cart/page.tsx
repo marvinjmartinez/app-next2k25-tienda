@@ -45,6 +45,12 @@ export default function CartPage() {
             <LogoTienda className="h-10 w-auto" />
             <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
           </Link>
+          <nav className="hidden md:flex gap-6 items-center">
+            <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">Inicio</Link>
+            <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">Productos</Link>
+            <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">Nosotros</Link>
+            <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">Contacto</Link>
+          </nav>
           <div className="flex items-center gap-4">
              <Button variant="ghost" size="icon" asChild>
                 <Link href="/cart" className="relative">
@@ -105,7 +111,7 @@ export default function CartPage() {
               <CardContent className="p-10 text-center">
                 <p className="text-muted-foreground mb-4">Tu carrito está vacío.</p>
                 <Button asChild>
-                  <Link href="/">Continuar Comprando</Link>
+                  <Link href="/products">Continuar Comprando</Link>
                 </Button>
               </CardContent>
             </Card>
