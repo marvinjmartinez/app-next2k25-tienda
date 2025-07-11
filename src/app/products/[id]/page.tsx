@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -40,15 +40,17 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
   const { user, logout } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
+    const id = pathname.split('/').pop();
     const products = getProducts();
-    const foundProduct = products.find(p => p.id === params.id);
+    const foundProduct = products.find(p => p.id === id);
     if (foundProduct) {
       setProduct(foundProduct);
     }
     setIsLoading(false);
-  }, [params.id]);
+  }, [pathname]);
 
   if (isLoading) {
     return <div className="flex h-screen items-center justify-center">Cargando producto...</div>;
