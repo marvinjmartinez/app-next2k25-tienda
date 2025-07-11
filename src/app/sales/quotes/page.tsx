@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Send, Trash2, Pencil } from 'lucide-react';
+import { MoreHorizontal, Send, Trash2, Pencil, Printer } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -159,6 +159,10 @@ export default function QuotesPage() {
         router.push(`/sales/create-quote?edit=${quoteId}`);
     }
 
+    const handlePrint = () => {
+        window.print();
+    }
+
     const deleteQuote = (quoteId: string) => {
         // Remove from local state
         const updatedQuotes = quotes.filter(q => q.id !== quoteId);
@@ -226,7 +230,10 @@ export default function QuotesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem disabled>Ver Detalles</DropdownMenuItem>
+                        <DropdownMenuItem onClick={handlePrint}>
+                            <Printer className="mr-2 h-4 w-4" />
+                            Imprimir
+                        </DropdownMenuItem>
                          {quote.status !== 'Pagada' && (
                              <DropdownMenuItem onClick={() => handleEdit(quote.id)}>
                                 <Pencil className="mr-2 h-4 w-4" />

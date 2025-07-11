@@ -8,6 +8,8 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/auth-context';
 import type { Quote } from '@/app/sales/create-quote/page';
+import { Button } from '@/components/ui/button';
+import { Printer } from 'lucide-react';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -47,6 +49,10 @@ export default function AccountDashboardPage() {
     }
   }, [user]);
 
+  const handlePrint = () => {
+    window.print();
+  }
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -66,6 +72,7 @@ export default function AccountDashboardPage() {
                         <TableHead>Fecha</TableHead>
                         <TableHead>Estado</TableHead>
                         <TableHead className="text-right">Total</TableHead>
+                        <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -80,11 +87,17 @@ export default function AccountDashboardPage() {
                             </Badge>
                         </TableCell>
                         <TableCell className="text-right">{formatCurrency(purchase.total)}</TableCell>
+                        <TableCell className="text-right">
+                           <Button variant="ghost" size="icon" onClick={handlePrint}>
+                                <Printer className="h-4 w-4" />
+                                <span className="sr-only">Imprimir</span>
+                           </Button>
+                        </TableCell>
                     </TableRow>
                     ))
                 ) : (
                     <TableRow>
-                        <TableCell colSpan={4} className="text-center h-24">
+                        <TableCell colSpan={5} className="text-center h-24">
                             No has realizado ninguna compra todavía.
                         </TableCell>
                     </TableRow>
