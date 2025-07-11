@@ -28,7 +28,6 @@ export interface Category {
 
 const PRODUCTS_STORAGE_KEY = 'crud_products';
 
-
 const categoryIcons: { [key: string]: React.ReactNode } = {
     herramientas: <Drill className="h-8 w-8" />,
     construccion: <HardHat className="h-8 w-8" />,
@@ -47,16 +46,37 @@ export const getProducts = (): Product[] => {
     if (typeof window === 'undefined') {
         return initialProducts;
     }
+    
+    let products: Product[] = [];
     try {
         const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
         if (storedProducts) {
-            return JSON.parse(storedProducts);
+            products = JSON.parse(storedProducts);
         } else {
-            localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
-            return initialProducts;
+            products = initialProducts;
         }
     } catch (error) {
         console.error("Failed to load products from localStorage", error);
-        return initialProducts;
+        products = initialProducts;
     }
+
+    // Ensure all products have an image, falling back to initial data if missing.
+    const productsWithImages = products.map(p => {
+        if (!p.image) {
+            const initialProductData = initialProducts.find(ip => ip.id === p.id);
+            return { ...p, image: initialProductData?.image || 'https://placehold.co/300x300.png', hint: initialProductData?.hint || 'product' };
+        }
+        return p;
+    });
+
+    // If the state was different, update localStorage
+    if (JSON.stringify(products) !== JSON.stringify(productsWithImages)) {
+        try {
+            localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(productsWithImages));
+        } catch (error) {
+            console.error("Failed to save updated products to localStorage", error);
+        }
+    }
+
+    return productsWithImages;
 };

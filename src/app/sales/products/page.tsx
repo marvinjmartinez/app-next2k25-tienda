@@ -30,7 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { initialProducts, categories, type Product } from '@/lib/dummy-data';
+import { initialProducts, categories, type Product, getProducts } from '@/lib/dummy-data';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -94,18 +94,9 @@ export default function ProductsAdminPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
   useEffect(() => {
-    try {
-        const storedProducts = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-        if (storedProducts) {
-            setProducts(JSON.parse(storedProducts));
-        } else {
-            setProducts(initialProducts);
-            localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
-        }
-    } catch (error) {
-        console.error("Failed to load products from localStorage", error);
-        setProducts(initialProducts);
-    }
+    // This loads products and ensures they have images.
+    const loadedProducts = getProducts();
+    setProducts(loadedProducts);
   }, []);
 
   const updateProductsStateAndStorage = (newProducts: Product[]) => {
