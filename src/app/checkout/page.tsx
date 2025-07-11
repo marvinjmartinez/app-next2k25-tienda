@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { CreditCard, Truck, Lock } from 'lucide-react';
+import { CreditCard, Truck, Lock, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { LogoTienda } from '@/components/logo-tienda';
@@ -53,7 +53,7 @@ export default function CheckoutPage() {
           items: cartItems.map(item => ({
             id: item.id,
             name: item.name,
-            price: item.price,
+            price: getPriceForCustomer(item, user.role),
             quantity: item.quantity,
             image: item.image,
             hint: '',
@@ -107,6 +107,14 @@ export default function CheckoutPage() {
       </header>
       <main className="py-12">
         <div className="container mx-auto px-4 md:px-6">
+          <div className="mb-8">
+              <Button variant="outline" asChild>
+                  <Link href="/products">
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Volver a la tienda
+                  </Link>
+              </Button>
+          </div>
           <form onSubmit={handlePlaceOrder} className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-8">
               <Card>
@@ -206,3 +214,15 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+const getPriceForCustomer = (product: { price: number }, role: string) => {
+  // This is a simplified placeholder. In a real app, you'd fetch the full product data.
+  switch (role) {
+    case 'cliente_especial':
+      return product.price * 0.9;
+    case 'vendedor':
+      return product.price * 0.85;
+    default:
+      return product.price;
+  }
+};
