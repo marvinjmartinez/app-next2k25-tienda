@@ -61,21 +61,42 @@ export const getProducts = (): Product[] => {
             products = JSON.parse(storedProducts);
         } else {
             products = initialProducts;
+            localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
         }
     } catch (error) {
         console.error("Failed to load products from localStorage", error);
         products = initialProducts;
     }
 
-    // Ensure all products have an image, falling back to initial data if missing.
-    // This is a robust way to handle data inconsistencies in localStorage.
-    const productsWithImages = products.map(p => {
-        if (!p.image || p.image.includes('300x300')) {
-            const initialProductData = initialProducts.find(ip => ip.id === p.id);
-            return { ...p, image: initialProductData?.image || 'https://placehold.co/600x400.png', hint: initialProductData?.hint || 'product' };
-        }
-        return p;
+    const productsWithImagesAndTiers = products.map(p => {
+        const initialProductData = initialProducts.find(ip => ip.id === p.id);
+        const image = (p.image && !p.image.includes('300x300')) ? p.image : initialProductData?.image || 'https://placehold.co/600x400.png';
+        const hint = p.hint || initialProductData?.hint || 'product';
+        const priceTiers = p.priceTiers || initialProductData?.priceTiers || {
+            cliente: p.price,
+            cliente_especial: p.price * 0.9,
+            vendedor: p.price * 0.85,
+        };
+        
+        return { 
+            ...p,
+            image,
+            hint,
+            priceTiers
+        };
     });
 
-    return productsWithImages;
+    return productsWithImagesAndTiers;
 };
+
+export const saveProducts = (products: Product[]) => {
+     if (typeof window === 'undefined') {
+        return;
+    }
+    try {
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
+    } catch (error) {
+        console.error("Failed to save products to localStorage", error);
+        // Potentially show a toast to the user
+    }
+}

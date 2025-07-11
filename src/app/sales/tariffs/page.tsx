@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -18,16 +19,54 @@ import {
   TableBody,
   TableCell,
 } from '@/components/ui/table';
-import { getProducts, type Product } from '@/lib/dummy-data';
+import { getProducts, saveProducts, type Product } from '@/lib/dummy-data';
 import { formatCurrency } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import type { PriceTiers } from '@/lib/dummy-data';
 
 export default function TariffsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
-    setProducts(getProducts());
+    const loadedProducts = getProducts().map(p => ({
+        ...p,
+        priceTiers: p.priceTiers ?? {
+            cliente: p.price,
+            cliente_especial: p.price * 0.9,
+            vendedor: p.price * 0.85,
+        }
+    }));
+    setProducts(loadedProducts);
   }, []);
+
+  const handlePriceChange = (productId: string, tier: keyof PriceTiers, value: string) => {
+    const newPrice = parseFloat(value) || 0;
+    setProducts(prevProducts =>
+      prevProducts.map(p => {
+        if (p.id === productId) {
+          return {
+            ...p,
+            priceTiers: {
+              ...p.priceTiers!,
+              [tier]: newPrice,
+            },
+          };
+        }
+        return p;
+      })
+    );
+  };
+  
+  const handleSaveChanges = () => {
+    saveProducts(products);
+    toast({
+        title: "Tarifas Actualizadas",
+        description: "Los nuevos precios se han guardado correctamente.",
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -39,7 +78,7 @@ export default function TariffsPage() {
         <CardHeader>
           <CardTitle>Tarifas de Precios por Producto</CardTitle>
           <CardDescription>
-            Visualiza los precios para cada tipo de cliente. Las celdas se podrán editar en una futura versión.
+            Modifica los precios para cada tipo de cliente y guarda los cambios.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -58,26 +97,29 @@ export default function TariffsPage() {
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell className="text-right">
                     <Input
-                      type="text"
-                      readOnly
-                      value={formatCurrency(product.priceTiers?.cliente ?? product.price)}
-                      className="w-28 text-right bg-muted"
+                      type="number"
+                      value={product.priceTiers?.cliente ?? ''}
+                      onChange={(e) => handlePriceChange(product.id, 'cliente', e.target.value)}
+                      className="w-28 text-right ml-auto"
+                      step="0.01"
                     />
                   </TableCell>
                   <TableCell className="text-right">
                     <Input
-                      type="text"
-                      readOnly
-                      value={formatCurrency(product.priceTiers?.cliente_especial ?? product.price * 0.9)}
-                      className="w-28 text-right bg-muted"
+                      type="number"
+                       value={product.priceTiers?.cliente_especial ?? ''}
+                       onChange={(e) => handlePriceChange(product.id, 'cliente_especial', e.target.value)}
+                      className="w-28 text-right ml-auto"
+                      step="0.01"
                     />
                   </TableCell>
                   <TableCell className="text-right">
                      <Input
-                      type="text"
-                      readOnly
-                      value={formatCurrency(product.priceTiers?.vendedor ?? product.price * 0.85)}
-                      className="w-28 text-right bg-muted"
+                      type="number"
+                       value={product.priceTiers?.vendedor ?? ''}
+                       onChange={(e) => handlePriceChange(product.id, 'vendedor', e.target.value)}
+                      className="w-28 text-right ml-auto"
+                      step="0.01"
                     />
                   </TableCell>
                 </TableRow>
@@ -85,6 +127,9 @@ export default function TariffsPage() {
             </TableBody>
           </Table>
         </CardContent>
+        <CardFooter className="justify-end">
+            <Button onClick={handleSaveChanges}>Guardar Cambios</Button>
+        </CardFooter>
       </Card>
     </div>
   );
