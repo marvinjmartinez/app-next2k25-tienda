@@ -3,7 +3,8 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { useAuth } from './auth-context';
+import { useAuth, type User, type UserRole } from './auth-context';
+import { getProducts, type Product } from '@/lib/dummy-data';
 
 // Define the shape of a cart item
 interface CartItem {
@@ -39,6 +40,23 @@ export function useCart() {
 
 const GUEST_CART_KEY = 'distrimin_cart_guest';
 
+const getPriceForCustomer = (product: Product, customerRole: UserRole) => {
+  if (!product.priceTiers) {
+      return product.price; // Fallback
+  }
+
+  switch (customerRole) {
+      case 'cliente_especial':
+          return product.priceTiers.cliente_especial;
+      case 'vendedor':
+          return product.priceTiers.vendedor;
+      case 'cliente':
+      case 'admin':
+      default:
+          return product.priceTiers.cliente;
+  }
+}
+
 // Create the provider component
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -58,7 +76,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const storedCart = localStorage.getItem(cartKey);
       if (storedCart) {
-        setCartItems(JSON.parse(storedCart));
+        const parsedCart: CartItem[] = JSON.parse(storedCart);
+
+        // Recalculate prices on load, in case user role or prices changed
+        const allProducts = getProducts();
+        const updatedCart = parsedCart.map(item => {
+          const productData = allProducts.find(p => p.id === item.id);
+          if (productData) {
+            return {
+              ...item,
+              price: getPriceForCustomer(productData, user?.role || 'cliente'),
+            };
+          }
+          return item;
+        });
+        setCartItems(updatedCart);
+
       } else {
         // If no specific cart is found for the user/guest, clear items.
         setCartItems([]);

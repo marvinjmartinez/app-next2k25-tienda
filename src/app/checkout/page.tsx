@@ -51,10 +51,15 @@ export default function CheckoutPage() {
           total: getCartTotal(),
           status: 'Pagada',
           items: cartItems.map(item => ({
-            ...item,
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
             hint: '',
             stock: 0,
             category: '',
+            description: '',
             status: 'activo'
           })),
       };

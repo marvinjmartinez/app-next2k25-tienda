@@ -7,10 +7,10 @@ import { useRouter } from 'next/navigation';
 import usersData from '@/data/users.json';
 
 // Definir los tipos de roles
-type UserRole = 'admin' | 'vendedor' | 'cliente_especial' | 'cliente';
+export type UserRole = 'admin' | 'vendedor' | 'cliente_especial' | 'cliente';
 
 // Definir la forma del objeto de usuario
-interface User {
+export interface User {
   id: string;
   name: string;
   email: string;

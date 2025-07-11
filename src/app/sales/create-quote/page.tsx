@@ -16,14 +16,15 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Trash2, Search, Plus, Send, Save } from 'lucide-react';
 
-import type { Product } from '@/lib/dummy-data';
+import type { Product, PriceTiers } from '@/lib/dummy-data';
 import { getProducts } from '@/lib/dummy-data';
+import type { User as AuthUser } from '@/context/auth-context';
 import usersData from '@/data/users.json';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const dummyCustomers = usersData.filter(u => u.role.startsWith('cliente')).map(u => ({ id: u.id, name: u.name }));
+const dummyCustomers = usersData.map(u => ({ id: u.id, name: u.name, role: u.role as AuthUser['role'] }));
 
 interface QuoteItem extends Product {
   quantity: number;
@@ -49,26 +50,56 @@ export default function CreateQuotePage() {
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
-  const [selectedCustomerName, setSelectedCustomerName] = useState<string>('');
+  const [selectedCustomer, setSelectedCustomer] = useState<AuthUser | null>(null);
   const [quoteItems, setQuoteItems] = useState<QuoteItem[]>([]);
   const [isProductDialogOpen, setIsProductDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
   const { addToCart } = useCart();
   const { toast } = useToast();
+
+  const getPriceForCustomer = (product: Product, customerRole: AuthUser['role']) => {
+    if (!product.priceTiers) {
+        return product.price; // Fallback
+    }
+
+    switch (customerRole) {
+        case 'cliente_especial':
+            return product.priceTiers.cliente_especial;
+        case 'vendedor':
+            return product.priceTiers.vendedor;
+        case 'cliente':
+        case 'admin': // Admins get client price by default on quotes
+        default:
+            return product.priceTiers.cliente;
+    }
+  }
   
   useEffect(() => {
     setAllProducts(getProducts());
 
     if (editQuoteId) {
       try {
-        const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
+        const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]'
+        );
         const quoteToEdit = existingQuotes.find(q => q.id === editQuoteId);
         if (quoteToEdit) {
           setIsEditing(true);
+
+          const customer = dummyCustomers.find(c => c.id === quoteToEdit.customerId) || null;
+          setSelectedCustomer(customer);
           setSelectedCustomerId(quoteToEdit.customerId);
-          setSelectedCustomerName(quoteToEdit.customerName);
-          setQuoteItems(quoteToEdit.items);
+          
+          // Recalculate prices for items in the quote based on customer role
+          const updatedItems = quoteToEdit.items.map(item => {
+              const productData = getProducts().find(p => p.id === item.id);
+              if (productData && customer) {
+                  return { ...item, price: getPriceForCustomer(productData, customer.role) };
+              }
+              return item;
+          });
+          
+          setQuoteItems(updatedItems);
         } else {
           toast({ variant: 'destructive', title: 'Error', description: 'No se encontró la cotización a editar.' });
           router.push('/sales/quotes');
@@ -82,14 +113,20 @@ export default function CreateQuotePage() {
   }, [editQuoteId, router, toast]);
 
   const handleAddProductToQuote = (product: Product, quantity: number = 1) => {
+    if (!selectedCustomer) {
+        toast({ variant: 'destructive', title: "Selecciona un cliente", description: "Debes seleccionar un cliente antes de agregar productos." });
+        return;
+    }
+    const price = getPriceForCustomer(product, selectedCustomer.role);
+
     setQuoteItems((prevItems) => {
       const existingItem = prevItems.find((item) => item.id === product.id);
       if (existingItem) {
         return prevItems.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+          item.id === product.id ? { ...item, quantity: item.quantity + quantity, price } : item
         );
       }
-      return [...prevItems, { ...product, quantity }];
+      return [...prevItems, { ...product, quantity, price }];
     });
     toast({
         title: "Producto agregado a la cotización",
@@ -110,7 +147,7 @@ export default function CreateQuotePage() {
   
   const filteredProducts = allProducts.filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-  const quoteTotal = quoteItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  const quoteTotal = quoteItems.reduce((total, item) => total + (item.price || 0) * item.quantity, 0);
   
   const validateQuote = () => {
     if (!selectedCustomerId) {
@@ -125,12 +162,12 @@ export default function CreateQuotePage() {
   }
   
   const saveQuoteToLocalStorage = (status: 'Borrador' | 'Enviada') => {
-      if (!validateQuote()) return;
+      if (!validateQuote() || !selectedCustomer) return;
 
       const quoteData: Quote = {
           id: isEditing ? editQuoteId! : `COT-${Date.now().toString().slice(-4)}`,
           customerId: selectedCustomerId!,
-          customerName: selectedCustomerName,
+          customerName: selectedCustomer.name,
           date: new Date().toISOString().split('T')[0],
           total: quoteTotal,
           status,
@@ -186,9 +223,9 @@ export default function CreateQuotePage() {
   }
 
   const handleCustomerChange = (customerId: string) => {
+      const customer = dummyCustomers.find(c => c.id === customerId) || null;
       setSelectedCustomerId(customerId);
-      const customer = dummyCustomers.find(c => c.id === customerId);
-      setSelectedCustomerName(customer ? customer.name : '');
+      setSelectedCustomer(customer);
   }
 
   if (isLoading) {
@@ -212,7 +249,7 @@ export default function CreateQuotePage() {
       <div className="space-y-6">
         <PageHeader
           title={isEditing ? 'Editar Cotización' : 'Crear Nueva Cotización'}
-          description={isEditing ? `Editando la cotización ${editQuoteId} para ${selectedCustomerName}` : "Selecciona un cliente, agrega productos y genera una nueva cotización."}
+          description={isEditing ? `Editando la cotización ${editQuoteId} para ${selectedCustomer?.name}` : "Selecciona un cliente, agrega productos y genera una nueva cotización."}
         />
         <Separator />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -242,7 +279,7 @@ export default function CreateQuotePage() {
                   <CardTitle>2. Productos en la Cotización</CardTitle>
                   <CardDescription>Añade o edita los productos para este cliente.</CardDescription>
                 </div>
-                <Button onClick={() => setIsProductDialogOpen(true)}>
+                <Button onClick={() => setIsProductDialogOpen(true)} disabled={!selectedCustomer}>
                   <Plus className="mr-2 h-4 w-4" />
                   Agregar Producto
                 </Button>
@@ -354,7 +391,7 @@ export default function CreateQuotePage() {
                         <TableRow key={product.id}>
                             <TableCell>{product.name}</TableCell>
                             <TableCell>{product.stock}</TableCell>
-                            <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
+                            <TableCell className="text-right">${selectedCustomer ? getPriceForCustomer(product, selectedCustomer.role).toFixed(2) : product.price.toFixed(2)}</TableCell>
                             <TableCell>
                                 <Button size="sm" onClick={() => {
                                     handleAddProductToQuote(product);
