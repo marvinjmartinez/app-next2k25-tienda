@@ -61,22 +61,14 @@ export const getProducts = (): Product[] => {
     }
 
     // Ensure all products have an image, falling back to initial data if missing.
+    // This is a robust way to handle data inconsistencies in localStorage.
     const productsWithImages = products.map(p => {
-        if (!p.image) {
+        if (!p.image || p.image.includes('300x300')) {
             const initialProductData = initialProducts.find(ip => ip.id === p.id);
-            return { ...p, image: initialProductData?.image || 'https://placehold.co/300x300.png', hint: initialProductData?.hint || 'product' };
+            return { ...p, image: initialProductData?.image || 'https://placehold.co/600x400.png', hint: initialProductData?.hint || 'product' };
         }
         return p;
     });
-
-    // If the state was different, update localStorage
-    if (JSON.stringify(products) !== JSON.stringify(productsWithImages)) {
-        try {
-            localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(productsWithImages));
-        } catch (error) {
-            console.error("Failed to save updated products to localStorage", error);
-        }
-    }
 
     return productsWithImages;
 };
