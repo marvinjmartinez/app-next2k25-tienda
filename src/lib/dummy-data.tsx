@@ -49,6 +49,8 @@ export const categories: Category[] = categoriesData.map(cat => ({
 
 export const initialProducts: Product[] = productsData as Product[];
 
+const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
+
 export const getProducts = (): Product[] => {
     if (typeof window === 'undefined') {
         return initialProducts;
@@ -70,7 +72,7 @@ export const getProducts = (): Product[] => {
 
     const productsWithImagesAndTiers = products.map(p => {
         const initialProductData = initialProducts.find(ip => ip.id === p.id);
-        const image = (p.image && !p.image.includes('300x300')) ? p.image : initialProductData?.image || 'https://placehold.co/600x400.png';
+        const image = (p.image && !p.image.includes('placehold.co')) ? p.image : initialProductData?.image || SVG_PLACEHOLDER;
         const hint = p.hint || initialProductData?.hint || 'product';
         const priceTiers = p.priceTiers || initialProductData?.priceTiers || {
             cliente: p.price,

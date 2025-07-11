@@ -33,6 +33,8 @@ const formatCurrency = (amount: number) => {
     }).format(amount);
 };
 
+const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
+
 export default function ProductDetailPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,7 +91,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
     return user.role === 'admin' || user.role === 'vendedor' ? "/sales/dashboard" : "/account/dashboard";
   }
 
-  const allImages = [product.image, ...(product.gallery || [])];
+  const allImages = [product.image || SVG_PLACEHOLDER, ...(product.gallery || [])];
 
   return (
     <div className="flex flex-col min-h-screen">

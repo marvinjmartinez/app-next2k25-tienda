@@ -10,7 +10,7 @@ import { ShoppingCart, User, Search, LogOut, LayoutDashboard } from 'lucide-reac
 import { useCart } from '@/context/cart-context'; 
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { categories, type Product, initialProducts } from '@/lib/dummy-data';
+import { categories, type Product, initialProducts, getProducts } from '@/lib/dummy-data';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
@@ -33,27 +33,7 @@ export default function HomePage() {
   const [viewerProductName, setViewerProductName] = useState('');
 
   useEffect(() => {
-    try {
-        const storedProductsRaw = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-        if (storedProductsRaw) {
-            const storedProducts = JSON.parse(storedProductsRaw);
-            // Simple check to see if data is outdated (e.g., still has old placeholder)
-            // This forces a "migration" if the stored data is old.
-            if (storedProducts.some((p: Product) => p.image.includes('300x300'))) {
-                 setProducts(initialProducts);
-                 localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
-            } else {
-                setProducts(storedProducts);
-            }
-        } else {
-            setProducts(initialProducts);
-            localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
-        }
-    } catch (error) {
-        console.error("Failed to load products from localStorage, resetting to initial data.", error);
-        setProducts(initialProducts);
-        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(initialProducts));
-    }
+    setProducts(getProducts());
   }, []);
 
   const featuredProducts = products.filter(p => p.featured && p.status === 'activo');

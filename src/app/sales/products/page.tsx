@@ -58,6 +58,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Textarea } from '@/components/ui/textarea';
 
 const PRODUCTS_STORAGE_KEY = 'crud_products';
+const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
+
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-MX', {
@@ -83,7 +85,7 @@ export default function ProductsAdminPage() {
   const [productHint, setProductHint] = useState('');
   const [productFeatured, setProductFeatured] = useState(false);
   const [productStatus, setProductStatus] = useState(true);
-  const [productImage, setProductImage] = useState('');
+  const [productImage, setProductImage] = useState(SVG_PLACEHOLDER);
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
   const [galleryHint, setGalleryHint] = useState('');
@@ -107,33 +109,13 @@ export default function ProductsAdminPage() {
         storedProducts = initialProducts;
     }
 
-    const productsWithImages = storedProducts.map(p => {
-        if (!p.image || p.image.startsWith('data:')) {
-            const initialData = initialProducts.find(ip => ip.id === p.id);
-            return { ...p, image: initialData?.image || 'https://placehold.co/300x300.png', hint: initialData?.hint || 'product' };
-        }
-        return p;
-    });
-
-    setProducts(productsWithImages);
-    updateProductsStateAndStorage(productsWithImages, false); // Update storage without recursion
+    setProducts(storedProducts);
   }, []);
 
   const updateProductsStateAndStorage = (newProducts: Product[], showToast = true) => {
       setProducts(newProducts);
       try {
-        // Create a version of products for storage without large data URIs
-        const productsForStorage = newProducts.map(p => {
-          const { gallery, ...rest } = p; // Exclude gallery for now to be safe
-          const initialData = initialProducts.find(ip => ip.id === p.id);
-          return {
-            ...rest,
-            image: initialData?.image || 'https://placehold.co/300x300.png', // Always store placeholder URL
-            gallery: initialData?.gallery || []
-          };
-        });
-
-        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(productsForStorage));
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(newProducts));
 
         if (showToast) {
             toast({
@@ -163,7 +145,7 @@ export default function ProductsAdminPage() {
     setProductHint('');
     setProductFeatured(false);
     setProductStatus(true);
-    setProductImage('https://placehold.co/300x300.png');
+    setProductImage(SVG_PLACEHOLDER);
     setGalleryUrls([]);
     setNewGalleryUrl('');
     setGalleryHint('');
@@ -213,7 +195,6 @@ export default function ProductsAdminPage() {
       stock: productStock,
       hint: productHint,
       featured: productFeatured,
-      // Use the image from the form state for immediate UI update, but it won't be persisted.
       image: productImage, 
       status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
       gallery: galleryUrls,
@@ -385,7 +366,7 @@ export default function ProductsAdminPage() {
                     <TableRow key={product.id}>
                         <TableCell>
                         <Image
-                            src={product.image}
+                            src={product.image || SVG_PLACEHOLDER}
                             alt={product.name}
                             width={40}
                             height={40}
