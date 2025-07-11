@@ -42,12 +42,7 @@ const generateProductImageFlow = ai.defineFlow(
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
       prompt: `Generate a high-quality, professional product photo on a clean white background for a hardware store product. The product is: ${input.hint}.`,
       config: {
-        responseModalities: ['TEXT', 'IMAGE'], 
-        // Aspect ratio 4:3 for product images
-        imageConfig: {
-          height: 768,
-          width: 1024
-        }
+        responseModalities: ['TEXT', 'IMAGE'],
       },
     });
 
