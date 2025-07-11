@@ -13,7 +13,7 @@ import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
 import type { Product } from '@/lib/dummy-data';
 import { getProducts, categories } from '@/lib/dummy-data';
-import { ShoppingCart, User, LogOut, LayoutDashboard, CheckCircle } from 'lucide-react';
+import { ShoppingCart, User, LogOut, LayoutDashboard, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -152,6 +152,12 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
 
       <main className="flex-1 py-12">
         <div className="container mx-auto px-4 md:px-6">
+          <div className="mb-8">
+            <Button variant="outline" onClick={() => router.push('/products')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Volver a la tienda
+            </Button>
+          </div>
           <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
             <div>
               <Card className="overflow-hidden">
