@@ -43,7 +43,7 @@ const generateProductImageFlow = ai.defineFlow(
     // Usamos el modelo de texto estándar para generar una URL de marcador de posición.
     // Esto nos ayuda a verificar si la clave API y la API de lenguaje generativo básica funcionan.
     const {text} = await ai.generate({
-      model: 'googleai/gemini-2.0-flash', // Usar el modelo de texto por defecto.
+      model: 'googleai/gemini-pro', // Usar el modelo de texto por defecto.
       prompt: `Generate a placeholder image URL for a product described as: ${input.hint}. The url should be from placehold.co and be 600x400.`,
     });
 

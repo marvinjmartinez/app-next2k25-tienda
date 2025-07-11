@@ -3,9 +3,6 @@
 
 import { generateProductImage } from "@/ai/flows/generate-product-image";
 import { z } from "zod";
-// Ya no necesitamos firebase aquí para el diagnóstico
-// import { storage } from "@/lib/firebase";
-// import { ref, uploadString, getDownloadURL } from "firebase/storage";
 
 const formSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
