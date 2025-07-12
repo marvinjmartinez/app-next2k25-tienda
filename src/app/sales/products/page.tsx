@@ -1,7 +1,7 @@
-// src/app/sales/products/page.tsx
+{// src/app/sales/products/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useTransition } from 'react';
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -53,13 +53,9 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { generateProductImageAction } from './actions';
+import { generateProductImageAction, saveProductAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { storage } from '@/lib/firebase';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
-import { v4 as uuidv4 } from 'uuid';
-
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
 
@@ -78,7 +74,7 @@ export default function ProductsAdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
+  const [isSaving, startSavingTransition] = useTransition();
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -157,19 +153,8 @@ export default function ProductsAdminPage() {
       description: `El producto "${productToDelete.name}" ha sido eliminado.`,
     });
   };
-  
-  // Helper to upload a single image if it's a data URI
-  const uploadImageIfNeeded = async (imageUri: string): Promise<string> => {
-    if (imageUri.startsWith('data:image')) {
-      const storageRef = ref(storage, `products/${uuidv4()}`);
-      const snapshot = await uploadString(storageRef, imageUri, 'data_url');
-      return getDownloadURL(snapshot.ref);
-    }
-    return imageUri; // Return original URL if it's not a data URI
-  };
 
-
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!productName || !productCategory) {
       toast({
         variant: 'destructive',
@@ -178,66 +163,51 @@ export default function ProductsAdminPage() {
       });
       return;
     }
-  
-    setIsSaving(true);
-    try {
-      // Upload main image and gallery images concurrently
-      const uploadPromises = [
-        uploadImageIfNeeded(productImage),
-        ...galleryUrls.map(url => uploadImageIfNeeded(url))
-      ];
-      
-      const [uploadedImageUrl, ...uploadedGalleryUrls] = await Promise.all(uploadPromises);
-  
-      const productData = {
-        name: productName,
-        description: productDescription,
-        category: productCategory,
-        price: productPrice,
-        stock: productStock,
-        hint: productHint,
-        featured: productFeatured,
-        image: uploadedImageUrl,
-        status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
-        gallery: uploadedGalleryUrls,
-      };
-  
-      let updatedProducts;
-      if (selectedProduct) {
-        const newOrUpdatedProduct = { ...selectedProduct, ...productData };
-        updatedProducts = products.map(p => p.id === selectedProduct.id ? newOrUpdatedProduct : p);
+
+    const formData = new FormData();
+    if(selectedProduct) formData.append('id', selectedProduct.id);
+    formData.append('name', productName);
+    formData.append('description', productDescription);
+    formData.append('category', productCategory);
+    formData.append('price', String(productPrice));
+    formData.append('stock', String(productStock));
+    formData.append('hint', productHint);
+    formData.append('featured', String(productFeatured));
+    formData.append('status', String(productStatus));
+    formData.append('image', productImage);
+    formData.append('gallery', JSON.stringify(galleryUrls));
+
+    startSavingTransition(async () => {
+      const result = await saveProductAction(formData);
+
+      if (result.success && result.data) {
+        let updatedProducts;
+        const finalProductData = result.data as unknown as Product;
+
+        if (selectedProduct) {
+          // Si estamos editando, actualizamos el producto existente
+          updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...finalProductData } : p);
+        } else {
+          // Si es nuevo, lo agregamos (con un ID temporal si es necesario)
+          const newProduct = { ...initialProducts[0], ...finalProductData, id: `prod_${Date.now()}`};
+          updatedProducts = [newProduct, ...products];
+        }
+
+        updateProductsStateAndStorage(updatedProducts);
+        
+        toast({
+          title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
+          description: `Los cambios para "${finalProductData.name}" se han guardado correctamente.`,
+        });
+        setIsDialogOpen(false);
       } else {
-        const newProduct = {
-          id: `prod_${Date.now()}`,
-          ...productData,
-          priceTiers: {
-            cliente: productPrice,
-            cliente_especial: productPrice * 0.9,
-            vendedor: productPrice * 0.85,
-          }
-        };
-        updatedProducts = [newProduct, ...products];
+        toast({
+          variant: 'destructive',
+          title: 'Error al guardar',
+          description: result.error || "No se pudo guardar el producto.",
+        });
       }
-      
-      updateProductsStateAndStorage(updatedProducts);
-      
-      toast({
-        title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
-        description: `Los cambios para "${productData.name}" se han guardado correctamente.`,
-      });
-  
-      setIsDialogOpen(false);
-  
-    } catch (error) {
-      console.error("Error saving product:", error);
-      toast({
-        variant: "destructive",
-        title: "Error al guardar",
-        description: "No se pudo subir una o más imágenes. Por favor, inténtalo de nuevo.",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    });
   };
 
 
