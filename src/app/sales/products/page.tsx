@@ -229,13 +229,13 @@ export default function ProductsAdminPage() {
     generateProductImageAction(formData)
       .then((result) => {
         if (result.success && result.data?.imageUrl) {
-            const publicUrl = result.data.imageUrl;
+            const dataUri = result.data.imageUrl;
             
             if (target === 'main') {
-              setProductImage(publicUrl);
+              setProductImage(dataUri);
               toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado. No olvides guardar los cambios." });
             } else {
-              setGalleryUrls(prev => [...prev, publicUrl]);
+              setGalleryUrls(prev => [...prev, dataUri]);
               setGalleryHint('');
               toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido a la galería. No olvides guardar." });
             }

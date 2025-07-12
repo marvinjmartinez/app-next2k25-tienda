@@ -4,7 +4,6 @@
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
 import type { Product } from "@/lib/dummy-data";
 import { z } from "zod";
-import { uploadGeneratedImage } from "@/lib/uploadGeneratedImage";
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
 
@@ -32,15 +31,13 @@ export async function generateProductImageAction(formData: FormData) {
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        const publicUrl = await uploadGeneratedImage(dataUri);
-        
-        return { success: true, data: { imageUrl: publicUrl } };
+        return { success: true, data: { imageUrl: dataUri } };
 
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);
         const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado al generar la imagen.";
         if (errorMessage.includes("API key not valid")) {
-            return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env.local" };
+            return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
         }
         return { success: false, error: errorMessage };
     }
@@ -54,7 +51,7 @@ const productFormSchema = z.object({
     category: z.string().min(1, "La categoría es requerida."),
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
     stock: z.coerce.number().min(0, "El stock no puede ser negativo."),
-    hint: z.string(),
+    hint: z.string().optional(),
     featured: z.coerce.boolean().optional(),
     status: z.coerce.boolean().optional(),
     image: z.string().optional(),
@@ -84,9 +81,9 @@ export async function saveProductAction(formData: FormData): Promise<{ success: 
             category: productData.category,
             price: productData.price,
             stock: productData.stock,
-            hint: productData.hint,
+            hint: productData.hint || '',
             featured: productData.featured ?? false,
-            status: (productData.status ?? false) ? 'activo' : 'inactivo',
+            status: (productData.status ?? true) ? 'activo' : 'inactivo',
             image: mainImageUrl,
             gallery: galleryUrls,
         };
