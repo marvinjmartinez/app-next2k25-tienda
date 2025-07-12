@@ -1,4 +1,4 @@
-{"use server";
+"use server";
 
 import { generateProductImage } from "@/ai/flows/generate-product-image";
 import { uploadGeneratedImage } from "@/lib/uploadGeneratedImage";
@@ -27,7 +27,10 @@ export async function generateProductImageAction(formData: FormData) {
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        return { success: true, data: { imageUrl: dataUri } };
+        // This is the key change: upload the generated image and get the public URL
+        const publicImageUrl = await uploadGeneratedImage(dataUri);
+        
+        return { success: true, data: { imageUrl: publicImageUrl } };
 
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);
