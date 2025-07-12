@@ -1,4 +1,3 @@
-
 // src/lib/firebase-admin.ts
 import admin from 'firebase-admin';
 import dotenv from 'dotenv';
@@ -26,7 +25,7 @@ if (!admin.apps.length) {
     throw new Error(`No se pudo inicializar Firebase Admin SDK: Error al analizar FIREBASE_SERVICE_ACCOUNT_JSON. Asegúrate de que es una cadena JSON válida, generalmente comienza y termina con {}.`);
   }
   
-  // *** LA SOLUCIÓN DEFINITIVA ESTÁ AQUÍ ***
+  // *** SOLUCIÓN DEFINITIVA ***
   // Reemplaza los caracteres de nueva línea escapados (\\n) por saltos de línea reales (\n)
   // Esto corrige el error "Invalid PEM" que ocurre cuando la clave se lee desde un .env
   if (serviceAccount.private_key) {
