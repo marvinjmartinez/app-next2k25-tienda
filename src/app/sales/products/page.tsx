@@ -174,7 +174,12 @@ export default function ProductsAdminPage() {
     formData.append('hint', productHint);
     formData.append('featured', String(productFeatured));
     formData.append('status', String(productStatus));
-    formData.append('image', productImage);
+    
+    // Only append image if it's not the placeholder
+    if (productImage && productImage !== SVG_PLACEHOLDER) {
+      formData.append('image', productImage);
+    }
+    
     formData.append('gallery', JSON.stringify(galleryUrls));
 
     startSavingTransition(async () => {
@@ -586,7 +591,7 @@ export default function ProductsAdminPage() {
                                 <Label>Imagen Principal</Label>
                                 <div className="flex items-center gap-2">
                                     <Image src={productImage || SVG_PLACEHOLDER} alt="Preview" width={80} height={80} className="rounded-md object-cover border" />
-                                    <Input value={productImage.startsWith('data:') ? 'Nueva imagen generada' : productImage} readOnly className="flex-1" />
+                                    <Input value={productImage.startsWith('data:') ? 'Nueva imagen generada' : (productImage === SVG_PLACEHOLDER ? 'Marcador de posición' : productImage) } readOnly className="flex-1" />
                                 </div>
                             </div>
                              <div className="space-y-2">
