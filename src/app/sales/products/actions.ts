@@ -1,11 +1,15 @@
+// src/app/sales/products/actions.ts
 "use server";
 
-import { generateProductImage } from "@/ai/flows/generate-product-image";
+import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
 import { uploadGeneratedImage } from "@/lib/uploadGeneratedImage";
 import { z } from "zod";
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 
 const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
+    apiKey: z.string().min(1, "La clave de API es requerida."),
 });
 
 export async function generateProductImageAction(formData: FormData) {
@@ -20,17 +24,29 @@ export async function generateProductImageAction(formData: FormData) {
     }
     
     try {
-        const result = await generateProductImage({ hint: validation.data.hint });
-        const { imageUrl: dataUri } = result;
+        // Configura Genkit temporalmente con la clave de API proporcionada
+        const tempAi = genkit({
+            plugins: [
+                googleAI({ apiKey: validation.data.apiKey }),
+            ],
+        });
+
+        const {media} = await tempAi.generate({
+            model: 'googleai/gemini-2.0-flash-preview-image-generation',
+            prompt: `Generate a high-quality, professional product photo on a clean white background for a hardware store product. The product is: ${validation.data.hint}.`,
+            config: {
+                responseModalities: ['TEXT', 'IMAGE'],
+            },
+        });
+        
+        const dataUri = media?.url;
 
         if (!dataUri || !dataUri.startsWith('data:image')) {
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // This is the key change: upload the generated image and get the public URL
-        const publicImageUrl = await uploadGeneratedImage(dataUri);
-        
-        return { success: true, data: { imageUrl: publicImageUrl } };
+        // La URL generada por Genkit es un data URI, que es lo que necesitamos.
+        return { success: true, data: { imageUrl: dataUri } };
 
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);

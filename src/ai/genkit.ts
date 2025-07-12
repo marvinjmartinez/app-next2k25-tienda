@@ -1,17 +1,12 @@
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
-// Next.js handles .env.local automatically.
-const apiKey = process.env.GOOGLE_API_KEY;
-
-if (!apiKey) {
-  console.warn("GOOGLE_API_KEY is not set in .env.local. AI features will not work.");
-}
-
+// Esta configuración global puede estar vacía o usar una clave por defecto si existe.
+// La clave real y válida se inyectará dinámicamente en la Server Action.
 export const ai = genkit({
   plugins: [
     googleAI({
-      apiKey: apiKey,
+      apiKey: process.env.GOOGLE_API_KEY || 'invalid-key-by-default',
     }),
   ],
 });

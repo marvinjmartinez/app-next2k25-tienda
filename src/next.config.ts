@@ -2,6 +2,9 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  env: {
+    GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -18,7 +21,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'firebasestorage.googleapis.com',
+        hostname: 'storage.googleapis.com',
         port: '',
         pathname: '/**',
       }
