@@ -2,14 +2,13 @@
 "use server";
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
-import { uploadGeneratedImage } from "@/lib/uploadGeneratedImage";
 import { z } from "zod";
 
 const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
 });
 
-// Acción para generar la imagen, subirla a Firebase y devolver la URL pública
+// Acción para generar la imagen y devolver el Data URI
 export async function generateProductImageAction(formData: FormData): Promise<{ success: boolean; data?: { imageUrl: string; }; error?: string; }> {
     const rawData = Object.fromEntries(formData.entries());
     const validation = generateImageSchema.safeParse(rawData);
@@ -30,11 +29,8 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // 2. Subir el data URI a Firebase Storage
-        const publicUrl = await uploadGeneratedImage(dataUri);
-
-        // 3. Devolver la URL pública y persistente
-        return { success: true, data: { imageUrl: publicUrl } };
+        // 2. Devolver el Data URI directamente al cliente
+        return { success: true, data: { imageUrl: dataUri } };
 
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);
@@ -45,7 +41,6 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
         return { success: false, error: errorMessage };
     }
 }
-
 
 // Acción simplificada solo para validación en el servidor.
 // La lógica de guardado y actualización se maneja en el cliente.

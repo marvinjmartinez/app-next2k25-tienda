@@ -69,6 +69,33 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
+// Función para comprimir la imagen
+const compressImage = (dataUri: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = document.createElement('img');
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        return reject(new Error('No se pudo obtener el contexto del canvas.'));
+      }
+      
+      const MAX_WIDTH = 800;
+      const scaleSize = MAX_WIDTH / img.width;
+      canvas.width = MAX_WIDTH;
+      canvas.height = img.height * scaleSize;
+
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
+      // Comprimir a JPEG con calidad 0.8
+      const compressedDataUri = canvas.toDataURL('image/jpeg', 0.8);
+      resolve(compressedDataUri);
+    };
+    img.onerror = reject;
+    img.src = dataUri;
+  });
+};
+
 
 export default function ProductsAdminPage() {
   const { toast } = useToast();
@@ -177,7 +204,7 @@ export default function ProductsAdminPage() {
             hint: productHint,
             featured: productFeatured,
             status: productStatus ? 'activo' : 'inactivo',
-            image: productImage, // This will be the public URL or placeholder
+            image: productImage,
             gallery: galleryUrls,
         };
 
@@ -214,17 +241,18 @@ export default function ProductsAdminPage() {
 
     startGeneratingTransition(() => {
       generateProductImageAction(formData)
-        .then((result) => {
+        .then(async (result) => {
           if (result.success && result.data?.imageUrl) {
-              const newImageUrl = result.data.imageUrl;
+              const uncompressedUri = result.data.imageUrl;
+              const compressedUri = await compressImage(uncompressedUri);
               
               if (target === 'main') {
-                setProductImage(newImageUrl);
-                toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado y subido. No olvides guardar los cambios." });
+                setProductImage(compressedUri);
+                toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado y optimizado. No olvides guardar." });
               } else {
-                setGalleryUrls(prev => [...prev, newImageUrl]);
+                setGalleryUrls(prev => [...prev, compressedUri]);
                 setGalleryHint('');
-                toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido y subido. No olvides guardar." });
+                toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido y optimizado. No olvides guardar." });
               }
           } else {
               toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error || "Ocurrió un error desconocido." });

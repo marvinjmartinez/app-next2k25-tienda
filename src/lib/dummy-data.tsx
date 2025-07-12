@@ -87,5 +87,7 @@ export const saveProducts = (products: Product[]) => {
         localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
     } catch (error) {
         console.error("Failed to save products to localStorage", error);
+        // Aquí podríamos añadir un toast para notificar al usuario del error de cuota.
+        // Por ahora, solo lo logueamos en consola.
     }
 }
