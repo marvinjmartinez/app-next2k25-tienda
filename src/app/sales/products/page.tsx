@@ -187,65 +187,63 @@ export default function ProductsAdminPage() {
     });
   };
   
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async () => {
     setIsSaving(true);
-
     try {
-        let finalImage = productImage;
-        if (productImage.startsWith('data:image')) {
-            const storageRef = ref(storage, `products/${Date.now()}_main.png`);
-            await uploadString(storageRef, productImage, 'data_url');
-            finalImage = await getDownloadURL(storageRef);
+      let finalImage = productImage;
+      if (productImage.startsWith('data:image')) {
+        const storageRef = ref(storage, `products/${Date.now()}_main.png`);
+        await uploadString(storageRef, productImage, 'data_url');
+        finalImage = await getDownloadURL(storageRef);
+      }
+  
+      const finalGalleryUrls = await Promise.all(galleryUrls.map(async (url) => {
+        if (url.startsWith('data:image')) {
+          const storageRef = ref(storage, `products/${Date.now()}_gallery_${Math.random()}.png`);
+          await uploadString(storageRef, url, 'data_url');
+          return getDownloadURL(storageRef);
         }
-
-        const finalGalleryUrls = await Promise.all(galleryUrls.map(async (url) => {
-            if (url.startsWith('data:image')) {
-                const storageRef = ref(storage, `products/${Date.now()}_gallery_${Math.random()}.png`);
-                await uploadString(storageRef, url, 'data_url');
-                return getDownloadURL(storageRef);
-            }
-            return url;
-        }));
-
-        const newProductData = {
-            name: productName,
-            description: productDescription,
-            category: productCategory,
-            price: productPrice,
-            stock: productStock,
-            hint: productHint,
-            featured: productFeatured,
-            image: finalImage,
-            status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
-            gallery: finalGalleryUrls,
+        return url;
+      }));
+  
+      const newProductData = {
+        name: productName,
+        description: productDescription,
+        category: productCategory,
+        price: productPrice,
+        stock: productStock,
+        hint: productHint,
+        featured: productFeatured,
+        image: finalImage,
+        status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
+        gallery: finalGalleryUrls,
+      };
+  
+      let updatedProducts;
+      if (selectedProduct) {
+        updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
+      } else {
+        const newProduct: Product = {
+          id: `prod_${Date.now()}`,
+          ...newProductData
         };
-
-        let updatedProducts;
-        if (selectedProduct) {
-            updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
-        } else {
-            const newProduct: Product = {
-                id: `prod_${Date.now()}`,
-                ...newProductData
-            }
-            updatedProducts = [newProduct, ...products];
-        }
-
-        updateProductsStateAndStorage(updatedProducts, true);
-        setIsDialogOpen(false);
-
+        updatedProducts = [newProduct, ...products];
+      }
+  
+      updateProductsStateAndStorage(updatedProducts, true);
+      setIsDialogOpen(false);
+  
     } catch (error) {
-        console.error("Error saving product:", error);
-        toast({
-            variant: "destructive",
-            title: "Error al guardar",
-            description: "No se pudo subir la imagen o guardar el producto. Verifica la configuración de Firebase Storage y tus permisos.",
-        });
+      console.error("Error saving product:", error);
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "No se pudo subir la imagen o guardar el producto.",
+      });
     } finally {
-        setIsSaving(false);
+      setIsSaving(false);
     }
-  }
+  };
 
  const handleGenerateImage = (target: 'main' | 'gallery') => {
     const hint = target === 'main' ? productHint : galleryHint;
@@ -543,7 +541,6 @@ export default function ProductsAdminPage() {
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-3xl">
-          <form onSubmit={handleSave}>
             <DialogHeader>
               <DialogTitle>
                 {selectedProduct ? 'Editar Producto' : 'Añadir Nuevo Producto'}
@@ -676,14 +673,14 @@ export default function ProductsAdminPage() {
                 <DialogClose asChild>
                     <Button type="button" variant="outline" disabled={isSaving}>Cancelar</Button>
                 </DialogClose>
-                <Button type="submit" disabled={isSaving}>
+                <Button onClick={handleSave} disabled={isSaving}>
                     {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     {isSaving ? 'Guardando...' : 'Guardar Cambios'}
                 </Button>
             </DialogFooter>
-          </form>
         </DialogContent>
       </Dialog>
     </>
   );
 }
+
