@@ -2,14 +2,19 @@ import admin from 'firebase-admin';
 
 // Check if the app is already initialized to prevent errors
 if (!admin.apps.length) {
-  // Ensure environment variables are set
   const serviceAccountKey = process.env.FIREBASE_PRIVATE_KEY;
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
   const projectId = process.env.GCLOUD_PROJECT;
   const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
 
   if (!serviceAccountKey || !clientEmail || !projectId || !storageBucket) {
-    throw new Error('Firebase environment variables are not set. Please check your .env file.');
+    const missingVars = [
+      !serviceAccountKey && "FIREBASE_PRIVATE_KEY",
+      !clientEmail && "FIREBASE_CLIENT_EMAIL",
+      !projectId && "GCLOUD_PROJECT",
+      !storageBucket && "FIREBASE_STORAGE_BUCKET"
+    ].filter(Boolean).join(', ');
+    throw new Error(`Firebase environment variables are not set. Missing: ${missingVars}. Please check your .env file.`);
   }
 
   try {

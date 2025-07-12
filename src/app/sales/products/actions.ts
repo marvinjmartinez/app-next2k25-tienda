@@ -42,14 +42,16 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
          if (errorMessage.includes("API key not valid")) {
             return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
         }
+        if (errorMessage.includes("Bucket not found")) {
+            return { success: false, error: "El bucket de Firebase Storage no se encontró. Verifica el nombre en el archivo .env." };
+        }
         return { success: false, error: errorMessage };
     }
 }
 
 // Acción simplificada solo para validación en el servidor.
-// La lógica de guardado y actualización se maneja en el cliente.
 const productFormSchema = z.object({
-    id: z.string().optional(), // ID es opcional, puede no estar al crear
+    id: z.string().optional(),
     name: z.string().min(1, "El nombre es requerido."),
 });
 
@@ -62,7 +64,6 @@ export async function saveProductAction(formData: FormData): Promise<{ success: 
         return { success: false, error: "La validación de datos en el servidor falló." };
     }
     
-    // Si la validación pasa, simplemente devolvemos éxito.
     // El cliente se encargará del guardado en localStorage.
     return { success: true };
 }
