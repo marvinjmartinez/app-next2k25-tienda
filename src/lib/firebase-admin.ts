@@ -2,30 +2,24 @@ import admin from 'firebase-admin';
 
 // Check if the app is already initialized to prevent errors
 if (!admin.apps.length) {
-  const serviceAccountKey = process.env.FIREBASE_PRIVATE_KEY;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const projectId = process.env.GCLOUD_PROJECT;
+  // Use a single environment variable for the whole service account JSON
+  const serviceAccountJSON = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
 
-  if (!serviceAccountKey || !clientEmail || !projectId || !storageBucket) {
+  if (!serviceAccountJSON || !storageBucket) {
     const missingVars = [
-      !serviceAccountKey && "FIREBASE_PRIVATE_KEY",
-      !clientEmail && "FIREBASE_CLIENT_EMAIL",
-      !projectId && "GCLOUD_PROJECT",
+      !serviceAccountJSON && "FIREBASE_SERVICE_ACCOUNT_JSON",
       !storageBucket && "FIREBASE_STORAGE_BUCKET"
     ].filter(Boolean).join(', ');
     throw new Error(`Firebase environment variables are not set. Missing: ${missingVars}. Please check your .env file.`);
   }
 
   try {
+    // Parse the JSON string from the environment variable
+    const serviceAccount = JSON.parse(serviceAccountJSON);
+
     admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: projectId,
-        clientEmail: clientEmail,
-        // The key may be copied with surrounding quotes, and newlines are often escaped.
-        // This removes quotes and replaces escaped newlines with actual newlines.
-        privateKey: serviceAccountKey.replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
-      }),
+      credential: admin.credential.cert(serviceAccount),
       storageBucket: storageBucket,
     });
   } catch (error: any) {
@@ -34,6 +28,10 @@ if (!admin.apps.length) {
       console.warn('Firebase app already initialized.');
     } else {
       console.error('Firebase Admin Initialization Error:', error);
+       // Check if the error is due to JSON parsing
+      if (error instanceof SyntaxError) {
+        throw new Error(`Failed to initialize Firebase Admin SDK: Error parsing FIREBASE_SERVICE_ACCOUNT_JSON. Please ensure it's a valid JSON string.`);
+      }
       throw new Error(`Failed to initialize Firebase Admin SDK: ${error.message}`);
     }
   }
