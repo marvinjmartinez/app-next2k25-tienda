@@ -53,7 +53,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { saveProductAction } from './actions';
+import { generateProductImageAction, saveProductAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -179,9 +179,11 @@ export default function ProductsAdminPage() {
       const result = await saveProductAction(formData);
 
       if (result.success && result.data) {
+        // La acción del servidor devuelve datos de texto procesados.
         const productFromServer = result.data;
         
-        // Assemble the final product object on the client-side
+        // El cliente ensambla el objeto final del producto, combinando
+        // los datos del servidor con las imágenes del estado local.
         const finalProduct: Product = {
           ...productFromServer,
           image: productImage,
@@ -190,13 +192,14 @@ export default function ProductsAdminPage() {
 
         let updatedProducts: Product[];
         if (selectedProduct) {
-          // Editing existing product: find and replace it in the list
+          // Si estamos editando, reemplazamos el producto antiguo en la lista.
           updatedProducts = products.map(p => p.id === finalProduct.id ? finalProduct : p);
         } else {
-          // Adding new product: add it to the beginning of the list
+          // Si estamos creando, añadimos el nuevo producto al principio.
           updatedProducts = [finalProduct, ...products];
         }
 
+        // El cliente es el único responsable de guardar en el localStorage.
         updateProductsStateAndStorage(updatedProducts);
         
         toast({

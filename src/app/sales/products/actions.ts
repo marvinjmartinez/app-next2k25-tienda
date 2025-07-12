@@ -9,7 +9,7 @@ const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
 });
 
-export async function generateProductImageAction(formData: FormData) {
+export async function generateProductImageAction(formData: FormData): Promise<{ success: boolean; data?: { imageUrl: string; }; error?: string; }> {
     const rawData = Object.fromEntries(formData.entries());
     const validation = generateImageSchema.safeParse(rawData);
 
@@ -21,6 +21,7 @@ export async function generateProductImageAction(formData: FormData) {
     }
     
     try {
+        // La acción ahora solo genera la imagen y devuelve el data URI.
         const result = await generateProductImageFlow({ hint: validation.data.hint });
         
         const dataUri = result?.imageUrl;
@@ -54,6 +55,8 @@ const productFormSchema = z.object({
     status: z.coerce.boolean().optional(),
 });
 
+// La acción del servidor ahora solo procesa los datos de TEXTO.
+// No maneja imágenes, eso lo hará el cliente.
 export async function saveProductAction(formData: FormData): Promise<{ success: boolean; data?: Omit<Product, 'image' | 'gallery'>, error?: string }> {
     const productDataRaw = Object.fromEntries(formData.entries());
     
