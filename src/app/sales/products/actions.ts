@@ -9,7 +9,8 @@ const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
 });
 
-// Acción para generar la imagen y subirla a Google Cloud Storage.
+// Acción para generar la imagen y devolverla como Data URI.
+// Se ha eliminado temporalmente la subida a GCS para diagnosticar el error 500.
 export async function generateProductImageAction(formData: FormData): Promise<{ success: boolean; data?: { imageUrl: string; }; error?: string; }> {
     const rawData = Object.fromEntries(formData.entries());
     const validation = generateImageSchema.safeParse(rawData);
@@ -30,20 +31,21 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // 2. Subir la imagen desde el Data URI a GCS
-        const publicUrl = await subirImagenDesdeBase64(dataUri);
-
-        // 3. Devolver la URL pública de la imagen
-        return { success: true, data: { imageUrl: publicUrl } };
+        // 2. Devolver la URL de datos (data URI) directamente.
+        // La subida a GCS está desactivada para diagnóstico.
+        return { success: true, data: { imageUrl: dataUri } };
 
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);
-        const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado al generar o subir la imagen.";
+        const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado al generar la imagen.";
          if (errorMessage.includes("API key not valid")) {
             return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
         }
-        if (errorMessage.includes("permission")) {
+         if (errorMessage.includes("permission")) {
             return { success: false, error: "Error de permisos. Asegúrate de que la cuenta de servicio tenga el rol 'Storage Object Admin'." };
+        }
+        if (errorMessage.includes("500")) {
+             return { success: false, error: "Error 500 del servidor de IA. Esto puede deberse a que la API de Vertex AI no está habilitada en tu proyecto de Google Cloud." };
         }
         return { success: false, error: errorMessage };
     }
