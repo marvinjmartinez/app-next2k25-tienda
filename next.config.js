@@ -3,6 +3,7 @@ const nextConfig = {
   /* config options here */
   env: {
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
+    FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
   },
   typescript: {
     ignoreBuildErrors: true,
