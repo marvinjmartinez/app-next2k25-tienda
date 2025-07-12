@@ -167,7 +167,7 @@ export default function ProductsAdminPage() {
     }
 
     startSavingTransition(() => {
-        // 1. Construct the final product object on the client side
+        // 1. Construir el objeto del producto final en el cliente
         const finalProduct: Product = {
             id: selectedProduct?.id || `prod_${Date.now()}`,
             name: productName,
@@ -182,38 +182,33 @@ export default function ProductsAdminPage() {
             gallery: galleryUrls,
         };
 
-        // 2. Update the product list in the state
+        // 2. Actualizar la lista de productos en el estado
         let updatedProducts: Product[];
-        if (selectedProduct) { // Editing existing product
+        if (selectedProduct) { // Editando
             updatedProducts = products.map(p =>
                 p.id === finalProduct.id ? finalProduct : p
             );
-        } else { // Creating new product
+        } else { // Creando
             updatedProducts = [finalProduct, ...products];
         }
 
-        // 3. Save the entire updated list to localStorage
+        // 3. Guardar la lista actualizada en el estado y localStorage
         updateProductsStateAndStorage(updatedProducts);
-
-        // 4. (Optional) Send data to server for validation/logging, but don't rely on its response for the update
-        const formData = new FormData();
-        formData.append('id', finalProduct.id);
-        formData.append('name', finalProduct.name);
-        formData.append('description', finalProduct.description);
-        formData.append('category', finalProduct.category);
-        formData.append('price', String(finalProduct.price));
-        formData.append('stock', String(finalProduct.stock));
-        formData.append('hint', finalProduct.hint);
-        formData.append('image', finalProduct.image); // Send image URI
-        formData.append('gallery', JSON.stringify(finalProduct.gallery));
-        formData.append('featured', String(finalProduct.featured));
-        formData.append('status', String(finalProduct.status === 'activo'));
         
-        saveProductAction(formData).catch(err => {
-             console.error("Server action failed (optional validation):", err);
+        // 4. (Opcional) Enviar datos al servidor para validación/registro
+        const formData = new FormData();
+        Object.entries(finalProduct).forEach(([key, value]) => {
+            if (key === 'gallery') {
+                 formData.append(key, JSON.stringify(value));
+            } else if (typeof value !== 'undefined') {
+                 formData.append(key, String(value));
+            }
         });
-
-        // 5. Show success and close dialog
+        saveProductAction(formData).catch(err => {
+             console.error("Server action validation failed (optional):", err);
+        });
+        
+        // 5. Mostrar éxito y cerrar el diálogo
         toast({
             title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
             description: `Los cambios para "${finalProduct.name}" se han guardado correctamente.`,
@@ -239,18 +234,18 @@ export default function ProductsAdminPage() {
     generateProductImageAction(formData)
       .then((result) => {
         if (result.success && result.data?.imageUrl) {
-            const dataUri = result.data.imageUrl;
+            const newImageUrl = result.data.imageUrl;
             
             if (target === 'main') {
-              setProductImage(dataUri);
+              setProductImage(newImageUrl);
               toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado. No olvides guardar los cambios." });
             } else {
-              setGalleryUrls(prev => [...prev, dataUri]);
+              setGalleryUrls(prev => [...prev, newImageUrl]);
               setGalleryHint('');
               toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido a la galería. No olvides guardar." });
             }
         } else {
-            toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error });
+            toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error || "Ocurrió un error desconocido." });
         }
       })
       .catch((error) => {
@@ -571,7 +566,7 @@ export default function ProductsAdminPage() {
                                     <Label htmlFor="hint">Pista de IA para imagen principal</Label>
                                     <div className="flex gap-2">
                                         <Input id="hint" name="hint" value={productHint} onChange={(e) => setProductHint(e.target.value)} placeholder="Ej: power tool" />
-                                        <Button type="button" variant="outline" size="icon" onClick={() => handleGenerateImage('main')} disabled={isGenerating}>
+                                        <Button type="button" variant="outline" size="icon" onClick={() => handleGenerateImage('main')} disabled={isGenerating || isSaving}>
                                             {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                         </Button>
                                     </div>
@@ -601,7 +596,7 @@ export default function ProductsAdminPage() {
                                 <Label>Imagen Principal</Label>
                                 <div className="flex items-center gap-2">
                                     <Image src={productImage || SVG_PLACEHOLDER} alt="Preview" width={80} height={80} className="rounded-md object-cover border" />
-                                    <Input value={productImage.startsWith('data:') ? 'Nueva imagen generada' : (productImage === SVG_PLACEHOLDER ? 'Marcador de posición' : productImage) } readOnly className="flex-1" />
+                                    <Input value={productImage.startsWith('data:') ? 'Nueva imagen generada' : (productImage === SVG_PLACEHOLDER ? 'Marcador de posición' : 'URL existente') } readOnly className="flex-1" />
                                 </div>
                             </div>
                              <div className="space-y-2">
@@ -610,7 +605,7 @@ export default function ProductsAdminPage() {
                                     {galleryUrls.map((url, index) => (
                                         <div key={index} className="flex items-center gap-2 bg-muted p-1 rounded-md">
                                             <Image src={url || SVG_PLACEHOLDER} alt={`Gallery image ${index + 1}`} width={40} height={40} className="rounded object-cover" />
-                                            <p className="text-xs text-muted-foreground truncate flex-1">{url.startsWith('data:') ? 'Nueva imagen generada' : url}</p>
+                                            <p className="text-xs text-muted-foreground truncate flex-1">{url.startsWith('data:') ? 'Nueva imagen generada' : 'URL existente'}</p>
                                             <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveGalleryUrl(url)}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
@@ -635,7 +630,7 @@ export default function ProductsAdminPage() {
                                         onChange={(e) => setGalleryHint(e.target.value)}
                                         className="h-9"
                                     />
-                                    <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isGenerating}>
+                                    <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isGenerating || isSaving}>
                                          {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                     </Button>
                                 </div>
@@ -649,7 +644,7 @@ export default function ProductsAdminPage() {
                 <DialogClose asChild>
                     <Button type="button" variant="outline">Cancelar</Button>
                 </DialogClose>
-                <Button onClick={handleSave} disabled={isSaving}>
+                <Button onClick={handleSave} disabled={isSaving || isGenerating}>
                     {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</> : 'Guardar Cambios'}
                 </Button>
             </DialogFooter>

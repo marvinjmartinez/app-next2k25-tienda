@@ -3,11 +3,13 @@
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
 import { z } from "zod";
+import { uploadImage } from "@/lib/uploadGeneratedImage";
 
 const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
 });
 
+// Acción para generar la imagen y subirla a Firebase Storage
 export async function generateProductImageAction(formData: FormData): Promise<{ success: boolean; data?: { imageUrl: string; }; error?: string; }> {
     const rawData = Object.fromEntries(formData.entries());
     const validation = generateImageSchema.safeParse(rawData);
@@ -20,6 +22,7 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
     }
     
     try {
+        // 1. Generar la imagen con Genkit (devuelve un data URI)
         const result = await generateProductImageFlow({ hint: validation.data.hint });
         const dataUri = result?.imageUrl;
 
@@ -27,24 +30,27 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        return { success: true, data: { imageUrl: dataUri } };
+        // 2. Subir la imagen a Firebase Storage y obtener la URL pública
+        const publicUrl = await uploadImage(dataUri);
+
+        // 3. Devolver la URL pública persistente
+        return { success: true, data: { imageUrl: publicUrl } };
 
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);
         const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado al generar la imagen.";
-        if (errorMessage.includes("API key not valid")) {
-            return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
+        if (errorMessage.includes("Could not refresh access token")) {
+            return { success: false, error: "Error de autenticación con Firebase. Verifica la configuración de la cuenta de servicio." };
         }
         return { success: false, error: errorMessage };
     }
 }
 
 
-// This action is now simplified and doesn't return data.
-// It acts as a server-side validation endpoint if needed, but the core logic
-// for updating state and localStorage is handled client-side.
+// Esta acción es solo para validación del lado del servidor.
+// La lógica principal de guardado y estado se maneja en el cliente.
 const productFormSchema = z.object({
-    id: z.string(), // ID is now required, generated client-side
+    id: z.string(),
     name: z.string().min(1, "El nombre es requerido."),
     description: z.string().optional(),
     category: z.string().min(1, "La categoría es requerida."),
@@ -52,9 +58,9 @@ const productFormSchema = z.object({
     stock: z.coerce.number().min(0, "El stock no puede ser negativo."),
     hint: z.string().optional(),
     image: z.string().optional(),
-    gallery: z.string().optional(), // JSON string
-    featured: z.coerce.boolean(),
-    status: z.coerce.boolean(),
+    gallery: z.string().optional(),
+    featured: z.coerce.boolean().optional(),
+    status: z.coerce.boolean().optional(),
 });
 
 export async function saveProductAction(formData: FormData): Promise<void> {
@@ -62,12 +68,9 @@ export async function saveProductAction(formData: FormData): Promise<void> {
     const validation = productFormSchema.safeParse(rawData);
 
     if (!validation.success) {
-        // In a real app, you might throw an error to be caught client-side.
-        // For now, we'll log it. The client is already handling the logic.
         console.error("Server-side validation failed:", validation.error.flatten());
+        // En una app real, podrías lanzar un error aquí para que el cliente lo capture.
     }
     
-    // The primary responsibility for saving is now on the client.
-    // This function can be expanded for other server-side tasks if needed (e.g., logging).
     console.log("Product data received and validated on server for product ID:", validation.success ? validation.data.id : 'unknown');
 }
