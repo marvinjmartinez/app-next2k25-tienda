@@ -88,7 +88,6 @@ export default function ProductsAdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -186,55 +185,81 @@ export default function ProductsAdminPage() {
     });
   };
   
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      toast({ title: 'Guardando producto...', description: 'Subiendo imágenes, por favor espera.' });
+  const handleSave = () => {
+    // --- 1. Create the product data with local image URIs first for immediate UI update ---
+    const productDataWithLocalImages = {
+      name: productName,
+      description: productDescription,
+      category: productCategory,
+      price: productPrice,
+      stock: productStock,
+      hint: productHint,
+      featured: productFeatured,
+      image: productImage,
+      status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
+      gallery: galleryUrls,
+    };
 
-      // Upload main image and gallery images concurrently
-      const uploadedImageUrl = await uploadImage(productImage);
-      const uploadedGalleryUrls = await Promise.all(galleryUrls.map(url => uploadImage(url)));
-      
-      const newProductData = {
-        name: productName,
-        description: productDescription,
-        category: productCategory,
-        price: productPrice,
-        stock: productStock,
-        hint: productHint,
-        featured: productFeatured,
-        image: uploadedImageUrl,
-        status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
-        gallery: uploadedGalleryUrls,
+    let updatedProducts;
+    let newOrUpdatedProduct;
+
+    if (selectedProduct) {
+      newOrUpdatedProduct = { ...selectedProduct, ...productDataWithLocalImages };
+      updatedProducts = products.map(p => p.id === selectedProduct.id ? newOrUpdatedProduct : p);
+    } else {
+      newOrUpdatedProduct = {
+        id: `prod_${Date.now()}`,
+        ...productDataWithLocalImages,
+        priceTiers: {
+          cliente: productPrice,
+          cliente_especial: productPrice * 0.9,
+          vendedor: productPrice * 0.85,
+        }
       };
-
-      let updatedProducts;
-      if (selectedProduct) {
-        updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
-      } else {
-        const newProduct: Product = {
-          id: `prod_${Date.now()}`,
-          ...newProductData
-        };
-        updatedProducts = [newProduct, ...products];
-      }
-      
-      updateProductsStateAndStorage(updatedProducts, true);
-      setIsDialogOpen(false);
-
-    } catch (error) {
-      console.error("Error saving product:", error);
-      toast({
-        variant: "destructive",
-        title: "Error al guardar",
-        description: "No se pudo subir una o más imágenes a Firebase Storage.",
-      });
-    } finally {
-      setIsSaving(false);
+      updatedProducts = [newOrUpdatedProduct, ...products];
     }
+    
+    // --- 2. Update UI immediately and close dialog ---
+    setProducts(updatedProducts);
+    setIsDialogOpen(false);
+    toast({
+      title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
+      description: 'Guardando imágenes en la nube en segundo plano...',
+    });
+
+    // --- 3. Start background image upload ---
+    (async () => {
+      try {
+        const uploadedImageUrl = await uploadImage(newOrUpdatedProduct.image);
+        const uploadedGalleryUrls = await Promise.all(newOrUpdatedProduct.gallery.map(url => uploadImage(url)));
+        
+        const finalProductData = {
+          ...newOrUpdatedProduct,
+          image: uploadedImageUrl,
+          gallery: uploadedGalleryUrls,
+        };
+
+        // --- 4. Silently update localStorage with final Firebase URLs ---
+        const finalProducts = getProducts().map(p => p.id === finalProductData.id ? finalProductData : p);
+        if (!finalProducts.some(p => p.id === finalProductData.id)) {
+            finalProducts.unshift(finalProductData);
+        }
+        
+        saveProducts(finalProducts);
+        // We can optionally show a success toast here if needed
+        // toast({ title: "Imágenes guardadas", description: "Las imágenes se subieron a la nube." });
+      } catch (error) {
+        console.error("Error en la subida en segundo plano:", error);
+        toast({
+          variant: "destructive",
+          title: "Error de subida",
+          description: "No se pudieron guardar las imágenes en la nube.",
+        });
+      }
+    })();
   };
 
- const handleGenerateImage = (target: 'main' | 'gallery') => {
+  const handleGenerateImage = (target: 'main' | 'gallery') => {
     const hint = target === 'main' ? productHint : galleryHint;
 
     if (!hint || hint.length < 3) {
@@ -658,11 +683,10 @@ export default function ProductsAdminPage() {
             </div>
             <DialogFooter className="pt-4 border-t">
                 <DialogClose asChild>
-                    <Button type="button" variant="outline" disabled={isSaving}>Cancelar</Button>
+                    <Button type="button" variant="outline">Cancelar</Button>
                 </DialogClose>
-                <Button onClick={handleSave} disabled={isSaving}>
-                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                <Button onClick={handleSave}>
+                    Guardar Cambios
                 </Button>
             </DialogFooter>
         </DialogContent>
