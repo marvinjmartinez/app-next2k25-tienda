@@ -177,8 +177,8 @@ export default function ProductsAdminPage() {
             hint: productHint,
             featured: productFeatured,
             status: productStatus ? 'activo' : 'inactivo',
-            image: productImage, // This will be a data URI or placeholder
-            gallery: galleryUrls, // This will be an array of data URIs
+            image: productImage, // This will be the public URL or placeholder
+            gallery: galleryUrls,
         };
 
         let updatedProducts: Product[];
@@ -220,11 +220,11 @@ export default function ProductsAdminPage() {
               
               if (target === 'main') {
                 setProductImage(newImageUrl);
-                toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado. No olvides guardar los cambios." });
+                toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado y subido. No olvides guardar los cambios." });
               } else {
                 setGalleryUrls(prev => [...prev, newImageUrl]);
                 setGalleryHint('');
-                toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido a la galería. No olvides guardar." });
+                toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido y subido. No olvides guardar." });
               }
           } else {
               toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error || "Ocurrió un error desconocido." });
@@ -576,7 +576,7 @@ export default function ProductsAdminPage() {
                                 <Label>Imagen Principal</Label>
                                 <div className="flex items-center gap-2">
                                     <Image src={productImage || SVG_PLACEHOLDER} alt="Preview" width={80} height={80} className="rounded-md object-cover border" />
-                                    <Input value={productImage.startsWith('data:') ? 'Nueva imagen generada' : (productImage === SVG_PLACEHOLDER ? 'Marcador de posición' : 'URL existente') } readOnly className="flex-1" />
+                                    <Input value={productImage.startsWith('data:') ? 'Nueva imagen generada' : (productImage === SVG_PLACEHOLDER ? 'Marcador de posición' : productImage) } readOnly className="flex-1" />
                                 </div>
                             </div>
                              <div className="space-y-2">
@@ -585,7 +585,7 @@ export default function ProductsAdminPage() {
                                     {galleryUrls.map((url, index) => (
                                         <div key={index} className="flex items-center gap-2 bg-muted p-1 rounded-md">
                                             <Image src={url || SVG_PLACEHOLDER} alt={`Gallery image ${index + 1}`} width={40} height={40} className="rounded object-cover" />
-                                            <p className="text-xs text-muted-foreground truncate flex-1">{url.startsWith('data:') ? 'Nueva imagen generada' : 'URL existente'}</p>
+                                            <p className="text-xs text-muted-foreground truncate flex-1">{url.startsWith('data:') ? 'Nueva imagen generada' : url}</p>
                                             <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveGalleryUrl(url)}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>

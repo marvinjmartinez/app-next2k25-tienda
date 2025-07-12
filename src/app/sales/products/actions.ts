@@ -2,13 +2,14 @@
 "use server";
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
+import { uploadGeneratedImage } from "@/lib/uploadGeneratedImage";
 import { z } from "zod";
 
 const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
 });
 
-// Acción para generar la imagen y devolver el data URI
+// Acción para generar la imagen, subirla a Firebase y devolver la URL pública
 export async function generateProductImageAction(formData: FormData): Promise<{ success: boolean; data?: { imageUrl: string; }; error?: string; }> {
     const rawData = Object.fromEntries(formData.entries());
     const validation = generateImageSchema.safeParse(rawData);
@@ -21,6 +22,7 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
     }
     
     try {
+        // 1. Generar la imagen con Genkit (devuelve data URI)
         const result = await generateProductImageFlow({ hint: validation.data.hint });
         const dataUri = result?.imageUrl;
 
@@ -28,8 +30,11 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // Devolver el data URI directamente al cliente
-        return { success: true, data: { imageUrl: dataUri } };
+        // 2. Subir el data URI a Firebase Storage
+        const publicUrl = await uploadGeneratedImage(dataUri);
+
+        // 3. Devolver la URL pública y persistente
+        return { success: true, data: { imageUrl: publicUrl } };
 
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);
@@ -37,29 +42,16 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
          if (errorMessage.includes("API key not valid")) {
             return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
         }
-        // Este error ya no debería ocurrir, pero lo dejamos por si acaso.
-        if (errorMessage.includes("Could not refresh access token")) {
-            return { success: false, error: "Error de autenticación con Firebase. Verifica la configuración de la cuenta de servicio." };
-        }
         return { success: false, error: errorMessage };
     }
 }
 
 
-// This action is now simplified and doesn't return data.
-// It acts as a server-side validation endpoint if needed, but the core logic
-// for updating state and localStorage is handled client-side.
+// Acción simplificada solo para validación en el servidor.
+// La lógica de guardado y actualización se maneja en el cliente.
 const productFormSchema = z.object({
-    id: z.string(), // ID is now required, generated client-side
+    id: z.string().optional(),
     name: z.string().min(1, "El nombre es requerido."),
-    description: z.string().optional(),
-    category: z.string().min(1, "La categoría es requerida."),
-    price: z.coerce.number().min(0, "El precio no puede ser negativo."),
-    stock: z.coerce.number().min(0, "El stock no puede ser negativo."),
-    hint: z.string().optional(),
-    featured: z.string().optional(), // FormData sends "on" or nothing
-    status: z.string().optional(),   // FormData sends "on" or nothing
-    // Images are handled client-side, not in this action
 });
 
 export async function saveProductAction(formData: FormData): Promise<{ success: boolean; error?: string }> {
@@ -71,6 +63,7 @@ export async function saveProductAction(formData: FormData): Promise<{ success: 
         return { success: false, error: "La validación de datos en el servidor falló." };
     }
     
-    console.log("Product data received and validated on server for product ID:", validation.data.id);
+    // Si la validación pasa, simplemente devolvemos éxito.
+    // El cliente se encargará del guardado en localStorage.
     return { success: true };
 }
