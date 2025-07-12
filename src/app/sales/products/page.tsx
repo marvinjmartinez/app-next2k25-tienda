@@ -167,7 +167,9 @@ export default function ProductsAdminPage() {
     }
 
     const formData = new FormData();
-    if (selectedProduct) formData.append('id', selectedProduct.id);
+    if (selectedProduct) {
+        formData.append('id', selectedProduct.id);
+    }
     formData.append('name', productName);
     formData.append('description', productDescription);
     formData.append('category', productCategory);
@@ -185,7 +187,7 @@ export default function ProductsAdminPage() {
         
         const finalProduct: Product = {
           ...productDataFromServer,
-          image: productImage === SVG_PLACEHOLDER && !selectedProduct?.image ? SVG_PLACEHOLDER : productImage,
+          image: productImage,
           gallery: galleryUrls,
         };
 
