@@ -1,19 +1,18 @@
 // src/lib/firebase.ts
-import { initializeApp, getApp, getApps } from "firebase/app";
-import { getStorage } from "firebase/storage";
-import { API_KEY } from "@/ai/genkit";
+import { initializeApp, getApps, applicationDefault } from "firebase-admin/app";
+import { getStorage } from "firebase-admin/storage";
 
+// Usar esta configuración para el entorno de servidor (Firebase Studio / App Hosting)
+// `applicationDefault` usa las credenciales del entorno automáticamente.
 const firebaseConfig = {
-  apiKey: API_KEY,
-  authDomain: "distrimnin-tienda.firebaseapp.com",
-  projectId: "distrimnin-tienda",
+  credential: applicationDefault(),
   storageBucket: "distrimnin-tienda.appspot.com",
-  messagingSenderId: "360018288599",
-  appId: "1:360018288599:web:35520e5e04e76e5c531d05",
 };
 
-// Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const storage = getStorage(app);
+// Inicializar la app de Firebase Admin si aún no existe
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-export { app, storage };
+// Obtener el bucket de storage por defecto
+const bucket = getStorage(app).bucket();
+
+export { app, bucket };
