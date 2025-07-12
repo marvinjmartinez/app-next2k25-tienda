@@ -1,7 +1,7 @@
 // src/app/sales/products/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect, useTransition } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -75,7 +75,7 @@ export default function ProductsAdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [isGenerating, setIsGenerating] = useState(false);
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -216,47 +216,45 @@ export default function ProductsAdminPage() {
     setIsDialogOpen(false);
   }
   
-  const handleGenerateImage = (target: 'main' | 'gallery') => {
+  const handleGenerateImage = async (target: 'main' | 'gallery') => {
     const hint = target === 'main' ? productHint : galleryHint;
 
-    startTransition(async () => {
-        if (!hint || hint.length < 3) {
-            toast({ variant: 'destructive', title: "Pista inválida", description: "La pista de IA debe tener al menos 3 caracteres."});
-            return;
-        }
+    if (!hint || hint.length < 3) {
+      toast({ variant: 'destructive', title: "Pista inválida", description: "La pista de IA debe tener al menos 3 caracteres."});
+      return;
+    }
 
-        const formData = new FormData();
-        formData.append("hint", hint);
-        
-        // 1. Generate image Data URI from server
-        const result = await generateProductImageAction(formData);
+    setIsGenerating(true);
+    try {
+      const formData = new FormData();
+      formData.append("hint", hint);
+      
+      const result = await generateProductImageAction(formData);
 
-        if (result.success && result.data?.imageUrl) {
-            const dataUri = result.data.imageUrl;
-            
-            // 2. Upload Data URI from client to Firebase Storage
-            try {
-              const storageRef = ref(storage, `distrimin/imagenes/productos/${Date.now()}.png`);
-              const uploadResult = await uploadString(storageRef, dataUri, 'data_url');
-              const downloadURL = await getDownloadURL(uploadResult.ref);
+      if (result.success && result.data?.imageUrl) {
+          const dataUri = result.data.imageUrl;
+          
+          const storageRef = ref(storage, `distrimin/imagenes/productos/${Date.now()}.png`);
+          const uploadResult = await uploadString(storageRef, dataUri, 'data_url');
+          const downloadURL = await getDownloadURL(uploadResult.ref);
 
-              // 3. Update form state with the new public URL
-              if (target === 'main') {
-                setProductImage(downloadURL);
-                toast({ title: "Imagen Principal Generada y Subida", description: "La imagen se ha guardado en Firebase Storage." });
-              } else {
-                setGalleryUrls(prev => [...prev, downloadURL]);
-                setGalleryHint('');
-                toast({ title: "Imagen de Galería Generada y Subida", description: "La nueva imagen se ha añadido a la galería." });
-              }
-            } catch (storageError) {
-              console.error("Firebase Storage upload error:", storageError);
-              toast({ variant: 'destructive', title: "Error al subir a Firebase", description: "No se pudo guardar la imagen en el almacenamiento." });
-            }
-        } else {
-            toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error });
-        }
-    });
+          if (target === 'main') {
+            setProductImage(downloadURL);
+            toast({ title: "Imagen Principal Generada y Subida", description: "La imagen se ha guardado en Firebase Storage." });
+          } else {
+            setGalleryUrls(prev => [...prev, downloadURL]);
+            setGalleryHint('');
+            toast({ title: "Imagen de Galería Generada y Subida", description: "La nueva imagen se ha añadido a la galería." });
+          }
+      } else {
+          toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error });
+      }
+    } catch (error) {
+        console.error("Error en handleGenerateImage:", error);
+        toast({ variant: 'destructive', title: "Error inesperado", description: "Ocurrió un error al procesar la imagen." });
+    } finally {
+        setIsGenerating(false);
+    }
   };
 
   const handleChangeStatus = (productId: string, newStatus: 'activo' | 'inactivo') => {
@@ -569,8 +567,8 @@ export default function ProductsAdminPage() {
                                     <Label htmlFor="hint">Pista de IA para imagen principal</Label>
                                     <div className="flex gap-2">
                                         <Input id="hint" name="hint" value={productHint} onChange={(e) => setProductHint(e.target.value)} placeholder="Ej: power tool" />
-                                        <Button type="button" variant="outline" size="icon" onClick={() => handleGenerateImage('main')} disabled={isPending}>
-                                            <Sparkles className={`h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
+                                        <Button type="button" variant="outline" size="icon" onClick={() => handleGenerateImage('main')} disabled={isGenerating}>
+                                            <Sparkles className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
                                         </Button>
                                     </div>
                                 </div>
@@ -635,8 +633,8 @@ export default function ProductsAdminPage() {
                                         onChange={(e) => setGalleryHint(e.target.value)}
                                         className="h-9"
                                     />
-                                    <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isPending}>
-                                        <Sparkles className={`h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
+                                    <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isGenerating}>
+                                        <Sparkles className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
                                     </Button>
                                 </div>
                             </div>
