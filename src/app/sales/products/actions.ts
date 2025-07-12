@@ -54,11 +54,9 @@ const productFormSchema = z.object({
     hint: z.string().optional(),
     featured: z.coerce.boolean().optional(),
     status: z.coerce.boolean().optional(),
-    image: z.string().optional(),
-    gallery: z.string().optional(),
 });
 
-export async function saveProductAction(formData: FormData): Promise<{ success: boolean; data?: Product, error?: string }> {
+export async function saveProductAction(formData: FormData): Promise<{ success: boolean; data?: Omit<Product, 'image' | 'gallery'>, error?: string }> {
     const productDataRaw = Object.fromEntries(formData.entries());
     
     const validation = productFormSchema.safeParse(productDataRaw);
@@ -70,11 +68,7 @@ export async function saveProductAction(formData: FormData): Promise<{ success: 
     try {
         const { ...productData } = validation.data;
         
-        const galleryUrls = (productData.gallery && typeof productData.gallery === 'string') ? JSON.parse(productData.gallery) : [];
-
-        const mainImageUrl = productData.image || SVG_PLACEHOLDER;
-
-        const processedProduct: Product = {
+        const processedProduct: Omit<Product, 'image' | 'gallery'> = {
             id: productData.id || `prod_${Date.now()}`,
             name: productData.name,
             description: productData.description || '',
@@ -84,8 +78,6 @@ export async function saveProductAction(formData: FormData): Promise<{ success: 
             hint: productData.hint || '',
             featured: productData.featured ?? false,
             status: (productData.status ?? true) ? 'activo' : 'inactivo',
-            image: mainImageUrl,
-            gallery: galleryUrls,
         };
         
         return { success: true, data: processedProduct };

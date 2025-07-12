@@ -30,7 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { initialProducts, categories, type Product, getProducts, saveProducts } from '@/lib/dummy-data';
+import { categories, type Product, getProducts, saveProducts } from '@/lib/dummy-data';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -174,32 +174,31 @@ export default function ProductsAdminPage() {
     formData.append('hint', productHint);
     formData.append('featured', String(productFeatured));
     formData.append('status', String(productStatus));
-    
-    // Only append image if it's not the placeholder
-    if (productImage && productImage !== SVG_PLACEHOLDER) {
-      formData.append('image', productImage);
-    }
-    
-    formData.append('gallery', JSON.stringify(galleryUrls));
 
     startSavingTransition(async () => {
       const result = await saveProductAction(formData);
 
       if (result.success && result.data) {
-        const savedProduct = result.data;
-        let updatedProducts: Product[];
+        // Combine server-processed data with client-side image data
+        const productFromServer = result.data;
+        const finalProduct: Product = {
+          ...productFromServer,
+          image: productImage,
+          gallery: galleryUrls,
+        };
 
+        let updatedProducts: Product[];
         if(selectedProduct) { // Editing existing product
-            updatedProducts = products.map(p => p.id === savedProduct.id ? savedProduct : p);
+            updatedProducts = products.map(p => p.id === finalProduct.id ? finalProduct : p);
         } else { // Adding new product
-            updatedProducts = [savedProduct, ...products];
+            updatedProducts = [finalProduct, ...products];
         }
 
         updateProductsStateAndStorage(updatedProducts);
         
         toast({
           title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
-          description: `Los cambios para "${savedProduct.name}" se han guardado correctamente.`,
+          description: `Los cambios para "${finalProduct.name}" se han guardado correctamente.`,
         });
         setIsDialogOpen(false);
       } else {
