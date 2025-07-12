@@ -1,50 +1,36 @@
 // src/lib/firebase-admin.ts
 import admin from 'firebase-admin';
-import path from 'path';
-import fs from 'fs';
+
+// --- PASO 1: PEGA TUS CREDENCIALES AQUÍ ---
+// Reemplaza los valores de ejemplo con los de tu archivo JSON de Firebase.
+// Asegúrate de copiar el contenido exacto.
+const serviceAccount = {
+  type: "service_account",
+  // Pega aquí tu project_id
+  project_id: "TU_PROJECT_ID_AQUI", 
+  // Pega aquí tu private_key_id
+  private_key_id: "TU_PRIVATE_KEY_ID_AQUI",
+  // Pega tu clave privada ENTRE las comillas simples.
+  // Es crucial que los saltos de línea (\n) se mantengan.
+  private_key: `-----BEGIN PRIVATE KEY-----\nTU_CLAVE_PRIVADA_CON_SALTOS_DE_LINEA_AQUI\n-----END PRIVATE KEY-----\n`,
+  // Pega aquí tu client_email
+  client_email: "TU_CLIENT_EMAIL_AQUI",
+  client_id: "TU_CLIENT_ID_AQUI",
+  auth_uri: "https://accounts.google.com/o/oauth2/auth",
+  token_uri: "https://oauth2.googleapis.com/token",
+  auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+  // Pega aquí tu client_x509_cert_url
+  client_x509_cert_url: "TU_CLIENT_X509_CERT_URL_AQUI",
+  universe_domain: "googleapis.com",
+};
 
 // --- VALIDACIÓN DE CREDENCIALES ---
-const SERVICE_ACCOUNT_FILE = 'firebase-service-account.json';
-const serviceAccountPath = path.join(process.cwd(), SERVICE_ACCOUNT_FILE);
-
-// 1. Verificar si el archivo existe.
-if (!fs.existsSync(serviceAccountPath)) {
-  throw new Error(
-    `Error Crítico: El archivo de credenciales '${SERVICE_ACCOUNT_FILE}' no se encontró en la raíz del proyecto. ` +
-    `Por favor, asegúrate de que el archivo exista y contenga las credenciales de tu cuenta de servicio de Firebase.`
-  );
-}
-
-// 2. Leer e intentar parsear el JSON.
-let serviceAccount;
-try {
-  const fileContents = fs.readFileSync(serviceAccountPath, 'utf8');
-  if (!fileContents.trim()) {
-    throw new Error(`El archivo '${SERVICE_ACCOUNT_FILE}' está vacío.`);
-  }
-  serviceAccount = JSON.parse(fileContents);
-} catch (error: any) {
-  throw new Error(
-    `Error Crítico: No se pudo parsear el archivo '${SERVICE_ACCOUNT_FILE}'. ` +
-    `Asegúrate de que es un archivo JSON válido. Error original: ${error.message}`
-  );
-}
-
-// 3. Validar los campos necesarios dentro del JSON.
-const requiredFields = ['project_id', 'client_email', 'private_key'];
-for (const field of requiredFields) {
-  if (!serviceAccount[field]) {
+if (serviceAccount.project_id === "TU_PROJECT_ID_AQUI" || !serviceAccount.project_id) {
     throw new Error(
-      `Error Crítico: El archivo '${SERVICE_ACCOUNT_FILE}' es inválido. ` +
-      `Falta el campo requerido: '${field}'.`
+      `Error Crítico: Las credenciales en 'src/lib/firebase-admin.ts' no han sido reemplazadas. ` +
+      `Por favor, edita el archivo y pega los valores de tu cuenta de servicio de Firebase.`
     );
-  }
 }
-
-// 4. *** CORRECCIÓN EXPLÍCITA DE LA CLAVE PRIVADA ***
-// Este es el paso crucial. Reemplaza las secuencias de escape '\\n' por saltos de línea reales '\n'.
-serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-
 
 // --- INICIALIZACIÓN DE FIREBASE ADMIN ---
 if (!admin.apps.length) {
@@ -55,7 +41,6 @@ if (!admin.apps.length) {
     });
   } catch (error: any) {
     console.error('Error Crítico de Inicialización de Firebase Admin:', error.message);
-    // Relanzar el error para detener la ejecución si la configuración es incorrecta.
     throw new Error(`Fallo al inicializar Firebase Admin: ${error.message}`);
   }
 }
