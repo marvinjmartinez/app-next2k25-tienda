@@ -1,12 +1,12 @@
 import {genkit} from 'genkit';
 import {googleAI} from '@genkit-ai/googleai';
 
-// Esta configuración global puede estar vacía o usar una clave por defecto si existe.
-// La clave real y válida se inyectará dinámicamente en la Server Action.
+// Esta configuración global se asegura de que la clave de API se lea
+// desde las variables de entorno del servidor cada vez que se usa una acción de Genkit.
 export const ai = genkit({
   plugins: [
     googleAI({
-      apiKey: process.env.GOOGLE_API_KEY || 'invalid-key-by-default',
+      apiKey: process.env.GOOGLE_API_KEY,
     }),
   ],
 });

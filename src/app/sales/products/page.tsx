@@ -213,13 +213,7 @@ export default function ProductsAdminPage() {
 
   const handleGenerateImage = (target: 'main' | 'gallery') => {
     const hint = target === 'main' ? productHint : galleryHint;
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_API_KEY;
-
-    if (!apiKey) {
-      toast({ variant: 'destructive', title: "Clave de API no encontrada", description: "Asegúrate de que NEXT_PUBLIC_GOOGLE_API_KEY esté configurada en tu archivo .env.local."});
-      return;
-    }
-
+    
     if (!hint || hint.length < 3) {
       toast({ variant: 'destructive', title: "Pista inválida", description: "La pista de IA debe tener al menos 3 caracteres."});
       return;
@@ -229,7 +223,6 @@ export default function ProductsAdminPage() {
     
     const formData = new FormData();
     formData.append("hint", hint);
-    formData.append("apiKey", apiKey);
 
     generateProductImageAction(formData)
       .then((result) => {
