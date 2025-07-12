@@ -1,23 +1,29 @@
 // src/lib/firebase-admin.ts
 import admin from 'firebase-admin';
-import path from 'path';
-import fs from 'fs';
 
 // Verifica si la aplicación de Firebase Admin ya ha sido inicializada
 if (!admin.apps.length) {
-  const serviceAccountPath = path.resolve(process.cwd(), 'firebase-service-account.json');
+  // Carga las variables de entorno
+  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
 
-  if (!fs.existsSync(serviceAccountPath)) {
-    throw new Error(`El archivo de credenciales de Firebase no se encontró en la ruta: ${serviceAccountPath}. Asegúrate de que el archivo 'firebase-service-account.json' exista en la raíz de tu proyecto y contenga las credenciales correctas.`);
+  if (!serviceAccountString) {
+    throw new Error(
+      "La variable de entorno FIREBASE_SERVICE_ACCOUNT_JSON no está definida. Asegúrate de que tu archivo .env la contiene."
+    );
+  }
+
+  if (!storageBucket) {
+    throw new Error(
+      "La variable de entorno FIREBASE_STORAGE_BUCKET no está definida. Por favor, verifica tu archivo .env."
+    );
   }
 
   try {
-    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
-    const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
+    const serviceAccount = JSON.parse(serviceAccountString);
 
-    if (!storageBucket) {
-      throw new Error('La variable de entorno FIREBASE_STORAGE_BUCKET no está definida. Por favor, verifica tu archivo .env.');
-    }
+    // **LA CORRECCIÓN CRUCIAL**: Reemplaza los saltos de línea escapados en la clave privada.
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
@@ -25,13 +31,11 @@ if (!admin.apps.length) {
     });
   } catch (error: any) {
     console.error('Error de Inicialización de Firebase Admin:', error);
+    let detailedError = `Falló la inicialización de Firebase Admin SDK: ${error.message}.`;
     if (error.message.includes('parse')) {
-         throw new Error(`No se pudo inicializar Firebase Admin SDK: Error al analizar el archivo 'firebase-service-account.json'. Asegúrate de que es un archivo JSON válido.`);
+      detailedError = `Error al analizar el JSON de FIREBASE_SERVICE_ACCOUNT_JSON en tu .env. Asegúrate de que es un JSON válido y está entre comillas simples.`;
     }
-    if (error.message.includes('private key') || error.message.includes('PEM')) {
-      throw new Error(`Falló la inicialización de Firebase Admin SDK debido a un problema con la clave privada en 'firebase-service-account.json'.`);
-    }
-    throw new Error(`Falló la inicialización de Firebase Admin SDK: ${error.message}`);
+    throw new Error(detailedError);
   }
 }
 
