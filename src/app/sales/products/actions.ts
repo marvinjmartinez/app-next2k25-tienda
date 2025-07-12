@@ -3,7 +3,6 @@
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
 import type { Product } from "@/lib/dummy-data";
-import { saveProducts as saveProductsToStorage } from "@/lib/dummy-data";
 import { z } from "zod";
 
 const generateImageSchema = z.object({
@@ -58,12 +57,7 @@ const productFormSchema = z.object({
 });
 
 export async function saveProductAction(formData: FormData) {
-    const allProductsRaw = formData.get('allProducts');
     const productDataRaw = Object.fromEntries(formData.entries());
-
-    if (!allProductsRaw) {
-        return { success: false, error: "No se proporcionó la lista de productos." };
-    }
     
     const validation = productFormSchema.safeParse(productDataRaw);
     if (!validation.success) {
@@ -72,7 +66,6 @@ export async function saveProductAction(formData: FormData) {
     }
 
     try {
-        const allProducts: Product[] = JSON.parse(allProductsRaw as string);
         const productData = validation.data;
 
         const processedProduct: Product = {
@@ -88,26 +81,12 @@ export async function saveProductAction(formData: FormData) {
             image: productData.image,
             gallery: JSON.parse(productData.gallery),
         };
-
-        let updatedProducts: Product[];
-        const productIndex = allProducts.findIndex(p => p.id === processedProduct.id);
-
-        if (productIndex > -1) {
-            // Edit existing product
-            updatedProducts = [...allProducts];
-            updatedProducts[productIndex] = processedProduct;
-        } else {
-            // Add new product
-            updatedProducts = [processedProduct, ...allProducts];
-        }
-
-        saveProductsToStorage(updatedProducts);
         
-        return { success: true };
+        return { success: true, data: processedProduct };
 
     } catch (error) {
         console.error("Error en saveProductAction:", error);
-        const errorMessage = error instanceof Error ? error.message : "Error desconocido al guardar el producto.";
+        const errorMessage = error instanceof Error ? error.message : "Error desconocido al procesar el producto.";
         return { success: false, error: errorMessage };
     }
 }

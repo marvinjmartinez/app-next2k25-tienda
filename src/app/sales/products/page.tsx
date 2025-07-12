@@ -176,18 +176,25 @@ export default function ProductsAdminPage() {
     formData.append('status', String(productStatus));
     formData.append('image', productImage);
     formData.append('gallery', JSON.stringify(galleryUrls));
-    formData.append('allProducts', JSON.stringify(products));
 
     startSavingTransition(async () => {
       const result = await saveProductAction(formData);
 
-      if (result.success) {
-        // Reload products from storage since the action updated it
-        setProducts(getProducts());
+      if (result.success && result.data) {
+        const savedProduct = result.data;
+        let updatedProducts: Product[];
+
+        if(selectedProduct) { // Editing existing product
+            updatedProducts = products.map(p => p.id === savedProduct.id ? savedProduct : p);
+        } else { // Adding new product
+            updatedProducts = [savedProduct, ...products];
+        }
+
+        updateProductsStateAndStorage(updatedProducts);
         
         toast({
           title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
-          description: `Los cambios para "${productName}" se han guardado correctamente.`,
+          description: `Los cambios para "${savedProduct.name}" se han guardado correctamente.`,
         });
         setIsDialogOpen(false);
       } else {
