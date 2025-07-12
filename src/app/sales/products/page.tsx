@@ -56,9 +56,6 @@ import { Switch } from '@/components/ui/switch';
 import { generateProductImageAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { storage } from '@/lib/firebase';
-import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { v4 as uuidv4 } from 'uuid';
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
 
@@ -70,17 +67,6 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-// Helper function to upload an image if it's a data URI
-async function uploadImage(dataUri: string): Promise<string> {
-  if (!dataUri || !dataUri.startsWith('data:image')) {
-    // If it's not a data URI, it's already a URL, so just return it.
-    return dataUri;
-  }
-  const storageRef = ref(storage, `products/${uuidv4()}`);
-  await uploadString(storageRef, dataUri, 'data_url');
-  return getDownloadURL(storageRef);
-}
-
 
 export default function ProductsAdminPage() {
   const { toast } = useToast();
@@ -88,7 +74,6 @@ export default function ProductsAdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -113,27 +98,9 @@ export default function ProductsAdminPage() {
     setProducts(getProducts());
   }, []);
 
-  const updateProductsStateAndStorage = (newProducts: Product[], showToast = true) => {
+  const updateProductsStateAndStorage = (newProducts: Product[]) => {
       setProducts(newProducts);
-      
-      try {
-        saveProducts(newProducts); // Use the new saveProducts function
-        if (showToast) {
-            toast({
-                title: `Productos ${selectedProduct ? 'actualizados' : 'guardados'}`,
-                description: `Los cambios se han guardado correctamente.`,
-            });
-        }
-      } catch (error) {
-        console.error("Failed to save products to localStorage", error);
-        if (showToast) {
-          toast({
-            variant: "destructive",
-            title: "Error al guardar",
-            description: "No se pudieron guardar los cambios. La cuota de almacenamiento puede estar llena.",
-          });
-        }
-      }
+      saveProducts(newProducts);
   };
 
 
@@ -186,14 +153,13 @@ export default function ProductsAdminPage() {
     });
   };
   
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // 1. Upload images and get public URLs
-      const uploadedImageUrl = await uploadImage(productImage);
-      const uploadedGalleryUrls = await Promise.all(galleryUrls.map(url => uploadImage(url)));
-      
-      // 2. Create the final product data with Firebase URLs
+  const handleSave = () => {
+      const isNewImage = (url: string) => url.startsWith('data:image');
+      const placeholderUrl = `https://placehold.co/600x400.png`;
+
+      const finalImageUrl = isNewImage(productImage) ? placeholderUrl : productImage;
+      const finalGalleryUrls = galleryUrls.map(url => isNewImage(url) ? placeholderUrl : url);
+
       const productData = {
         name: productName,
         description: productDescription,
@@ -202,9 +168,9 @@ export default function ProductsAdminPage() {
         stock: productStock,
         hint: productHint,
         featured: productFeatured,
-        image: uploadedImageUrl,
+        image: finalImageUrl,
         status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
-        gallery: uploadedGalleryUrls,
+        gallery: finalGalleryUrls,
       };
 
       let updatedProducts;
@@ -226,22 +192,13 @@ export default function ProductsAdminPage() {
         updatedProducts = [newProduct, ...products];
       }
       
-      // 3. Update state and localStorage
-      updateProductsStateAndStorage(updatedProducts, true);
+      updateProductsStateAndStorage(updatedProducts);
+      toast({
+        title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
+        description: `Los cambios para "${productData.name}" se han guardado.`,
+      });
       setIsDialogOpen(false);
-
-    } catch (error) {
-        console.error("Error saving product:", error);
-        toast({
-            variant: "destructive",
-            title: "Error al guardar",
-            description: "No se pudo subir la imagen a la nube o guardar los cambios.",
-        });
-    } finally {
-        // 4. IMPORTANT: Ensure saving state is turned off
-        setIsSaving(false);
-    }
-};
+  };
 
 
   const handleGenerateImage = (target: 'main' | 'gallery') => {
@@ -670,15 +627,8 @@ export default function ProductsAdminPage() {
                 <DialogClose asChild>
                     <Button type="button" variant="outline">Cancelar</Button>
                 </DialogClose>
-                <Button onClick={handleSave} disabled={isSaving}>
-                    {isSaving ? (
-                        <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Guardando...
-                        </>
-                    ) : (
-                        'Guardar Cambios'
-                    )}
+                <Button onClick={handleSave}>
+                    Guardar Cambios
                 </Button>
             </DialogFooter>
         </DialogContent>

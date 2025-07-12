@@ -69,12 +69,12 @@ export const getProducts = (): Product[] => {
         console.error("Failed to load products from localStorage", error);
         products = initialProducts;
     }
-
-    // On load, we don't need to replace data URIs anymore because we won't be storing them long term.
-    // The background upload process will handle replacing them with Firebase URLs.
+    
+    // Replace any large data URIs with placeholders on load to prevent quota issues.
     return products.map(p => ({
         ...p,
-        image: p.image || SVG_PLACEHOLDER
+        image: p.image?.startsWith('data:image') ? SVG_PLACEHOLDER : p.image || SVG_PLACEHOLDER,
+        gallery: p.gallery?.map(g => g.startsWith('data:image') ? SVG_PLACEHOLDER : g) || []
     }));
 };
 
@@ -83,13 +83,9 @@ export const saveProducts = (products: Product[]) => {
         return;
     }
     
-    // This function will now save products as-is, including potential data URIs temporarily.
-    // The background upload process in the component is responsible for updating localStorage
-    // again with the final Firebase URLs.
     try {
         localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
     } catch (error) {
         console.error("Failed to save products to localStorage", error);
-        throw error; // Re-throw to be caught by the calling function
     }
 }
