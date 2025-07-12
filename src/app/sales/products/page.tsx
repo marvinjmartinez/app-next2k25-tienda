@@ -72,7 +72,7 @@ const formatCurrency = (amount: number) => {
 
 // Helper function to upload an image if it's a data URI
 async function uploadImage(dataUri: string): Promise<string> {
-  if (!dataUri.startsWith('data:image')) {
+  if (!dataUri || !dataUri.startsWith('data:image')) {
     // If it's not a data URI, it's already a URL, so just return it.
     return dataUri;
   }
@@ -88,6 +88,7 @@ export default function ProductsAdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -185,79 +186,63 @@ export default function ProductsAdminPage() {
     });
   };
   
-  const handleSave = () => {
-    // --- 1. Create the product data with local image URIs first for immediate UI update ---
-    const productDataWithLocalImages = {
-      name: productName,
-      description: productDescription,
-      category: productCategory,
-      price: productPrice,
-      stock: productStock,
-      hint: productHint,
-      featured: productFeatured,
-      image: productImage,
-      status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
-      gallery: galleryUrls,
-    };
-
-    let updatedProducts;
-    let newOrUpdatedProduct;
-
-    if (selectedProduct) {
-      newOrUpdatedProduct = { ...selectedProduct, ...productDataWithLocalImages };
-      updatedProducts = products.map(p => p.id === selectedProduct.id ? newOrUpdatedProduct : p);
-    } else {
-      newOrUpdatedProduct = {
-        id: `prod_${Date.now()}`,
-        ...productDataWithLocalImages,
-        priceTiers: {
-          cliente: productPrice,
-          cliente_especial: productPrice * 0.9,
-          vendedor: productPrice * 0.85,
-        }
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      // 1. Upload images and get public URLs
+      const uploadedImageUrl = await uploadImage(productImage);
+      const uploadedGalleryUrls = await Promise.all(galleryUrls.map(url => uploadImage(url)));
+      
+      // 2. Create the final product data with Firebase URLs
+      const productData = {
+        name: productName,
+        description: productDescription,
+        category: productCategory,
+        price: productPrice,
+        stock: productStock,
+        hint: productHint,
+        featured: productFeatured,
+        image: uploadedImageUrl,
+        status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
+        gallery: uploadedGalleryUrls,
       };
-      updatedProducts = [newOrUpdatedProduct, ...products];
-    }
-    
-    // --- 2. Update UI immediately and close dialog ---
-    setProducts(updatedProducts);
-    setIsDialogOpen(false);
-    toast({
-      title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
-      description: 'Guardando imágenes en la nube en segundo plano...',
-    });
 
-    // --- 3. Start background image upload ---
-    (async () => {
-      try {
-        const uploadedImageUrl = await uploadImage(newOrUpdatedProduct.image);
-        const uploadedGalleryUrls = await Promise.all(newOrUpdatedProduct.gallery.map(url => uploadImage(url)));
-        
-        const finalProductData = {
-          ...newOrUpdatedProduct,
-          image: uploadedImageUrl,
-          gallery: uploadedGalleryUrls,
+      let updatedProducts;
+      if (selectedProduct) {
+        // Update existing product
+        const newOrUpdatedProduct = { ...selectedProduct, ...productData };
+        updatedProducts = products.map(p => p.id === selectedProduct.id ? newOrUpdatedProduct : p);
+      } else {
+        // Create new product
+        const newProduct = {
+          id: `prod_${Date.now()}`,
+          ...productData,
+          priceTiers: {
+            cliente: productPrice,
+            cliente_especial: productPrice * 0.9,
+            vendedor: productPrice * 0.85,
+          }
         };
-
-        // --- 4. Silently update localStorage with final Firebase URLs ---
-        const finalProducts = getProducts().map(p => p.id === finalProductData.id ? finalProductData : p);
-        if (!finalProducts.some(p => p.id === finalProductData.id)) {
-            finalProducts.unshift(finalProductData);
-        }
-        
-        saveProducts(finalProducts);
-        // We can optionally show a success toast here if needed
-        // toast({ title: "Imágenes guardadas", description: "Las imágenes se subieron a la nube." });
-      } catch (error) {
-        console.error("Error en la subida en segundo plano:", error);
-        toast({
-          variant: "destructive",
-          title: "Error de subida",
-          description: "No se pudieron guardar las imágenes en la nube.",
-        });
+        updatedProducts = [newProduct, ...products];
       }
-    })();
-  };
+      
+      // 3. Update state and localStorage
+      updateProductsStateAndStorage(updatedProducts, true);
+      setIsDialogOpen(false);
+
+    } catch (error) {
+        console.error("Error saving product:", error);
+        toast({
+            variant: "destructive",
+            title: "Error al guardar",
+            description: "No se pudo subir la imagen a la nube o guardar los cambios.",
+        });
+    } finally {
+        // 4. IMPORTANT: Ensure saving state is turned off
+        setIsSaving(false);
+    }
+};
+
 
   const handleGenerateImage = (target: 'main' | 'gallery') => {
     const hint = target === 'main' ? productHint : galleryHint;
@@ -685,8 +670,15 @@ export default function ProductsAdminPage() {
                 <DialogClose asChild>
                     <Button type="button" variant="outline">Cancelar</Button>
                 </DialogClose>
-                <Button onClick={handleSave}>
-                    Guardar Cambios
+                <Button onClick={handleSave} disabled={isSaving}>
+                    {isSaving ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Guardando...
+                        </>
+                    ) : (
+                        'Guardar Cambios'
+                    )}
                 </Button>
             </DialogFooter>
         </DialogContent>
