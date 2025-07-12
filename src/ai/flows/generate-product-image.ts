@@ -41,9 +41,27 @@ const generateProductImageFlow = ai.defineFlow(
     // Llamada a la IA simplificada al máximo
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
-      prompt: `Product photo: ${input.hint}, on a clean white background.`,
+      prompt: `Product photo, ${input.hint}, clean, studio lighting, white background.`,
       config: {
         responseModalities: ['IMAGE'],
+        safetySettings: [
+            {
+                category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+                threshold: 'BLOCK_NONE',
+            },
+            {
+                category: 'HARM_CATEGORY_HARASSMENT',
+                threshold: 'BLOCK_NONE',
+            },
+            {
+                category: 'HARM_CATEGORY_HATE_SPEECH',
+                threshold: 'BLOCK_NONE',
+            },
+            {
+                category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                threshold: 'BLOCK_NONE',
+            },
+        ]
       },
     });
 
