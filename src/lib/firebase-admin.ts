@@ -4,8 +4,6 @@ import path from 'path';
 import fs from 'fs';
 
 // --- VALIDACIÓN DE CREDENCIALES ---
-// Esta sección se asegura de que el archivo de credenciales es correcto antes de usarlo.
-
 const SERVICE_ACCOUNT_FILE = 'firebase-service-account.json';
 const serviceAccountPath = path.join(process.cwd(), SERVICE_ACCOUNT_FILE);
 
@@ -21,7 +19,7 @@ if (!fs.existsSync(serviceAccountPath)) {
 let serviceAccount;
 try {
   const fileContents = fs.readFileSync(serviceAccountPath, 'utf8');
-  if (!fileContents) {
+  if (!fileContents.trim()) {
     throw new Error(`El archivo '${SERVICE_ACCOUNT_FILE}' está vacío.`);
   }
   serviceAccount = JSON.parse(fileContents);
@@ -43,8 +41,12 @@ for (const field of requiredFields) {
   }
 }
 
-// --- INICIALIZACIÓN DE FIREBASE ADMIN ---
+// 4. *** CORRECCIÓN EXPLÍCITA DE LA CLAVE PRIVADA ***
+// Este es el paso crucial. Reemplaza las secuencias de escape '\\n' por saltos de línea reales '\n'.
+serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
 
+
+// --- INICIALIZACIÓN DE FIREBASE ADMIN ---
 if (!admin.apps.length) {
   try {
     admin.initializeApp({
