@@ -1,4 +1,4 @@
-{// src/lib/uploadGeneratedImage.ts
+// src/lib/uploadGeneratedImage.ts
 import { bucket } from "@/lib/firebase-admin";
 import { v4 as uuidv4 } from "uuid";
 
