@@ -1,7 +1,7 @@
 import admin from 'firebase-admin';
 import dotenv from 'dotenv';
 
-// Load environment variables from .env file
+// Load environment variables from .env file at the project root
 dotenv.config();
 
 // Check if the app is already initialized to prevent errors
@@ -25,8 +25,10 @@ if (!admin.apps.length) {
     });
   } catch (error: any) {
     if (error instanceof SyntaxError) {
+      console.error('Firebase Admin Initialization Error: Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON.');
       throw new Error(`Failed to initialize Firebase Admin SDK: Error parsing FIREBASE_SERVICE_ACCOUNT_JSON. Please ensure it's a valid JSON string (usually starts and ends with {}).`);
     }
+    console.error('Firebase Admin Initialization Error:', error);
     throw new Error(`Failed to initialize Firebase Admin SDK: ${error.message}`);
   }
 }
