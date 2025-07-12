@@ -4,7 +4,6 @@
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
 import type { Product } from "@/lib/dummy-data";
 import { z } from "zod";
-import { uploadGeneratedImage } from "@/lib/uploadGeneratedImage";
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
 
@@ -32,8 +31,7 @@ export async function generateProductImageAction(formData: FormData) {
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        const publicUrl = await uploadGeneratedImage(dataUri);
-        return { success: true, data: { imageUrl: publicUrl } };
+        return { success: true, data: { imageUrl: dataUri } };
 
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);
@@ -74,21 +72,7 @@ export async function saveProductAction(formData: FormData): Promise<{ success: 
         
         const galleryUrls = (productData.gallery && typeof productData.gallery === 'string') ? JSON.parse(productData.gallery) : [];
 
-        // Subir las imágenes nuevas de la galería (data URIs)
-        const processedGallery = await Promise.all(
-            galleryUrls.map((url: string) => {
-                if (url.startsWith('data:image')) {
-                    return uploadGeneratedImage(url);
-                }
-                return Promise.resolve(url);
-            })
-        );
-
-        // Subir la imagen principal si es un data URI
-        const mainImageUrl = productData.image && productData.image.startsWith('data:image') 
-            ? await uploadGeneratedImage(productData.image) 
-            : productData.image || SVG_PLACEHOLDER;
-
+        const mainImageUrl = productData.image || SVG_PLACEHOLDER;
 
         const processedProduct: Product = {
             id: productData.id || `prod_${Date.now()}`,
@@ -101,7 +85,7 @@ export async function saveProductAction(formData: FormData): Promise<{ success: 
             featured: productData.featured ?? false,
             status: (productData.status ?? false) ? 'activo' : 'inactivo',
             image: mainImageUrl,
-            gallery: processedGallery,
+            gallery: galleryUrls,
         };
         
         return { success: true, data: processedProduct };
