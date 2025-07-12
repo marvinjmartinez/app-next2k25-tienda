@@ -2,7 +2,8 @@
 "use server";
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
-import { uploadGeneratedImage } from "@/lib/uploadGeneratedImage";
+import type { Product } from "@/lib/dummy-data";
+import { saveProducts as saveProductsToStorage } from "@/lib/dummy-data";
 import { z } from "zod";
 
 const generateImageSchema = z.object({
@@ -34,7 +35,6 @@ export async function generateProductImageAction(formData: FormData) {
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);
         const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado al generar la imagen.";
-        // Simplificar mensaje de error para el usuario
         if (errorMessage.includes("API key not valid")) {
             return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env.local" };
         }
@@ -53,41 +53,57 @@ const productFormSchema = z.object({
     hint: z.string(),
     featured: z.coerce.boolean(),
     status: z.coerce.boolean(),
-    image: z.string(), // Puede ser un data URI o una URL http
+    image: z.string(),
     gallery: z.string(), // Un string JSON de URLs
 });
 
 export async function saveProductAction(formData: FormData) {
-    const rawData = Object.fromEntries(formData.entries());
-    const validation = productFormSchema.safeParse(rawData);
+    const allProductsRaw = formData.get('allProducts');
+    const productDataRaw = Object.fromEntries(formData.entries());
 
+    if (!allProductsRaw) {
+        return { success: false, error: "No se proporcionó la lista de productos." };
+    }
+    
+    const validation = productFormSchema.safeParse(productDataRaw);
     if (!validation.success) {
+        console.error("Validation errors:", validation.error.flatten());
         return { success: false, error: "Datos del formulario inválidos." };
     }
 
     try {
+        const allProducts: Product[] = JSON.parse(allProductsRaw as string);
         const productData = validation.data;
-        const galleryUrls: string[] = JSON.parse(productData.gallery || "[]");
 
-        // Subir imagen principal y de galería si son data URIs
-        const mainImageUrl = await uploadGeneratedImage(productData.image);
-        const uploadedGalleryUrls = await Promise.all(
-            galleryUrls.map(url => uploadGeneratedImage(url))
-        );
-        
-        const finalProductData = {
-            ...productData,
-            image: mainImageUrl,
-            gallery: uploadedGalleryUrls,
-            price: Number(productData.price),
-            stock: Number(productData.stock),
-            status: productData.status ? 'activo' : 'inactivo'
+        const processedProduct: Product = {
+            id: productData.id || `prod_${Date.now()}`,
+            name: productData.name,
+            description: productData.description || '',
+            category: productData.category,
+            price: productData.price,
+            stock: productData.stock,
+            hint: productData.hint,
+            featured: productData.featured,
+            status: productData.status ? 'activo' : 'inactivo',
+            image: productData.image,
+            gallery: JSON.parse(productData.gallery),
         };
 
-        // En una app real, aquí guardarías finalProductData en tu base de datos.
-        // Por ahora, solo devolvemos los datos procesados para actualizar el estado del cliente.
+        let updatedProducts: Product[];
+        const productIndex = allProducts.findIndex(p => p.id === processedProduct.id);
+
+        if (productIndex > -1) {
+            // Edit existing product
+            updatedProducts = [...allProducts];
+            updatedProducts[productIndex] = processedProduct;
+        } else {
+            // Add new product
+            updatedProducts = [processedProduct, ...allProducts];
+        }
+
+        saveProductsToStorage(updatedProducts);
         
-        return { success: true, data: finalProductData };
+        return { success: true };
 
     } catch (error) {
         console.error("Error en saveProductAction:", error);

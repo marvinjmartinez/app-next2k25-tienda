@@ -176,28 +176,18 @@ export default function ProductsAdminPage() {
     formData.append('status', String(productStatus));
     formData.append('image', productImage);
     formData.append('gallery', JSON.stringify(galleryUrls));
+    formData.append('allProducts', JSON.stringify(products));
 
     startSavingTransition(async () => {
       const result = await saveProductAction(formData);
 
-      if (result.success && result.data) {
-        let updatedProducts;
-        const finalProductData = result.data as unknown as Product;
-
-        if (selectedProduct) {
-          // Si estamos editando, actualizamos el producto existente
-          updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...finalProductData } : p);
-        } else {
-          // Si es nuevo, lo agregamos (con un ID temporal si es necesario)
-          const newProduct = { ...initialProducts[0], ...finalProductData, id: `prod_${Date.now()}`};
-          updatedProducts = [newProduct, ...products];
-        }
-
-        updateProductsStateAndStorage(updatedProducts);
+      if (result.success) {
+        // Reload products from storage since the action updated it
+        setProducts(getProducts());
         
         toast({
           title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
-          description: `Los cambios para "${finalProductData.name}" se han guardado correctamente.`,
+          description: `Los cambios para "${productName}" se han guardado correctamente.`,
         });
         setIsDialogOpen(false);
       } else {
