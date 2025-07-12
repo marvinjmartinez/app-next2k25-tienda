@@ -1,4 +1,4 @@
-# Proyecto E-commerce: Distrimin SAS
+# Proyecto E-commerce: Distrimin S.A.S
 
 Este es un proyecto de aplicación web de e-commerce completo construido con Next.js y el App Router, diseñado para una ferretería ficticia llamada "Distrimin SAS". La aplicación cuenta con una tienda pública, un panel de control para clientes y un completo panel de administración para ventas y gestión de la tienda, con funcionalidades de IA integradas mediante Genkit.
 
