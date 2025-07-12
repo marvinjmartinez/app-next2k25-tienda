@@ -75,7 +75,7 @@ export default function ProductsAdminPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGenerating, startGeneratingTransition] = useTransition();
   const [isSaving, startSavingTransition] = useTransition();
   
   // States for the form inside the dialog
@@ -131,7 +131,7 @@ export default function ProductsAdminPage() {
     setProductHint(product.hint);
     setProductFeatured(product.featured || false);
     setProductStatus(product.status === 'activo');
-    setProductImage(product.image);
+    setProductImage(product.image || SVG_PLACEHOLDER);
     setGalleryUrls(product.gallery || []);
   };
 
@@ -167,7 +167,6 @@ export default function ProductsAdminPage() {
     }
 
     startSavingTransition(() => {
-        // 1. Construir el objeto del producto final en el cliente
         const finalProduct: Product = {
             id: selectedProduct?.id || `prod_${Date.now()}`,
             name: productName,
@@ -178,37 +177,21 @@ export default function ProductsAdminPage() {
             hint: productHint,
             featured: productFeatured,
             status: productStatus ? 'activo' : 'inactivo',
-            image: productImage,
-            gallery: galleryUrls,
+            image: productImage, // This will be a data URI or placeholder
+            gallery: galleryUrls, // This will be an array of data URIs
         };
 
-        // 2. Actualizar la lista de productos en el estado
         let updatedProducts: Product[];
-        if (selectedProduct) { // Editando
+        if (selectedProduct) { // Editing
             updatedProducts = products.map(p =>
                 p.id === finalProduct.id ? finalProduct : p
             );
-        } else { // Creando
+        } else { // Creating
             updatedProducts = [finalProduct, ...products];
         }
 
-        // 3. Guardar la lista actualizada en el estado y localStorage
         updateProductsStateAndStorage(updatedProducts);
         
-        // 4. (Opcional) Enviar datos al servidor para validación/registro
-        const formData = new FormData();
-        Object.entries(finalProduct).forEach(([key, value]) => {
-            if (key === 'gallery') {
-                 formData.append(key, JSON.stringify(value));
-            } else if (typeof value !== 'undefined') {
-                 formData.append(key, String(value));
-            }
-        });
-        saveProductAction(formData).catch(err => {
-             console.error("Server action validation failed (optional):", err);
-        });
-        
-        // 5. Mostrar éxito y cerrar el diálogo
         toast({
             title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
             description: `Los cambios para "${finalProduct.name}" se han guardado correctamente.`,
@@ -225,36 +208,33 @@ export default function ProductsAdminPage() {
       toast({ variant: 'destructive', title: "Pista inválida", description: "La pista de IA debe tener al menos 3 caracteres."});
       return;
     }
-
-    setIsGenerating(true);
     
     const formData = new FormData();
     formData.append("hint", hint);
 
-    generateProductImageAction(formData)
-      .then((result) => {
-        if (result.success && result.data?.imageUrl) {
-            const newImageUrl = result.data.imageUrl;
-            
-            if (target === 'main') {
-              setProductImage(newImageUrl);
-              toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado. No olvides guardar los cambios." });
-            } else {
-              setGalleryUrls(prev => [...prev, newImageUrl]);
-              setGalleryHint('');
-              toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido a la galería. No olvides guardar." });
-            }
-        } else {
-            toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error || "Ocurrió un error desconocido." });
-        }
-      })
-      .catch((error) => {
-        console.error("Error en handleGenerateImage:", error);
-        toast({ variant: 'destructive', title: "Error inesperado", description: "Ocurrió un error al procesar la imagen." });
-      })
-      .finally(() => {
-        setIsGenerating(false);
-      });
+    startGeneratingTransition(() => {
+      generateProductImageAction(formData)
+        .then((result) => {
+          if (result.success && result.data?.imageUrl) {
+              const newImageUrl = result.data.imageUrl;
+              
+              if (target === 'main') {
+                setProductImage(newImageUrl);
+                toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado. No olvides guardar los cambios." });
+              } else {
+                setGalleryUrls(prev => [...prev, newImageUrl]);
+                setGalleryHint('');
+                toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido a la galería. No olvides guardar." });
+              }
+          } else {
+              toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error || "Ocurrió un error desconocido." });
+          }
+        })
+        .catch((error) => {
+          console.error("Error en handleGenerateImage:", error);
+          toast({ variant: 'destructive', title: "Error inesperado", description: "Ocurrió un error al procesar la imagen." });
+        });
+    });
   };
 
   const handleChangeStatus = (productId: string, newStatus: 'activo' | 'inactivo') => {
