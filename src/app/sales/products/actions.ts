@@ -2,13 +2,14 @@
 "use server";
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
+import { subirImagenDesdeBase64 } from "@/lib/storage";
 import { z } from "zod";
 
 const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
 });
 
-// Acción para generar la imagen y devolver el Data URI directamente.
+// Acción para generar la imagen y subirla a Google Cloud Storage.
 export async function generateProductImageAction(formData: FormData): Promise<{ success: boolean; data?: { imageUrl: string; }; error?: string; }> {
     const rawData = Object.fromEntries(formData.entries());
     const validation = generateImageSchema.safeParse(rawData);
@@ -29,14 +30,20 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // 2. Devolver el Data URI directamente al cliente
-        return { success: true, data: { imageUrl: dataUri } };
+        // 2. Subir la imagen desde el Data URI a GCS
+        const publicUrl = await subirImagenDesdeBase64(dataUri);
+
+        // 3. Devolver la URL pública de la imagen
+        return { success: true, data: { imageUrl: publicUrl } };
 
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);
-        const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado al generar la imagen.";
+        const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado al generar o subir la imagen.";
          if (errorMessage.includes("API key not valid")) {
             return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
+        }
+        if (errorMessage.includes("Failed to parse")) {
+             return { success: false, error: "Error de credenciales. Asegúrate de que FIREBASE_SERVICE_ACCOUNT_JSON esté correctamente configurado en tu .env" };
         }
         return { success: false, error: errorMessage };
     }
