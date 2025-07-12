@@ -1,8 +1,10 @@
-// src/lib/firebase.ts
+{// src/lib/firebase.ts
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getStorage } from "firebase/storage";
 
 // Usar esta configuración para el entorno de cliente (navegador)
+// NOTA: Estas variables de entorno deben estar definidas en tu archivo .env.local
+// y deben tener el prefijo NEXT_PUBLIC_ para que Next.js las exponga al navegador.
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,

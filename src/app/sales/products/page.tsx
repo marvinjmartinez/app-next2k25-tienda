@@ -56,6 +56,9 @@ import { Switch } from '@/components/ui/switch';
 import { generateProductImageAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { storage } from '@/lib/firebase';
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import { v4 as uuidv4 } from 'uuid';
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
 
@@ -66,6 +69,18 @@ const formatCurrency = (amount: number) => {
     currency: 'MXN',
   }).format(amount);
 };
+
+// Helper function to upload an image if it's a data URI
+async function uploadImage(dataUri: string): Promise<string> {
+  if (!dataUri.startsWith('data:image')) {
+    // If it's not a data URI, it's already a URL, so just return it.
+    return dataUri;
+  }
+  const storageRef = ref(storage, `products/${uuidv4()}`);
+  await uploadString(storageRef, dataUri, 'data_url');
+  return getDownloadURL(storageRef);
+}
+
 
 export default function ProductsAdminPage() {
   const { toast } = useToast();
@@ -171,37 +186,52 @@ export default function ProductsAdminPage() {
     });
   };
   
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    
-    // This is a client-side only operation now.
-    const newProductData = {
-      name: productName,
-      description: productDescription,
-      category: productCategory,
-      price: productPrice,
-      stock: productStock,
-      hint: productHint,
-      featured: productFeatured,
-      image: productImage, // Keep the data: URI for immediate display
-      status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
-      gallery: galleryUrls, // Keep the data: URIs for the gallery
-    };
+    try {
+      toast({ title: 'Guardando producto...', description: 'Subiendo imágenes, por favor espera.' });
 
-    let updatedProducts;
-    if (selectedProduct) {
-      updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
-    } else {
-      const newProduct: Product = {
-        id: `prod_${Date.now()}`,
-        ...newProductData
+      // Upload main image and gallery images concurrently
+      const uploadedImageUrl = await uploadImage(productImage);
+      const uploadedGalleryUrls = await Promise.all(galleryUrls.map(url => uploadImage(url)));
+      
+      const newProductData = {
+        name: productName,
+        description: productDescription,
+        category: productCategory,
+        price: productPrice,
+        stock: productStock,
+        hint: productHint,
+        featured: productFeatured,
+        image: uploadedImageUrl,
+        status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
+        gallery: uploadedGalleryUrls,
       };
-      updatedProducts = [newProduct, ...products];
-    }
 
-    updateProductsStateAndStorage(updatedProducts, true);
-    setIsSaving(false);
-    setIsDialogOpen(false);
+      let updatedProducts;
+      if (selectedProduct) {
+        updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
+      } else {
+        const newProduct: Product = {
+          id: `prod_${Date.now()}`,
+          ...newProductData
+        };
+        updatedProducts = [newProduct, ...products];
+      }
+      
+      updateProductsStateAndStorage(updatedProducts, true);
+      setIsDialogOpen(false);
+
+    } catch (error) {
+      console.error("Error saving product:", error);
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "No se pudo subir una o más imágenes a Firebase Storage.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
  const handleGenerateImage = (target: 'main' | 'gallery') => {
@@ -261,14 +291,14 @@ export default function ProductsAdminPage() {
   };
 
   const handleAddGalleryUrl = () => {
-      if (newGalleryUrl.trim() && (newGalleryUrl.startsWith('http://') || newGalleryUrl.startsWith('https://') || newGalleryUrl.startsWith('data:'))) {
+      if (newGalleryUrl.trim() && (newGalleryUrl.startsWith('http://') || newGalleryUrl.startsWith('https://'))) {
           setGalleryUrls(prev => [...prev, newGalleryUrl]);
           setNewGalleryUrl('');
       } else {
           toast({
               variant: 'destructive',
               title: 'URL Inválida',
-              description: 'Por favor, introduce una URL válida.'
+              description: 'Por favor, introduce una URL válida (http:// o https://).'
           })
       }
   }
