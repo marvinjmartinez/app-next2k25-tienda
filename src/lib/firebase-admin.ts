@@ -1,4 +1,4 @@
-{// src/lib/firebase-admin.ts
+// src/lib/firebase-admin.ts
 import { initializeApp, applicationDefault, getApps, getApp } from "firebase-admin/app";
 import { getStorage } from "firebase-admin/storage";
 
