@@ -38,11 +38,12 @@ const generateProductImageFlow = ai.defineFlow(
     outputSchema: GenerateProductImageOutputSchema,
   },
   async (input) => {
+    // Llamada a la IA simplificada al máximo
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
-      prompt: `Generate a high-quality, professional product photo on a clean white background for a hardware store product. The product is: ${input.hint}.`,
+      prompt: `Product photo: ${input.hint}, on a clean white background.`,
       config: {
-        responseModalities: ['TEXT', 'IMAGE'],
+        responseModalities: ['IMAGE'],
       },
     });
 

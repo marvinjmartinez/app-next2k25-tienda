@@ -46,7 +46,7 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
             return { success: false, error: "Error de permisos. Asegúrate de que la cuenta de servicio del entorno tenga el rol 'Storage Object Admin' en tu bucket." };
         }
         if (errorMessage.includes("500")) {
-             return { success: false, error: "Error 500 del servidor de IA. Esto puede deberse a que la API de Vertex AI no está habilitada en tu proyecto de Google Cloud." };
+             return { success: false, error: "Error 500 del servidor de IA. Esto puede deberse a que la API de Vertex AI o la facturación no están habilitadas en tu proyecto de Google Cloud." };
         }
         return { success: false, error: errorMessage };
     }
