@@ -20,7 +20,7 @@ export async function generateProductImageAction(formData: FormData) {
     }
     
     try {
-        // 1. Generate image using the Genkit flow
+        // Generate image using the Genkit flow and return the Data URI
         const result = await generateProductImage({ hint: validation.data.hint });
         const { imageUrl: dataUri } = result;
 
@@ -28,7 +28,6 @@ export async function generateProductImageAction(formData: FormData) {
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // 2. Return the Data URI directly to the client
         return { success: true, data: { imageUrl: dataUri } };
 
     } catch (error) {

@@ -1,16 +1,15 @@
 // src/lib/firebase.ts
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getStorage } from "firebase/storage";
-import { API_KEY } from "@/ai/genkit";
 
 // Usar esta configuración para el entorno de cliente (navegador)
 const firebaseConfig = {
-  apiKey: API_KEY, // Usa la misma clave que Genkit
-  authDomain: "distrimnin-tienda.firebaseapp.com",
-  projectId: "distrimnin-tienda",
-  storageBucket: "distrimnin-tienda.appspot.com",
-  messagingSenderId: "360018288599",
-  appId: "1:360018288599:web:35520e5e04e76e5c531d05",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Inicializar la app de Firebase para el cliente
