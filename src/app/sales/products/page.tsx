@@ -56,6 +56,8 @@ import { Switch } from '@/components/ui/switch';
 import { generateProductImageAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { storage } from '@/lib/firebase';
+import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 const PRODUCTS_STORAGE_KEY = 'crud_products';
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
@@ -74,7 +76,6 @@ export default function ProductsAdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isPending, startTransition] = useTransition();
-  const [isGalleryImagePending, startGalleryImageTransition] = useTransition();
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -218,9 +219,7 @@ export default function ProductsAdminPage() {
   const handleGenerateImage = (target: 'main' | 'gallery') => {
     const hint = target === 'main' ? productHint : galleryHint;
 
-    const transition = target === 'main' ? startTransition : startGalleryImageTransition;
-
-    transition(async () => {
+    startTransition(async () => {
         if (!hint || hint.length < 3) {
             toast({ variant: 'destructive', title: "Pista inválida", description: "La pista de IA debe tener al menos 3 caracteres."});
             return;
@@ -229,16 +228,30 @@ export default function ProductsAdminPage() {
         const formData = new FormData();
         formData.append("hint", hint);
         
+        // 1. Generate image Data URI from server
         const result = await generateProductImageAction(formData);
 
         if (result.success && result.data?.imageUrl) {
-            if (target === 'main') {
-              setProductImage(result.data.imageUrl);
-              toast({ title: "Imagen Principal Generada", description: "La imagen ha sido generada y actualizada." });
-            } else {
-              setGalleryUrls(prev => [...prev, result.data.imageUrl]);
-              setGalleryHint('');
-              toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido a la galería." });
+            const dataUri = result.data.imageUrl;
+            
+            // 2. Upload Data URI from client to Firebase Storage
+            try {
+              const storageRef = ref(storage, `distrimin/imagenes/productos/${Date.now()}.png`);
+              const uploadResult = await uploadString(storageRef, dataUri, 'data_url');
+              const downloadURL = await getDownloadURL(uploadResult.ref);
+
+              // 3. Update form state with the new public URL
+              if (target === 'main') {
+                setProductImage(downloadURL);
+                toast({ title: "Imagen Principal Generada y Subida", description: "La imagen se ha guardado en Firebase Storage." });
+              } else {
+                setGalleryUrls(prev => [...prev, downloadURL]);
+                setGalleryHint('');
+                toast({ title: "Imagen de Galería Generada y Subida", description: "La nueva imagen se ha añadido a la galería." });
+              }
+            } catch (storageError) {
+              console.error("Firebase Storage upload error:", storageError);
+              toast({ variant: 'destructive', title: "Error al subir a Firebase", description: "No se pudo guardar la imagen en el almacenamiento." });
             }
         } else {
             toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error });
@@ -622,8 +635,8 @@ export default function ProductsAdminPage() {
                                         onChange={(e) => setGalleryHint(e.target.value)}
                                         className="h-9"
                                     />
-                                    <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isGalleryImagePending}>
-                                        <Sparkles className={`h-4 w-4 ${isGalleryImagePending ? 'animate-spin' : ''}`} />
+                                    <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isPending}>
+                                        <Sparkles className={`h-4 w-4 ${isPending ? 'animate-spin' : ''}`} />
                                     </Button>
                                 </div>
                             </div>

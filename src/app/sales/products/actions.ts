@@ -8,7 +8,6 @@ const formSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
 });
 
-
 export async function generateProductImageAction(formData: FormData) {
     const rawData = Object.fromEntries(formData.entries());
     const validation = formSchema.safeParse(rawData);
@@ -29,7 +28,7 @@ export async function generateProductImageAction(formData: FormData) {
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // 2. Return the Data URI directly
+        // 2. Return the Data URI directly to the client
         return { success: true, data: { imageUrl: dataUri } };
 
     } catch (error) {
