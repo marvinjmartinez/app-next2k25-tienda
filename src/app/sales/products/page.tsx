@@ -1,7 +1,7 @@
 // src/app/sales/products/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useTransition } from 'react';
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -56,8 +56,6 @@ import { Switch } from '@/components/ui/switch';
 import { generateProductImageAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { storage } from '@/lib/firebase';
-import { ref, uploadString, getDownloadURL } from 'firebase/storage';
 
 const PRODUCTS_STORAGE_KEY = 'crud_products';
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
@@ -216,7 +214,7 @@ export default function ProductsAdminPage() {
     setIsDialogOpen(false);
   }
   
-  const handleGenerateImage = async (target: 'main' | 'gallery') => {
+ const handleGenerateImage = (target: 'main' | 'gallery') => {
     const hint = target === 'main' ? productHint : galleryHint;
 
     if (!hint || hint.length < 3) {
@@ -225,36 +223,34 @@ export default function ProductsAdminPage() {
     }
 
     setIsGenerating(true);
-    try {
-      const formData = new FormData();
-      formData.append("hint", hint);
-      
-      const result = await generateProductImageAction(formData);
+    
+    const formData = new FormData();
+    formData.append("hint", hint);
 
-      if (result.success && result.data?.imageUrl) {
-          const dataUri = result.data.imageUrl;
-          
-          const storageRef = ref(storage, `distrimin/imagenes/productos/${Date.now()}.png`);
-          const uploadResult = await uploadString(storageRef, dataUri, 'data_url');
-          const downloadURL = await getDownloadURL(uploadResult.ref);
-
-          if (target === 'main') {
-            setProductImage(downloadURL);
-            toast({ title: "Imagen Principal Generada y Subida", description: "La imagen se ha guardado en Firebase Storage." });
-          } else {
-            setGalleryUrls(prev => [...prev, downloadURL]);
-            setGalleryHint('');
-            toast({ title: "Imagen de Galería Generada y Subida", description: "La nueva imagen se ha añadido a la galería." });
-          }
-      } else {
-          toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error });
-      }
-    } catch (error) {
+    generateProductImageAction(formData)
+      .then((result) => {
+        if (result.success && result.data?.imageUrl) {
+            const dataUri = result.data.imageUrl;
+            
+            if (target === 'main') {
+              setProductImage(dataUri);
+              toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado. No olvides guardar los cambios." });
+            } else {
+              setGalleryUrls(prev => [...prev, dataUri]);
+              setGalleryHint('');
+              toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido a la galería. No olvides guardar." });
+            }
+        } else {
+            toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error });
+        }
+      })
+      .catch((error) => {
         console.error("Error en handleGenerateImage:", error);
         toast({ variant: 'destructive', title: "Error inesperado", description: "Ocurrió un error al procesar la imagen." });
-    } finally {
+      })
+      .finally(() => {
         setIsGenerating(false);
-    }
+      });
   };
 
   const handleChangeStatus = (productId: string, newStatus: 'activo' | 'inactivo') => {
