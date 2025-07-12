@@ -12,8 +12,8 @@ export async function uploadImage(dataUri: string): Promise<string> {
     throw new Error('Invalid data URI: does not contain base64 data.');
   }
 
-  // Lee la carpeta de almacenamiento desde las variables de entorno.
-  const storageFolder = process.env.FIREBASE_STORAGE_FOLDER || 'distrimin/imagenes/';
+  // Define la carpeta de almacenamiento directamente.
+  const storageFolder = 'distrimin/imagenes/';
   const buffer = Buffer.from(base64, 'base64');
   const filename = `${storageFolder}${uuidv4()}.png`;
   const file = bucket.file(filename);
