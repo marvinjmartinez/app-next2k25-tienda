@@ -1,0 +1,38 @@
+import admin from 'firebase-admin';
+
+// Check if the app is already initialized to prevent errors
+if (!admin.apps.length) {
+  // Ensure environment variables are set
+  const serviceAccountKey = process.env.FIREBASE_PRIVATE_KEY;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const projectId = process.env.GCLOUD_PROJECT;
+  const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
+
+  if (!serviceAccountKey || !clientEmail || !projectId || !storageBucket) {
+    throw new Error('Firebase environment variables are not set. Please check your .env file.');
+  }
+
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: projectId,
+        clientEmail: clientEmail,
+        // Replace escaped newlines for correct parsing
+        privateKey: serviceAccountKey.replace(/\\n/g, '\n'),
+      }),
+      storageBucket: storageBucket,
+    });
+  } catch (error: any) {
+    // Provide more specific error feedback
+    if (error.code === 'app/duplicate-app') {
+      console.warn('Firebase app already initialized.');
+    } else {
+      console.error('Firebase Admin Initialization Error:', error);
+      throw new Error(`Failed to initialize Firebase Admin SDK: ${error.message}`);
+    }
+  }
+}
+
+const bucket = admin.storage().bucket();
+
+export { bucket };

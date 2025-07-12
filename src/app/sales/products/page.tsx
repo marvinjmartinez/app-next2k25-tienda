@@ -53,7 +53,6 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { saveProductAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { generateProductImageAction } from './actions';
@@ -68,34 +67,6 @@ const formatCurrency = (amount: number) => {
     currency: 'MXN',
   }).format(amount);
 };
-
-// Función para comprimir la imagen
-const compressImage = (dataUri: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const img = document.createElement('img');
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        return reject(new Error('No se pudo obtener el contexto del canvas.'));
-      }
-      
-      const MAX_WIDTH = 800;
-      const scaleSize = MAX_WIDTH / img.width;
-      canvas.width = MAX_WIDTH;
-      canvas.height = img.height * scaleSize;
-
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      
-      // Comprimir a JPEG con calidad 0.8
-      const compressedDataUri = canvas.toDataURL('image/jpeg', 0.8);
-      resolve(compressedDataUri);
-    };
-    img.onerror = reject;
-    img.src = dataUri;
-  });
-};
-
 
 export default function ProductsAdminPage() {
   const { toast } = useToast();
@@ -243,16 +214,15 @@ export default function ProductsAdminPage() {
       generateProductImageAction(formData)
         .then(async (result) => {
           if (result.success && result.data?.imageUrl) {
-              const uncompressedUri = result.data.imageUrl;
-              const compressedUri = await compressImage(uncompressedUri);
+              const publicUrl = result.data.imageUrl;
               
               if (target === 'main') {
-                setProductImage(compressedUri);
-                toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado y optimizado. No olvides guardar." });
+                setProductImage(publicUrl);
+                toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado y subido. No olvides guardar." });
               } else {
-                setGalleryUrls(prev => [...prev, compressedUri]);
+                setGalleryUrls(prev => [...prev, publicUrl]);
                 setGalleryHint('');
-                toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido y optimizado. No olvides guardar." });
+                toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido y subido. No olvides guardar." });
               }
           } else {
               toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error || "Ocurrió un error desconocido." });
@@ -604,7 +574,7 @@ export default function ProductsAdminPage() {
                                 <Label>Imagen Principal</Label>
                                 <div className="flex items-center gap-2">
                                     <Image src={productImage || SVG_PLACEHOLDER} alt="Preview" width={80} height={80} className="rounded-md object-cover border" />
-                                    <Input value={productImage.startsWith('data:') ? 'Nueva imagen generada' : (productImage === SVG_PLACEHOLDER ? 'Marcador de posición' : productImage) } readOnly className="flex-1" />
+                                    <Input value={productImage === SVG_PLACEHOLDER ? 'Marcador de posición' : (productImage.startsWith('data:') ? 'Imagen generada localmente' : 'Imagen subida')} readOnly className="flex-1" />
                                 </div>
                             </div>
                              <div className="space-y-2">
@@ -613,7 +583,7 @@ export default function ProductsAdminPage() {
                                     {galleryUrls.map((url, index) => (
                                         <div key={index} className="flex items-center gap-2 bg-muted p-1 rounded-md">
                                             <Image src={url || SVG_PLACEHOLDER} alt={`Gallery image ${index + 1}`} width={40} height={40} className="rounded object-cover" />
-                                            <p className="text-xs text-muted-foreground truncate flex-1">{url.startsWith('data:') ? 'Nueva imagen generada' : url}</p>
+                                            <p className="text-xs text-muted-foreground truncate flex-1">{url.startsWith('data:') ? 'Imagen generada' : url}</p>
                                             <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveGalleryUrl(url)}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
