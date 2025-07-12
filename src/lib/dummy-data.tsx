@@ -70,11 +70,11 @@ export const getProducts = (): Product[] => {
         products = initialProducts;
     }
     
-    // Replace any large data URIs with placeholders on load to prevent quota issues.
+    // Ensure all products have a valid image field
     return products.map(p => ({
         ...p,
-        image: p.image?.startsWith('data:image') ? SVG_PLACEHOLDER : p.image || SVG_PLACEHOLDER,
-        gallery: p.gallery?.map(g => g.startsWith('data:image') ? SVG_PLACEHOLDER : g) || []
+        image: p.image || SVG_PLACEHOLDER,
+        gallery: p.gallery || []
     }));
 };
 
