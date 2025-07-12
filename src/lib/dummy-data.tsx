@@ -70,37 +70,37 @@ export const getProducts = (): Product[] => {
         products = initialProducts;
     }
 
-    const productsWithImagesAndTiers = products.map(p => {
-        const initialProductData = initialProducts.find(ip => ip.id === p.id);
-        const image = (p.image && !p.image.includes('placehold.co')) ? p.image : (initialProductData?.image || SVG_PLACEHOLDER);
-        const hint = p.hint || initialProductData?.hint || 'product';
-        const priceTiers = p.priceTiers || initialProductData?.priceTiers || {
-            cliente: p.price,
-            cliente_especial: p.price * 0.9,
-            vendedor: p.price * 0.85,
-        };
-        const gallery = p.gallery?.map(g => (g && !g.includes('placehold.co') ? g : SVG_PLACEHOLDER)) || [];
+    // When loading from storage, replace any large data URIs with placeholders to avoid issues
+    const productsWithPlaceholders = products.map(p => {
+        const image = p.image.startsWith('data:image') ? SVG_PLACEHOLDER : p.image;
+        const gallery = p.gallery?.map(g => g.startsWith('data:image') ? SVG_PLACEHOLDER : g) || [];
         
         return { 
             ...p,
             image,
-            hint,
-            priceTiers,
             gallery,
         };
     });
 
-    return productsWithImagesAndTiers;
+    return productsWithPlaceholders;
 };
 
 export const saveProducts = (products: Product[]) => {
      if (typeof window === 'undefined') {
         return;
     }
+    // Before saving, replace any large data URIs with placeholders
+    const productsToStore = products.map(p => {
+        const image = p.image.startsWith('data:image') ? 'https://placehold.co/600x400.png' : p.image;
+        const gallery = p.gallery?.map(g => g.startsWith('data:image') ? 'https://placehold.co/600x400.png' : g) || [];
+        
+        return { ...p, image, gallery };
+    });
+
     try {
-        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(products));
+        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(productsToStore));
     } catch (error) {
         console.error("Failed to save products to localStorage", error);
-        // Potentially show a toast to the user
+        throw error; // Re-throw to be caught by the calling function
     }
 }

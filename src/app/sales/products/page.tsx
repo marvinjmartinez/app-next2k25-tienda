@@ -30,7 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { initialProducts, categories, type Product } from '@/lib/dummy-data';
+import { initialProducts, categories, type Product, getProducts, saveProducts } from '@/lib/dummy-data';
 import Image from 'next/image';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -57,7 +57,6 @@ import { generateProductImageAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 
-const PRODUCTS_STORAGE_KEY = 'crud_products';
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
 
 
@@ -96,27 +95,14 @@ export default function ProductsAdminPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
   useEffect(() => {
-    let storedProducts: Product[] = [];
-    try {
-        const data = localStorage.getItem(PRODUCTS_STORAGE_KEY);
-        if (data) {
-            storedProducts = JSON.parse(data);
-        } else {
-            storedProducts = initialProducts;
-        }
-    } catch (error) {
-        console.error("Failed to load products from localStorage", error);
-        storedProducts = initialProducts;
-    }
-
-    setProducts(storedProducts);
+    setProducts(getProducts());
   }, []);
 
   const updateProductsStateAndStorage = (newProducts: Product[], showToast = true) => {
       setProducts(newProducts);
+      
       try {
-        localStorage.setItem(PRODUCTS_STORAGE_KEY, JSON.stringify(newProducts));
-
+        saveProducts(newProducts); // Use the new saveProducts function
         if (showToast) {
             toast({
                 title: `Productos ${selectedProduct ? 'actualizados' : 'guardados'}`,
@@ -187,56 +173,36 @@ export default function ProductsAdminPage() {
   
   const handleSave = () => {
     setIsSaving(true);
-    try {
-      const finalImageUrl = productImage.startsWith('data:image') 
-        ? `https://placehold.co/600x400.png` 
-        : productImage;
+    
+    // This is a client-side only operation now.
+    const newProductData = {
+      name: productName,
+      description: productDescription,
+      category: productCategory,
+      price: productPrice,
+      stock: productStock,
+      hint: productHint,
+      featured: productFeatured,
+      image: productImage, // Keep the data: URI for immediate display
+      status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
+      gallery: galleryUrls, // Keep the data: URIs for the gallery
+    };
 
-      const finalGalleryUrls = galleryUrls.map(url => 
-        url.startsWith('data:image') 
-          ? `https://placehold.co/600x400.png` 
-          : url
-      );
-
-      const newProductData = {
-        name: productName,
-        description: productDescription,
-        category: productCategory,
-        price: productPrice,
-        stock: productStock,
-        hint: productHint,
-        featured: productFeatured,
-        image: finalImageUrl,
-        status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
-        gallery: finalGalleryUrls,
+    let updatedProducts;
+    if (selectedProduct) {
+      updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
+    } else {
+      const newProduct: Product = {
+        id: `prod_${Date.now()}`,
+        ...newProductData
       };
-  
-      let updatedProducts;
-      if (selectedProduct) {
-        updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
-      } else {
-        const newProduct: Product = {
-          id: `prod_${Date.now()}`,
-          ...newProductData
-        };
-        updatedProducts = [newProduct, ...products];
-      }
-  
-      updateProductsStateAndStorage(updatedProducts, true);
-      setIsDialogOpen(false);
-
-    } catch (error) {
-       console.error("Error saving product:", error);
-      toast({
-        variant: "destructive",
-        title: "Error al guardar",
-        description: "No se pudo guardar el producto.",
-      });
-    } finally {
-        setIsSaving(false);
+      updatedProducts = [newProduct, ...products];
     }
-  };
 
+    updateProductsStateAndStorage(updatedProducts, true);
+    setIsSaving(false);
+    setIsDialogOpen(false);
+  };
 
  const handleGenerateImage = (target: 'main' | 'gallery') => {
     const hint = target === 'main' ? productHint : galleryHint;
