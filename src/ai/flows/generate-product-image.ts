@@ -25,7 +25,6 @@ const GenerateProductImageOutputSchema = z.object({
 });
 export type GenerateProductImageOutput = z.infer<typeof GenerateProductImageOutputSchema>;
 
-// Esta función es ahora la que utiliza la configuración global de 'ai'
 export async function generateProductImage(
   input: GenerateProductImageInput
 ): Promise<GenerateProductImageOutput> {
