@@ -53,7 +53,7 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { generateProductImageAction, saveProductAction } from './actions';
+import { saveProductAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -165,7 +165,7 @@ export default function ProductsAdminPage() {
     }
 
     const formData = new FormData();
-    if(selectedProduct) formData.append('id', selectedProduct.id);
+    if (selectedProduct) formData.append('id', selectedProduct.id);
     formData.append('name', productName);
     formData.append('description', productDescription);
     formData.append('category', productCategory);
@@ -179,8 +179,9 @@ export default function ProductsAdminPage() {
       const result = await saveProductAction(formData);
 
       if (result.success && result.data) {
-        // Combine server-processed data with client-side image data
         const productFromServer = result.data;
+        
+        // Assemble the final product object on the client-side
         const finalProduct: Product = {
           ...productFromServer,
           image: productImage,
@@ -188,10 +189,12 @@ export default function ProductsAdminPage() {
         };
 
         let updatedProducts: Product[];
-        if(selectedProduct) { // Editing existing product
-            updatedProducts = products.map(p => p.id === finalProduct.id ? finalProduct : p);
-        } else { // Adding new product
-            updatedProducts = [finalProduct, ...products];
+        if (selectedProduct) {
+          // Editing existing product: find and replace it in the list
+          updatedProducts = products.map(p => p.id === finalProduct.id ? finalProduct : p);
+        } else {
+          // Adding new product: add it to the beginning of the list
+          updatedProducts = [finalProduct, ...products];
         }
 
         updateProductsStateAndStorage(updatedProducts);
