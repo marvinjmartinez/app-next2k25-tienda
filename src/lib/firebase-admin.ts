@@ -16,7 +16,7 @@ if (!admin.apps.length) {
       !storageBucket && "FIREBASE_STORAGE_BUCKET (en next.config.js)"
     ].filter(Boolean).join(', ');
 
-    throw new Error(`Firebase environment variables are not set. Missing: ${missingVars}. Please check your .env file in the project root and next.config.js.`);
+    throw new Error(`Firebase environment variables are not set. Missing: ${missingVars}. Please check your .env file in the project root.`);
   }
 
   let serviceAccount;
@@ -26,6 +26,11 @@ if (!admin.apps.length) {
     console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', error);
     throw new Error(`Failed to initialize Firebase Admin SDK: Error parsing FIREBASE_SERVICE_ACCOUNT_JSON. Please ensure it's a valid JSON string wrapped in single quotes in your .env file.`);
   }
+  
+  // Solución definitiva para el error "Invalid PEM": reemplazar los saltos de línea escapados.
+  if (serviceAccount.private_key) {
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+  }
 
   try {
     admin.initializeApp({
@@ -34,6 +39,7 @@ if (!admin.apps.length) {
     });
   } catch (error: any) {
     console.error('Firebase Admin Initialization Error:', error);
+    // Lanza un error más específico si el problema es con la clave privada
     if (error.message.includes('private key') || error.message.includes('PEM')) {
         throw new Error(`Failed to initialize Firebase Admin SDK due to a private key issue. This usually happens if the JSON in FIREBASE_SERVICE_ACCOUNT_JSON is not correctly copied and pasted inside the single quotes.`);
     }
