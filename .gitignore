@@ -4,6 +4,7 @@
 /node_modules
 /.pnp
 .pnp.js
+.pnp.loader.mjs
 
 # testing
 /coverage
@@ -36,5 +37,6 @@ pnpm-debug.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Firebase
+# idx
+.idx
 firebase-service-account.json
