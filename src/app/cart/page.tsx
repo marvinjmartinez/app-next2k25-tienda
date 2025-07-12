@@ -8,18 +8,21 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, ShoppingCart, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Trash2, ShoppingCart, User, LogOut, LayoutDashboard, Save } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useRouter } from 'next/navigation';
 import { LogoTienda } from '@/components/logo-tienda';
+import type { Quote } from '@/app/sales/create-quote/page';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CartPage() {
-  const { cartItems, removeFromCart, updateQuantity, getCartTotal, getCartItemCount } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, getCartTotal, getCartItemCount, clearCart } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
 
   const formatCurrency = (amount: number) => {
@@ -36,6 +39,49 @@ export default function CartPage() {
     }
     return "/account/dashboard";
   }
+
+  const handleSaveForLater = () => {
+    if (!isAuthenticated || !user || cartItems.length === 0) return;
+
+    const newQuote: Quote = {
+      id: `COT-${Date.now().toString().slice(-4)}`,
+      customerId: user.id,
+      customerName: user.name,
+      date: new Date().toISOString().split('T')[0],
+      total: getCartTotal(),
+      status: 'Borrador',
+      items: cartItems.map(item => ({
+        ...item,
+        hint: '',
+        stock: 0, 
+        category: '',
+        description: '',
+        status: 'activo'
+      })),
+    };
+
+    try {
+      const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
+      existingQuotes.unshift(newQuote);
+      localStorage.setItem('saved_quotes', JSON.stringify(existingQuotes));
+
+      toast({
+        title: "Carrito Guardado",
+        description: "Tus productos se han guardado en 'Mis Compras' para después.",
+      });
+
+      clearCart();
+      router.push('/account/dashboard');
+    } catch (error) {
+      console.error("Error saving cart for later", error);
+      toast({
+        variant: 'destructive',
+        title: "Error al guardar",
+        description: "No se pudo guardar tu carrito. Inténtalo de nuevo.",
+      });
+    }
+  }
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -167,11 +213,17 @@ export default function CartPage() {
                       <p>{formatCurrency(getCartTotal())}</p>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex-col gap-2">
+                  <CardFooter className="flex-col gap-2 items-stretch">
                     {isAuthenticated ? (
-                        <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
-                            <Link href="/checkout">Proceder al Pago</Link>
-                        </Button>
+                        <>
+                          <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
+                              <Link href="/checkout">Proceder al Pago</Link>
+                          </Button>
+                           <Button variant="outline" className="w-full" onClick={handleSaveForLater}>
+                              <Save className="mr-2 h-4 w-4" />
+                              Guardar para después
+                          </Button>
+                        </>
                     ) : (
                         <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
                             <Link href="/login">Iniciar Sesión para Pagar</Link>
