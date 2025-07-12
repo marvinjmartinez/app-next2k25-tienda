@@ -1,3 +1,4 @@
+// src/lib/uploadGeneratedImage.ts
 import { bucket } from '@/lib/firebase-admin';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -21,13 +22,11 @@ export async function uploadImage(dataUri: string): Promise<string> {
   await file.save(buffer, {
     metadata: {
       contentType: 'image/png',
-      // Set a long cache duration for the image
       cacheControl: 'public, max-age=31536000',
     },
-    // Make the file publicly accessible
-    public: true,
+    public: true, // Esto hace el archivo públicamente accesible
   });
 
-  // Return the public URL
-  return `https://storage.googleapis.com/${bucket.name}/${filename}`;
+  // Retorna la URL pública del archivo.
+  return file.publicUrl();
 }

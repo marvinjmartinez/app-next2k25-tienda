@@ -1,56 +1,49 @@
 // src/lib/firebase-admin.ts
 import admin from 'firebase-admin';
-import path from 'path';
-import fs from 'fs';
 
-// Validador de credenciales para proporcionar errores más claros.
-const validateServiceAccount = (credentials: any) => {
-    if (!credentials || Object.keys(credentials).length === 0) {
-        throw new Error("El archivo 'firebase-service-account.json' está vacío o no es un JSON válido.");
-    }
-    if (!credentials.project_id) {
-        throw new Error("La credencial en 'firebase-service-account.json' no contiene un 'project_id'.");
-    }
-    if (!credentials.client_email) {
-        throw new Error("La credencial en 'firebase-service-account.json' no contiene un 'client_email'.");
-    }
-    if (!credentials.private_key) {
-        throw new Error("La credencial en 'firebase-service-account.json' no contiene una 'private_key'.");
-    }
-    if (!credentials.private_key.startsWith('-----BEGIN PRIVATE KEY-----') || !credentials.private_key.endsWith('-----END PRIVATE KEY-----\n')) {
-        throw new Error("El formato de la 'private_key' en 'firebase-service-account.json' es incorrecto. Asegúrate de copiarla exactamente como se proporciona, incluyendo los encabezados y pies de página.");
-    }
-    return true;
+// Definir una interfaz para las credenciales para mayor seguridad de tipo.
+interface ServiceAccount {
+  type: string;
+  project_id: string;
+  private_key_id: string;
+  private_key: string;
+  client_email: string;
+  client_id: string;
+  auth_uri: string;
+  token_uri: string;
+  auth_provider_x509_cert_url: string;
+  client_x509_cert_url: string;
+  universe_domain: string;
 }
 
 if (!admin.apps.length) {
   try {
-    // Determina la ruta absoluta al archivo de credenciales.
-    const serviceAccountPath = path.join(process.cwd(), 'firebase-service-account.json');
+    const credentialsJson = process.env.FIREBASE_CREDENTIALS;
     
-    // Verifica si el archivo existe antes de intentar leerlo.
-    if (!fs.existsSync(serviceAccountPath)) {
-      throw new Error("El archivo 'firebase-service-account.json' no se encuentra en la raíz del proyecto. Por favor, asegúrate de que el archivo existe y has pegado tus credenciales en él.");
+    if (!credentialsJson) {
+      throw new Error("La variable de entorno FIREBASE_CREDENTIALS no está definida. Por favor, pégala en tu archivo .env.");
     }
 
-    // Lee y parsea el archivo de credenciales.
-    const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf8'));
+    const serviceAccount: ServiceAccount = JSON.parse(credentialsJson);
 
-    // Valida el contenido del archivo de credenciales.
-    validateServiceAccount(serviceAccount);
-    
-    // Deriva el nombre del bucket desde el project_id.
-    const bucketName = `${serviceAccount.project_id}.appspot.com`;
+    if (!serviceAccount.private_key) {
+      throw new Error("Las credenciales en FIREBASE_CREDENTIALS no contienen una 'private_key'.");
+    }
+
+    // --- LA SOLUCIÓN DEFINITIVA ---
+    // Reemplaza explícitamente los caracteres de escape '\\n' por saltos de línea reales '\n'.
+    // Esto corrige el formato de la clave privada que se corrompe al ser leída desde el .env.
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      storageBucket: bucketName,
+      storageBucket: `${serviceAccount.project_id}.appspot.com`,
     });
     
   } catch (error: any) {
-    // Relanza el error original para que sea visible.
-    console.error('Error de Inicialización de Firebase Admin:', error.message);
-    throw error;
+    console.error('Error Crítico de Inicialización de Firebase Admin:', error.message);
+    // Relanzar el error para detener la ejecución si la configuración es incorrecta.
+    throw new Error(`Fallo al inicializar Firebase Admin: ${error.message}`);
   }
 }
 
