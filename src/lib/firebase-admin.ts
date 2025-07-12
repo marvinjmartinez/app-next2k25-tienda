@@ -13,10 +13,10 @@ if (!admin.apps.length) {
   if (!serviceAccountJson || !storageBucket) {
     const missingVars = [
       !serviceAccountJson && "FIREBASE_SERVICE_ACCOUNT_JSON",
-      !storageBucket && "FIREBASE_STORAGE_BUCKET"
+      !storageBucket && "FIREBASE_STORAGE_BUCKET (en next.config.js)"
     ].filter(Boolean).join(', ');
 
-    throw new Error(`Firebase environment variables are not set. Missing: ${missingVars}. Please check your .env file in the project root.`);
+    throw new Error(`Firebase environment variables are not set. Missing: ${missingVars}. Please check your .env file in the project root and next.config.js.`);
   }
 
   let serviceAccount;
@@ -24,26 +24,23 @@ if (!admin.apps.length) {
     serviceAccount = JSON.parse(serviceAccountJson);
   } catch (error) {
     console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', error);
-    throw new Error(`Failed to initialize Firebase Admin SDK: Error parsing FIREBASE_SERVICE_ACCOUNT_JSON. Please ensure it's a valid JSON string (usually starts and ends with {}).`);
+    throw new Error(`Failed to initialize Firebase Admin SDK: Error parsing FIREBASE_SERVICE_ACCOUNT_JSON. Please ensure it's a valid JSON string wrapped in single quotes in your .env file.`);
   }
 
   try {
-    // Inicializa la aplicación de Firebase Admin con las credenciales explícitas
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       storageBucket: storageBucket,
     });
   } catch (error: any) {
     console.error('Firebase Admin Initialization Error:', error);
-    // Lanza un error más específico si el problema es con la clave privada
-    if (error.message.includes('private key')) {
-        throw new Error(`Failed to initialize Firebase Admin SDK due to a private key issue. Please ensure FIREBASE_SERVICE_ACCOUNT_JSON in your .env file contains the correct, unescaped private key.`);
+    if (error.message.includes('private key') || error.message.includes('PEM')) {
+        throw new Error(`Failed to initialize Firebase Admin SDK due to a private key issue. This usually happens if the JSON in FIREBASE_SERVICE_ACCOUNT_JSON is not correctly copied and pasted inside the single quotes.`);
     }
     throw new Error(`Failed to initialize Firebase Admin SDK: ${error.message}`);
   }
 }
 
-// Exporta el bucket de almacenamiento para ser utilizado en otras partes de la aplicación
 const bucket = admin.storage().bucket();
 
 export { bucket };

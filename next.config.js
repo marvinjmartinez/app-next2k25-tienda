@@ -6,7 +6,8 @@ const nextConfig = {
   },
   env: {
     GOOGLE_API_KEY: process.env.GOOGLE_API_KEY,
-    FIREBASE_STORAGE_BUCKET: process.env.FIREBASE_STORAGE_BUCKET,
+    // El nombre del bucket se define aquí para que esté disponible en toda la app.
+    FIREBASE_STORAGE_BUCKET: "distrimnin-tienda.firebasestorage.app",
   },
   typescript: {
     ignoreBuildErrors: true,
