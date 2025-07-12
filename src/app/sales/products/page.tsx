@@ -187,58 +187,61 @@ export default function ProductsAdminPage() {
     });
   };
   
-  const handleSave = async () => {
+  const handleSave = () => {
     setIsSaving(true);
-    try {
-        const uploadImage = async (dataUri: string): Promise<string> => {
-            if (!dataUri.startsWith('data:image')) {
-                return dataUri; // Not a new image, return original URL
-            }
-            const storageRef = ref(storage, `products/${Date.now()}_${Math.random()}.png`);
-            await uploadString(storageRef, dataUri, 'data_url');
-            return await getDownloadURL(storageRef);
+  
+    const uploadImage = async (dataUri: string): Promise<string> => {
+      if (!dataUri.startsWith('data:image')) {
+        return dataUri; // Not a new image, return original URL
+      }
+      const storageRef = ref(storage, `products/${Date.now()}_${Math.random()}.png`);
+      await uploadString(storageRef, dataUri, 'data_url');
+      return await getDownloadURL(storageRef);
+    };
+  
+    Promise.all([
+      uploadImage(productImage),
+      ...galleryUrls.map(url => uploadImage(url))
+    ])
+    .then(([finalImageUrl, ...finalGalleryUrls]) => {
+      const newProductData = {
+        name: productName,
+        description: productDescription,
+        category: productCategory,
+        price: productPrice,
+        stock: productStock,
+        hint: productHint,
+        featured: productFeatured,
+        image: finalImageUrl,
+        status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
+        gallery: finalGalleryUrls,
+      };
+  
+      let updatedProducts;
+      if (selectedProduct) {
+        updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
+      } else {
+        const newProduct: Product = {
+          id: `prod_${Date.now()}`,
+          ...newProductData
         };
-
-        const finalImageUrl = await uploadImage(productImage);
-        const finalGalleryUrls = await Promise.all(galleryUrls.map(uploadImage));
-
-        const newProductData = {
-            name: productName,
-            description: productDescription,
-            category: productCategory,
-            price: productPrice,
-            stock: productStock,
-            hint: productHint,
-            featured: productFeatured,
-            image: finalImageUrl,
-            status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
-            gallery: finalGalleryUrls,
-        };
-
-        let updatedProducts;
-        if (selectedProduct) {
-            updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
-        } else {
-            const newProduct: Product = {
-                id: `prod_${Date.now()}`,
-                ...newProductData
-            };
-            updatedProducts = [newProduct, ...products];
-        }
-
-        updateProductsStateAndStorage(updatedProducts, true);
-        setIsDialogOpen(false);
-
-    } catch (error) {
-        console.error("Error saving product:", error);
-        toast({
-            variant: "destructive",
-            title: "Error al guardar",
-            description: "No se pudo subir una imagen o guardar el producto.",
-        });
-    } finally {
-        setIsSaving(false);
-    }
+        updatedProducts = [newProduct, ...products];
+      }
+  
+      updateProductsStateAndStorage(updatedProducts, true);
+      setIsDialogOpen(false);
+    })
+    .catch((error) => {
+      console.error("Error saving product:", error);
+      toast({
+        variant: "destructive",
+        title: "Error al guardar",
+        description: "No se pudo subir una imagen o guardar el producto.",
+      });
+    })
+    .finally(() => {
+      setIsSaving(false);
+    });
   };
 
 
