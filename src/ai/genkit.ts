@@ -4,7 +4,7 @@ import {config} from 'dotenv';
 
 config();
 
-export const API_KEY = "AIzaSyDd_v-1kY5PTm0rk6Wv529CcYTdNRLV9_Q";
+export const API_KEY = process.env.GOOGLE_API_KEY;
 
 export const ai = genkit({
   plugins: [
