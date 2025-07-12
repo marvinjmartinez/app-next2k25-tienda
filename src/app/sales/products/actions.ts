@@ -21,9 +21,7 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
     }
     
     try {
-        // La acción ahora solo genera la imagen y devuelve el data URI.
         const result = await generateProductImageFlow({ hint: validation.data.hint });
-        
         const dataUri = result?.imageUrl;
 
         if (!dataUri || !dataUri.startsWith('data:image')) {
@@ -55,8 +53,6 @@ const productFormSchema = z.object({
     status: z.coerce.boolean().optional(),
 });
 
-// La acción del servidor ahora solo procesa los datos de TEXTO.
-// No maneja imágenes, eso lo hará el cliente.
 export async function saveProductAction(formData: FormData): Promise<{ success: boolean; data?: Omit<Product, 'image' | 'gallery'>, error?: string }> {
     const productDataRaw = Object.fromEntries(formData.entries());
     

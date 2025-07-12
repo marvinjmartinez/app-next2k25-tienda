@@ -53,9 +53,11 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { generateProductImageAction, saveProductAction } from './actions';
+import { saveProductAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { generateProductImageAction } from './actions';
+
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
 
@@ -179,27 +181,21 @@ export default function ProductsAdminPage() {
       const result = await saveProductAction(formData);
 
       if (result.success && result.data) {
-        // La acción del servidor devuelve datos de texto procesados.
-        const productFromServer = result.data;
+        const productDataFromServer = result.data;
         
-        // El cliente ensambla el objeto final del producto, combinando
-        // los datos del servidor con las imágenes del estado local.
         const finalProduct: Product = {
-          ...productFromServer,
-          image: productImage,
+          ...productDataFromServer,
+          image: productImage === SVG_PLACEHOLDER && !selectedProduct?.image ? SVG_PLACEHOLDER : productImage,
           gallery: galleryUrls,
         };
 
         let updatedProducts: Product[];
         if (selectedProduct) {
-          // Si estamos editando, reemplazamos el producto antiguo en la lista.
           updatedProducts = products.map(p => p.id === finalProduct.id ? finalProduct : p);
         } else {
-          // Si estamos creando, añadimos el nuevo producto al principio.
           updatedProducts = [finalProduct, ...products];
         }
 
-        // El cliente es el único responsable de guardar en el localStorage.
         updateProductsStateAndStorage(updatedProducts);
         
         toast({
