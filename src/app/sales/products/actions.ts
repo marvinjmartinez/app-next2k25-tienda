@@ -42,8 +42,8 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
          if (errorMessage.includes("API key not valid")) {
             return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
         }
-        if (errorMessage.includes("Failed to parse")) {
-             return { success: false, error: "Error de credenciales. Asegúrate de que FIREBASE_SERVICE_ACCOUNT_JSON esté correctamente configurado en tu .env" };
+        if (errorMessage.includes("permission")) {
+            return { success: false, error: "Error de permisos. Asegúrate de que la cuenta de servicio tenga el rol 'Storage Object Admin'." };
         }
         return { success: false, error: errorMessage };
     }
