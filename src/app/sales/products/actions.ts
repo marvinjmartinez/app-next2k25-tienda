@@ -53,7 +53,7 @@ const productFormSchema = z.object({
     featured: z.coerce.boolean(),
     status: z.coerce.boolean(),
     image: z.string(),
-    gallery: z.string(), // Un string JSON de URLs
+    gallery: z.string().optional(), // Make gallery optional
 });
 
 export async function saveProductAction(formData: FormData) {
@@ -67,6 +67,9 @@ export async function saveProductAction(formData: FormData) {
 
     try {
         const productData = validation.data;
+        
+        // Safely parse gallery
+        const gallery = productData.gallery ? JSON.parse(productData.gallery) : [];
 
         const processedProduct: Product = {
             id: productData.id || `prod_${Date.now()}`,
@@ -79,7 +82,7 @@ export async function saveProductAction(formData: FormData) {
             featured: productData.featured,
             status: productData.status ? 'activo' : 'inactivo',
             image: productData.image,
-            gallery: JSON.parse(productData.gallery),
+            gallery: gallery,
         };
         
         return { success: true, data: processedProduct };
