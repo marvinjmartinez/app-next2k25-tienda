@@ -22,8 +22,9 @@ if (!admin.apps.length) {
       credential: admin.credential.cert({
         projectId: projectId,
         clientEmail: clientEmail,
-        // Replace escaped newlines for correct parsing
-        privateKey: serviceAccountKey.replace(/\\n/g, '\n'),
+        // The key may be copied with surrounding quotes, and newlines are often escaped.
+        // This removes quotes and replaces escaped newlines with actual newlines.
+        privateKey: serviceAccountKey.replace(/^"|"$/g, '').replace(/\\n/g, '\n'),
       }),
       storageBucket: storageBucket,
     });
