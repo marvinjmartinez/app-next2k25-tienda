@@ -13,7 +13,7 @@ if (!admin.apps.length) {
   if (!serviceAccountJson || !storageBucket) {
     const missingVars = [
       !serviceAccountJson && "FIREBASE_SERVICE_ACCOUNT_JSON",
-      !storageBucket && "FIREBASE_STORAGE_BUCKET (en next.config.js)"
+      !storageBucket && "FIREBASE_STORAGE_BUCKET"
     ].filter(Boolean).join(', ');
 
     throw new Error(`Firebase environment variables are not set. Missing: ${missingVars}. Please check your .env file in the project root.`);
@@ -39,7 +39,6 @@ if (!admin.apps.length) {
     });
   } catch (error: any) {
     console.error('Firebase Admin Initialization Error:', error);
-    // Lanza un error más específico si el problema es con la clave privada
     if (error.message.includes('private key') || error.message.includes('PEM')) {
         throw new Error(`Failed to initialize Firebase Admin SDK due to a private key issue. This usually happens if the JSON in FIREBASE_SERVICE_ACCOUNT_JSON is not correctly copied and pasted inside the single quotes.`);
     }
