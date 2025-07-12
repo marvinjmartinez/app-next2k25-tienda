@@ -2,25 +2,29 @@
 import { initializeApp, cert, getApps, ServiceAccount } from "firebase-admin/app";
 import { getStorage } from "firebase-admin/storage";
 
-// Variables de entorno para las credenciales de la cuenta de servicio
-// Estas serán proporcionadas por el entorno de Firebase App Hosting
 const serviceAccount: ServiceAccount = {
   projectId: process.env.GCLOUD_PROJECT,
   privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
   clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
 };
 
-// Obtener el nombre del bucket desde las variables de entorno
-const storageBucket = process.env.GCLOUD_PROJECT ? `${process.env.GCLOUD_PROJECT}.appspot.com` : undefined;
+// Leer el nombre del bucket directamente de la variable de entorno
+const storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
 
 // Inicializar la app de Firebase solo si no se ha hecho antes
+// y si las credenciales y el bucket están presentes.
 if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount),
-    storageBucket: storageBucket,
-  });
+    if (serviceAccount.projectId && serviceAccount.privateKey && serviceAccount.clientEmail && storageBucket) {
+        initializeApp({
+            credential: cert(serviceAccount),
+            storageBucket: storageBucket,
+        });
+    } else {
+        console.warn("Firebase Admin SDK not initialized. Missing credentials or storage bucket configuration in environment variables.");
+    }
 }
 
-const bucket = storageBucket ? getStorage().bucket() : null;
+// Obtener el bucket solo si la inicialización fue exitosa
+const bucket = getApps().length ? getStorage().bucket() : null;
 
 export { bucket };
