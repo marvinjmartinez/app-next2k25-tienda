@@ -35,7 +35,7 @@ export default function CartPage() {
   const getDashboardPath = () => {
     if (!user) return "/login";
     if (user.role === 'admin' || user.role === 'vendedor') {
-      return "/sales/create-quote";
+      return "/sales/quotes";
     }
     return "/account/dashboard";
   }
@@ -71,7 +71,7 @@ export default function CartPage() {
       });
 
       clearCart();
-      router.push('/account/dashboard');
+      router.push(getDashboardPath());
     } catch (error) {
       console.error("Error saving cart for later", error);
       toast({
