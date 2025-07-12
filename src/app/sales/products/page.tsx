@@ -583,24 +583,27 @@ export default function ProductsAdminPage() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="image">URL de la Imagen Principal</Label>
-                                <Input id="image" name="image" value={productImage} onChange={(e) => setProductImage(e.target.value)} />
-                                {productImage && (
-                                     <Image src={productImage} alt="Preview" width={80} height={80} className="mt-2 rounded-md object-cover border" />
-                                )}
+                                <Label>Imagen Principal</Label>
+                                <div className="flex items-center gap-2">
+                                    {productImage && (
+                                        <Image src={productImage} alt="Preview" width={80} height={80} className="rounded-md object-cover border" />
+                                    )}
+                                    <Input id="image" name="image" value={productImage} onChange={(e) => setProductImage(e.target.value)} className="flex-1" />
+                                </div>
                             </div>
                              <div className="space-y-2">
                                 <Label>Galería de Imágenes</Label>
-                                <div className="space-y-2 max-h-32 overflow-y-auto pr-2">
+                                <div className="space-y-2 max-h-32 overflow-y-auto pr-2 rounded-md border p-2">
                                     {galleryUrls.map((url, index) => (
-                                        <div key={index} className="flex items-center gap-2">
-                                            <Input value={url} readOnly className="bg-muted h-8"/>
-                                            <Button type="button" variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleRemoveGalleryUrl(url)}>
+                                        <div key={index} className="flex items-center gap-2 bg-muted p-1 rounded-md">
+                                            <Image src={url || SVG_PLACEHOLDER} alt={`Gallery image ${index + 1}`} width={40} height={40} className="rounded object-cover" />
+                                            <p className="text-xs text-muted-foreground truncate flex-1">{url}</p>
+                                            <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveGalleryUrl(url)}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
                                         </div>
                                     ))}
-                                    {galleryUrls.length === 0 && <p className="text-sm text-muted-foreground">No hay imágenes en la galería.</p>}
+                                    {galleryUrls.length === 0 && <p className="text-sm text-center text-muted-foreground py-2">No hay imágenes en la galería.</p>}
                                 </div>
                                 <p className="text-xs text-muted-foreground pt-2">Añade imágenes a la galería.</p>
                                 <div className="flex items-center gap-2">
