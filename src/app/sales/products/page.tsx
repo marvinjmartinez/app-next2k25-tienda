@@ -1,7 +1,7 @@
 // src/app/sales/products/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect, useTransition } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -190,60 +190,57 @@ export default function ProductsAdminPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      let finalImage = productImage;
-      if (productImage.startsWith('data:image')) {
-        const storageRef = ref(storage, `products/${Date.now()}_main.png`);
-        await uploadString(storageRef, productImage, 'data_url');
-        finalImage = await getDownloadURL(storageRef);
-      }
-  
-      const finalGalleryUrls = await Promise.all(galleryUrls.map(async (url) => {
-        if (url.startsWith('data:image')) {
-          const storageRef = ref(storage, `products/${Date.now()}_gallery_${Math.random()}.png`);
-          await uploadString(storageRef, url, 'data_url');
-          return getDownloadURL(storageRef);
-        }
-        return url;
-      }));
-  
-      const newProductData = {
-        name: productName,
-        description: productDescription,
-        category: productCategory,
-        price: productPrice,
-        stock: productStock,
-        hint: productHint,
-        featured: productFeatured,
-        image: finalImage,
-        status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
-        gallery: finalGalleryUrls,
-      };
-  
-      let updatedProducts;
-      if (selectedProduct) {
-        updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
-      } else {
-        const newProduct: Product = {
-          id: `prod_${Date.now()}`,
-          ...newProductData
+        const uploadImage = async (dataUri: string): Promise<string> => {
+            if (!dataUri.startsWith('data:image')) {
+                return dataUri; // Not a new image, return original URL
+            }
+            const storageRef = ref(storage, `products/${Date.now()}_${Math.random()}.png`);
+            await uploadString(storageRef, dataUri, 'data_url');
+            return await getDownloadURL(storageRef);
         };
-        updatedProducts = [newProduct, ...products];
-      }
-  
-      updateProductsStateAndStorage(updatedProducts, true);
-      setIsDialogOpen(false);
-  
+
+        const finalImageUrl = await uploadImage(productImage);
+        const finalGalleryUrls = await Promise.all(galleryUrls.map(uploadImage));
+
+        const newProductData = {
+            name: productName,
+            description: productDescription,
+            category: productCategory,
+            price: productPrice,
+            stock: productStock,
+            hint: productHint,
+            featured: productFeatured,
+            image: finalImageUrl,
+            status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
+            gallery: finalGalleryUrls,
+        };
+
+        let updatedProducts;
+        if (selectedProduct) {
+            updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
+        } else {
+            const newProduct: Product = {
+                id: `prod_${Date.now()}`,
+                ...newProductData
+            };
+            updatedProducts = [newProduct, ...products];
+        }
+
+        updateProductsStateAndStorage(updatedProducts, true);
+        setIsDialogOpen(false);
+
     } catch (error) {
-      console.error("Error saving product:", error);
-      toast({
-        variant: "destructive",
-        title: "Error al guardar",
-        description: "No se pudo subir la imagen o guardar el producto.",
-      });
+        console.error("Error saving product:", error);
+        toast({
+            variant: "destructive",
+            title: "Error al guardar",
+            description: "No se pudo subir una imagen o guardar el producto.",
+        });
     } finally {
-      setIsSaving(false);
+        setIsSaving(false);
     }
   };
+
 
  const handleGenerateImage = (target: 'main' | 'gallery') => {
     const hint = target === 'main' ? productHint : galleryHint;
@@ -594,7 +591,7 @@ export default function ProductsAdminPage() {
                                     <div className="flex gap-2">
                                         <Input id="hint" name="hint" value={productHint} onChange={(e) => setProductHint(e.target.value)} placeholder="Ej: power tool" />
                                         <Button type="button" variant="outline" size="icon" onClick={() => handleGenerateImage('main')} disabled={isGenerating}>
-                                            <Sparkles className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
+                                            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                         </Button>
                                     </div>
                                 </div>
@@ -625,7 +622,7 @@ export default function ProductsAdminPage() {
                                     {productImage && (
                                         <Image src={productImage} alt="Preview" width={80} height={80} className="rounded-md object-cover border" />
                                     )}
-                                    <Input id="image" name="image" value={productImage} onChange={(e) => setProductImage(e.target.value)} className="flex-1" />
+                                    <Input value={productImage.startsWith('data:') ? 'Nueva imagen generada' : productImage} readOnly className="flex-1" />
                                 </div>
                             </div>
                              <div className="space-y-2">
@@ -634,7 +631,7 @@ export default function ProductsAdminPage() {
                                     {galleryUrls.map((url, index) => (
                                         <div key={index} className="flex items-center gap-2 bg-muted p-1 rounded-md">
                                             <Image src={url || SVG_PLACEHOLDER} alt={`Gallery image ${index + 1}`} width={40} height={40} className="rounded object-cover" />
-                                            <p className="text-xs text-muted-foreground truncate flex-1">{url}</p>
+                                            <p className="text-xs text-muted-foreground truncate flex-1">{url.startsWith('data:') ? 'Nueva imagen generada' : url}</p>
                                             <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveGalleryUrl(url)}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
@@ -660,7 +657,7 @@ export default function ProductsAdminPage() {
                                         className="h-9"
                                     />
                                     <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isGenerating}>
-                                        <Sparkles className={`h-4 w-4 ${isGenerating ? 'animate-spin' : ''}`} />
+                                         {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                     </Button>
                                 </div>
                             </div>
@@ -683,4 +680,3 @@ export default function ProductsAdminPage() {
     </>
   );
 }
-
