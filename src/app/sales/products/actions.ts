@@ -3,13 +3,12 @@
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
 import { z } from "zod";
-import { uploadImage } from '@/lib/uploadGeneratedImage';
 
 const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
 });
 
-// Acción para generar la imagen y devolver la URL pública de Firebase Storage
+// Acción para generar la imagen y devolver el Data URI directamente.
 export async function generateProductImageAction(formData: FormData): Promise<{ success: boolean; data?: { imageUrl: string; }; error?: string; }> {
     const rawData = Object.fromEntries(formData.entries());
     const validation = generateImageSchema.safeParse(rawData);
@@ -30,20 +29,14 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // 2. Subir la imagen a Firebase Storage y obtener la URL pública
-        const publicUrl = await uploadImage(dataUri);
-
-        // 3. Devolver la URL pública al cliente
-        return { success: true, data: { imageUrl: publicUrl } };
+        // 2. Devolver el Data URI directamente al cliente
+        return { success: true, data: { imageUrl: dataUri } };
 
     } catch (error) {
         console.error("Error en generateProductImageAction:", error);
         const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado al generar la imagen.";
          if (errorMessage.includes("API key not valid")) {
             return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
-        }
-        if (errorMessage.includes("Bucket not found")) {
-            return { success: false, error: "El bucket de Firebase Storage no se encontró. Verifica el nombre en el archivo .env." };
         }
         return { success: false, error: errorMessage };
     }

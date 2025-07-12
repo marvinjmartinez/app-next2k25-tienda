@@ -214,15 +214,15 @@ export default function ProductsAdminPage() {
       generateProductImageAction(formData)
         .then(async (result) => {
           if (result.success && result.data?.imageUrl) {
-              const publicUrl = result.data.imageUrl;
+              const dataUri = result.data.imageUrl;
               
               if (target === 'main') {
-                setProductImage(publicUrl);
-                toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado y subido. No olvides guardar." });
+                setProductImage(dataUri);
+                toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado. No olvides guardar." });
               } else {
-                setGalleryUrls(prev => [...prev, publicUrl]);
+                setGalleryUrls(prev => [...prev, dataUri]);
                 setGalleryHint('');
-                toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido y subido. No olvides guardar." });
+                toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido. No olvides guardar." });
               }
           } else {
               toast({ variant: 'destructive', title: "Error al generar imagen", description: result.error || "Ocurrió un error desconocido." });
@@ -574,7 +574,7 @@ export default function ProductsAdminPage() {
                                 <Label>Imagen Principal</Label>
                                 <div className="flex items-center gap-2">
                                     <Image src={productImage || SVG_PLACEHOLDER} alt="Preview" width={80} height={80} className="rounded-md object-cover border" />
-                                    <Input value={productImage === SVG_PLACEHOLDER ? 'Marcador de posición' : (productImage.startsWith('data:') ? 'Imagen generada localmente' : 'Imagen subida')} readOnly className="flex-1" />
+                                    <Input value={productImage === SVG_PLACEHOLDER ? 'Marcador de posición' : 'Imagen generada o URL'} readOnly className="flex-1" />
                                 </div>
                             </div>
                              <div className="space-y-2">
