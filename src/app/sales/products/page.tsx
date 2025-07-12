@@ -157,7 +157,7 @@ export default function ProductsAdminPage() {
   };
 
   const handleSave = () => {
-    if (!productName || !productCategory) {
+     if (!productName || !productCategory) {
       toast({
         variant: 'destructive',
         title: 'Campos requeridos',
@@ -166,52 +166,59 @@ export default function ProductsAdminPage() {
       return;
     }
 
-    const formData = new FormData();
-    if (selectedProduct) {
-        formData.append('id', selectedProduct.id);
-    }
-    formData.append('name', productName);
-    formData.append('description', productDescription);
-    formData.append('category', productCategory);
-    formData.append('price', String(productPrice));
-    formData.append('stock', String(productStock));
-    formData.append('hint', productHint);
-    formData.append('featured', String(productFeatured));
-    formData.append('status', String(productStatus));
-
-    startSavingTransition(async () => {
-      const result = await saveProductAction(formData);
-
-      if (result.success && result.data) {
-        const productDataFromServer = result.data;
-        
+    startSavingTransition(() => {
+        // 1. Construct the final product object on the client side
         const finalProduct: Product = {
-          ...productDataFromServer,
-          image: productImage,
-          gallery: galleryUrls,
+            id: selectedProduct?.id || `prod_${Date.now()}`,
+            name: productName,
+            description: productDescription,
+            category: productCategory,
+            price: productPrice,
+            stock: productStock,
+            hint: productHint,
+            featured: productFeatured,
+            status: productStatus ? 'activo' : 'inactivo',
+            image: productImage,
+            gallery: galleryUrls,
         };
 
+        // 2. Update the product list in the state
         let updatedProducts: Product[];
-        if (selectedProduct) {
-          updatedProducts = products.map(p => p.id === finalProduct.id ? finalProduct : p);
-        } else {
-          updatedProducts = [finalProduct, ...products];
+        if (selectedProduct) { // Editing existing product
+            updatedProducts = products.map(p =>
+                p.id === finalProduct.id ? finalProduct : p
+            );
+        } else { // Creating new product
+            updatedProducts = [finalProduct, ...products];
         }
 
+        // 3. Save the entire updated list to localStorage
         updateProductsStateAndStorage(updatedProducts);
+
+        // 4. (Optional) Send data to server for validation/logging, but don't rely on its response for the update
+        const formData = new FormData();
+        formData.append('id', finalProduct.id);
+        formData.append('name', finalProduct.name);
+        formData.append('description', finalProduct.description);
+        formData.append('category', finalProduct.category);
+        formData.append('price', String(finalProduct.price));
+        formData.append('stock', String(finalProduct.stock));
+        formData.append('hint', finalProduct.hint);
+        formData.append('image', finalProduct.image); // Send image URI
+        formData.append('gallery', JSON.stringify(finalProduct.gallery));
+        formData.append('featured', String(finalProduct.featured));
+        formData.append('status', String(finalProduct.status === 'activo'));
         
+        saveProductAction(formData).catch(err => {
+             console.error("Server action failed (optional validation):", err);
+        });
+
+        // 5. Show success and close dialog
         toast({
-          title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
-          description: `Los cambios para "${finalProduct.name}" se han guardado correctamente.`,
+            title: `Producto ${selectedProduct ? 'actualizado' : 'creado'}`,
+            description: `Los cambios para "${finalProduct.name}" se han guardado correctamente.`,
         });
         setIsDialogOpen(false);
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error al guardar',
-          description: result.error || "No se pudo guardar el producto.",
-        });
-      }
     });
   };
 

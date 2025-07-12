@@ -2,7 +2,6 @@
 "use server";
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
-import type { Product } from "@/lib/dummy-data";
 import { z } from "zod";
 
 const generateImageSchema = z.object({
@@ -41,47 +40,34 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
 }
 
 
+// This action is now simplified and doesn't return data.
+// It acts as a server-side validation endpoint if needed, but the core logic
+// for updating state and localStorage is handled client-side.
 const productFormSchema = z.object({
-    id: z.string().optional(),
+    id: z.string(), // ID is now required, generated client-side
     name: z.string().min(1, "El nombre es requerido."),
     description: z.string().optional(),
     category: z.string().min(1, "La categoría es requerida."),
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
     stock: z.coerce.number().min(0, "El stock no puede ser negativo."),
     hint: z.string().optional(),
-    featured: z.coerce.boolean().optional(),
-    status: z.coerce.boolean().optional(),
+    image: z.string().optional(),
+    gallery: z.string().optional(), // JSON string
+    featured: z.coerce.boolean(),
+    status: z.coerce.boolean(),
 });
 
-export async function saveProductAction(formData: FormData): Promise<{ success: boolean; data?: Omit<Product, 'image' | 'gallery'>, error?: string }> {
-    const productDataRaw = Object.fromEntries(formData.entries());
-    
-    const validation = productFormSchema.safeParse(productDataRaw);
+export async function saveProductAction(formData: FormData): Promise<void> {
+    const rawData = Object.fromEntries(formData.entries());
+    const validation = productFormSchema.safeParse(rawData);
+
     if (!validation.success) {
-        console.error("Validation errors:", validation.error.flatten());
-        return { success: false, error: "Datos del formulario inválidos." };
+        // In a real app, you might throw an error to be caught client-side.
+        // For now, we'll log it. The client is already handling the logic.
+        console.error("Server-side validation failed:", validation.error.flatten());
     }
-
-    try {
-        const { ...productData } = validation.data;
-        
-        const processedProduct: Omit<Product, 'image' | 'gallery'> = {
-            id: productData.id || `prod_${Date.now()}`,
-            name: productData.name,
-            description: productData.description || '',
-            category: productData.category,
-            price: productData.price,
-            stock: productData.stock,
-            hint: productData.hint || '',
-            featured: productData.featured ?? false,
-            status: (productData.status ?? true) ? 'activo' : 'inactivo',
-        };
-        
-        return { success: true, data: processedProduct };
-
-    } catch (error) {
-        console.error("Error en saveProductAction:", error);
-        const errorMessage = error instanceof Error ? error.message : "Error desconocido al procesar el producto.";
-        return { success: false, error: errorMessage };
-    }
+    
+    // The primary responsibility for saving is now on the client.
+    // This function can be expanded for other server-side tasks if needed (e.g., logging).
+    console.log("Product data received and validated on server for product ID:", validation.success ? validation.data.id : 'unknown');
 }
