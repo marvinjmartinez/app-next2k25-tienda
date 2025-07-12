@@ -1,18 +1,21 @@
 // src/lib/firebase.ts
-import { initializeApp, getApps, applicationDefault } from "firebase-admin/app";
-import { getStorage } from "firebase-admin/storage";
+import { initializeApp, getApp, getApps } from "firebase/app";
+import { getStorage } from "firebase/storage";
 
-// Usar esta configuración para el entorno de servidor (Firebase Studio / App Hosting)
-// `applicationDefault` usa las credenciales del entorno automáticamente.
+// Usar esta configuración para el entorno de cliente (navegador)
 const firebaseConfig = {
-  credential: applicationDefault(),
-  storageBucket: "distrimnin-tienda.appspot.com",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Inicializar la app de Firebase Admin si aún no existe
+// Inicializar la app de Firebase para el cliente
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
-// Obtener el bucket de storage por defecto
-const bucket = getStorage(app).bucket();
+// Obtener el cliente de storage
+const storage = getStorage(app);
 
-export { app, bucket };
+export { app, storage };
