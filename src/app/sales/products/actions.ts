@@ -50,10 +50,10 @@ const productFormSchema = z.object({
     price: z.coerce.number().min(0, "El precio no puede ser negativo."),
     stock: z.coerce.number().min(0, "El stock no puede ser negativo."),
     hint: z.string(),
-    featured: z.coerce.boolean(),
-    status: z.coerce.boolean(),
+    featured: z.coerce.boolean().optional(),
+    status: z.coerce.boolean().optional(),
     image: z.string(),
-    gallery: z.string().optional(), // Make gallery optional
+    gallery: z.string().optional(),
 });
 
 export async function saveProductAction(formData: FormData) {
@@ -68,8 +68,7 @@ export async function saveProductAction(formData: FormData) {
     try {
         const productData = validation.data;
         
-        // Safely parse gallery
-        const gallery = productData.gallery ? JSON.parse(productData.gallery) : [];
+        const gallery = (productData.gallery && typeof productData.gallery === 'string') ? JSON.parse(productData.gallery) : [];
 
         const processedProduct: Product = {
             id: productData.id || `prod_${Date.now()}`,
@@ -79,8 +78,8 @@ export async function saveProductAction(formData: FormData) {
             price: productData.price,
             stock: productData.stock,
             hint: productData.hint,
-            featured: productData.featured,
-            status: productData.status ? 'activo' : 'inactivo',
+            featured: productData.featured ?? false,
+            status: (productData.status ?? false) ? 'activo' : 'inactivo',
             image: productData.image,
             gallery: gallery,
         };
