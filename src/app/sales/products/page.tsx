@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Plus } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Plus, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -56,6 +56,8 @@ import { Switch } from '@/components/ui/switch';
 import { generateProductImageAction } from './actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { storage } from '@/lib/firebase';
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 
 const PRODUCTS_STORAGE_KEY = 'crud_products';
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
@@ -74,6 +76,7 @@ export default function ProductsAdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -183,37 +186,67 @@ export default function ProductsAdminPage() {
       description: `El producto "${productToDelete.name}" ha sido eliminado.`,
     });
   };
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newProductData = {
-      name: productName,
-      description: productDescription,
-      category: productCategory,
-      price: productPrice,
-      stock: productStock,
-      hint: productHint,
-      featured: productFeatured,
-      image: productImage, 
-      status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
-      gallery: galleryUrls,
-    };
-
-    let updatedProducts;
-    if (selectedProduct) {
-      updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
-    } else {
-      const newProduct: Product = {
-        id: `prod_${Date.now()}`,
-        ...newProductData
-      }
-      updatedProducts = [newProduct, ...products];
-    }
-    
-    updateProductsStateAndStorage(updatedProducts, true);
-    setIsDialogOpen(false);
-  }
   
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+
+    try {
+        let finalImage = productImage;
+        if (productImage.startsWith('data:image')) {
+            const storageRef = ref(storage, `products/${Date.now()}_main.png`);
+            await uploadString(storageRef, productImage, 'data_url');
+            finalImage = await getDownloadURL(storageRef);
+        }
+
+        const finalGalleryUrls = await Promise.all(galleryUrls.map(async (url) => {
+            if (url.startsWith('data:image')) {
+                const storageRef = ref(storage, `products/${Date.now()}_gallery_${Math.random()}.png`);
+                await uploadString(storageRef, url, 'data_url');
+                return getDownloadURL(storageRef);
+            }
+            return url;
+        }));
+
+        const newProductData = {
+            name: productName,
+            description: productDescription,
+            category: productCategory,
+            price: productPrice,
+            stock: productStock,
+            hint: productHint,
+            featured: productFeatured,
+            image: finalImage,
+            status: (productStatus ? 'activo' : 'inactivo') as 'activo' | 'inactivo',
+            gallery: finalGalleryUrls,
+        };
+
+        let updatedProducts;
+        if (selectedProduct) {
+            updatedProducts = products.map(p => p.id === selectedProduct.id ? { ...p, ...newProductData } : p);
+        } else {
+            const newProduct: Product = {
+                id: `prod_${Date.now()}`,
+                ...newProductData
+            }
+            updatedProducts = [newProduct, ...products];
+        }
+
+        updateProductsStateAndStorage(updatedProducts, true);
+        setIsDialogOpen(false);
+
+    } catch (error) {
+        console.error("Error saving product:", error);
+        toast({
+            variant: "destructive",
+            title: "Error al guardar",
+            description: "No se pudo subir la imagen o guardar el producto. Verifica la configuración de Firebase Storage y tus permisos.",
+        });
+    } finally {
+        setIsSaving(false);
+    }
+  }
+
  const handleGenerateImage = (target: 'main' | 'gallery') => {
     const hint = target === 'main' ? productHint : galleryHint;
 
@@ -641,9 +674,12 @@ export default function ProductsAdminPage() {
             </div>
             <DialogFooter className="pt-4 border-t">
                 <DialogClose asChild>
-                    <Button type="button" variant="outline">Cancelar</Button>
+                    <Button type="button" variant="outline" disabled={isSaving}>Cancelar</Button>
                 </DialogClose>
-                <Button type="submit">Guardar Cambios</Button>
+                <Button type="submit" disabled={isSaving}>
+                    {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+                </Button>
             </DialogFooter>
           </form>
         </DialogContent>
