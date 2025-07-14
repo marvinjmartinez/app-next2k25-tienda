@@ -208,7 +208,7 @@ export default function HomePage() {
 
       <footer className="bg-foreground text-background">
         <div className="container mx-auto py-8 px-4 md:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
             <div>
               <h3 className="font-bold text-lg mb-2">Distrimin SAS</h3>
               <p className="text-sm text-muted-foreground">© 2024. Todos los derechos reservados.</p>

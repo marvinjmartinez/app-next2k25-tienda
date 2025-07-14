@@ -341,11 +341,11 @@ export default function ProductsAdminPage() {
                 <TableRow>
                   <TableHead className="w-[80px]">Imagen</TableHead>
                   <TableHead>Nombre</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead>Precio</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Destacado</TableHead>
+                  <TableHead className="hidden md:table-cell">Estado</TableHead>
+                  <TableHead className="hidden lg:table-cell">Categoría</TableHead>
+                  <TableHead className="hidden md:table-cell">Precio</TableHead>
+                  <TableHead className="hidden lg:table-cell">Stock</TableHead>
+                  <TableHead className="hidden lg:table-cell">Destacado</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -363,20 +363,25 @@ export default function ProductsAdminPage() {
                             data-ai-hint={product.hint}
                         />
                         </TableCell>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>
+                        <TableCell className="font-medium">
+                            {product.name}
+                            <div className="text-muted-foreground text-sm md:hidden">
+                                {formatCurrency(product.price)} - <Badge variant={product.status === 'activo' ? 'default' : 'outline'}>{product.status === 'activo' ? 'Activo' : 'Inactivo'}</Badge>
+                            </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
                            <Badge variant={product.status === 'activo' ? 'default' : 'outline'}>
                                 {product.status === 'activo' ? 'Activo' : 'Inactivo'}
                             </Badge>
                         </TableCell>
-                        <TableCell>{getCategoryName(product.category)}</TableCell>
-                        <TableCell>{formatCurrency(product.price)}</TableCell>
-                        <TableCell>
+                        <TableCell className="hidden lg:table-cell">{getCategoryName(product.category)}</TableCell>
+                        <TableCell className="hidden md:table-cell">{formatCurrency(product.price)}</TableCell>
+                        <TableCell className="hidden lg:table-cell">
                         <Badge variant={product.stock > 0 ? 'secondary' : 'destructive'}>
                             {product.stock > 0 ? `${product.stock} unidades` : 'Agotado'}
                         </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden lg:table-cell">
                             {product.featured ? (
                                 <Badge variant="secondary">Sí</Badge>
                             ) : (
@@ -609,7 +614,7 @@ export default function ProductsAdminPage() {
                                         className="h-9"
                                     />
                                     <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isGenerating || isSaving}>
-                                         {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                         {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
                                     </Button>
                                 </div>
                             </div>

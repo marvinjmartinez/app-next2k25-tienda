@@ -190,49 +190,57 @@ export default function CartPage() {
                   <CardContent className="p-0">
                     <div className="space-y-6">
                       {cartItems.map(item => (
-                        <div key={item.id} className="flex items-center gap-4 p-4 border-b last:border-b-0">
-                           <Checkbox
-                            id={`select-${item.id}`}
-                            checked={isItemSelected(item.id)}
-                            onCheckedChange={() => toggleItemSelection(item.id)}
-                            aria-label={`Seleccionar ${item.name}`}
-                          />
-                          <Image src={item.image} alt={item.name} width={80} height={80} className="rounded-md object-cover" />
-                          <div className="flex-1">
+                        <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border-b last:border-b-0">
+                          <div className="flex items-center gap-4 w-full sm:w-auto">
+                            <Checkbox
+                              id={`select-${item.id}`}
+                              checked={isItemSelected(item.id)}
+                              onCheckedChange={() => toggleItemSelection(item.id)}
+                              aria-label={`Seleccionar ${item.name}`}
+                            />
+                            <Image src={item.image} alt={item.name} width={80} height={80} className="rounded-md object-cover" />
+                            <div className="flex-1 sm:hidden">
+                                <p className="font-semibold">{item.name}</p>
+                                <p className="text-sm text-muted-foreground">{formatCurrency(item.price)}</p>
+                            </div>
+                          </div>
+                          <div className="flex-1 hidden sm:block">
                             <p className="font-semibold">{item.name}</p>
                             <p className="text-sm text-muted-foreground">{formatCurrency(item.price)}</p>
                           </div>
-                          <div className="flex items-center gap-2">
-                             <div className="flex items-center border rounded-md">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-9 w-9"
-                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                    disabled={item.quantity <= 1}
-                                >
-                                    <Minus className="h-4 w-4" />
-                                </Button>
-                                <Input
-                                    type="text"
-                                    readOnly
-                                    value={item.quantity}
-                                    className="w-12 h-9 text-center border-0 bg-transparent focus-visible:ring-0"
-                                />
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-9 w-9"
-                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                >
-                                    <Plus className="h-4 w-4" />
-                                </Button>
+                          <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center border rounded-md">
+                                  <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-9 w-9"
+                                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                      disabled={item.quantity <= 1}
+                                  >
+                                      <Minus className="h-4 w-4" />
+                                  </Button>
+                                  <Input
+                                      type="text"
+                                      readOnly
+                                      value={item.quantity}
+                                      className="w-12 h-9 text-center border-0 bg-transparent focus-visible:ring-0"
+                                  />
+                                  <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-9 w-9"
+                                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                  >
+                                      <Plus className="h-4 w-4" />
+                                  </Button>
+                              </div>
+                              <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            <p className="font-semibold w-24 text-right">{formatCurrency(item.price * item.quantity)}</p>
                           </div>
-                          <p className="font-semibold w-24 text-right">{formatCurrency(item.price * item.quantity)}</p>
                         </div>
                       ))}
                     </div>

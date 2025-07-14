@@ -121,7 +121,41 @@ export default function CheckoutPage() {
               </Button>
           </div>
           <form onSubmit={handlePlaceOrder} className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-2 space-y-8">
+             <div className="md:col-span-1 md:order-2">
+              <Card className="sticky top-20">
+                <CardHeader>
+                  <CardTitle>Resumen del Pedido</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {itemsForCheckout.map(item => (
+                    <div key={item.id} className="flex justify-between items-center text-sm">
+                      <span className="text-muted-foreground">{item.name} x {item.quantity}</span>
+                      <span>{formatCurrency(item.price * item.quantity)}</span>
+                    </div>
+                  ))}
+                  <Separator />
+                  <div className="flex justify-between">
+                    <p className="text-muted-foreground">Subtotal</p>
+                    <p>{formatCurrency(checkoutTotal)}</p>
+                  </div>
+                  <div className="flex justify-between">
+                    <p className="text-muted-foreground">Envío</p>
+                    <p>Gratis</p>
+                  </div>
+                  <Separator />
+                  <div className="flex justify-between font-bold text-lg">
+                    <p>Total</p>
+                    <p>{formatCurrency(checkoutTotal)}</p>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                    <Button type="submit" className="w-full">
+                        Realizar Pedido
+                    </Button>
+                </CardFooter>
+              </Card>
+            </div>
+            <div className="md:col-span-2 md:order-1 space-y-8">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2"><Truck className="h-5 w-5"/> Información de Envío</CardTitle>
@@ -176,41 +210,6 @@ export default function CheckoutPage() {
                         </p>
                     </div>
                 </CardContent>
-              </Card>
-            </div>
-
-            <div className="md:col-span-1">
-              <Card className="sticky top-20">
-                <CardHeader>
-                  <CardTitle>Resumen del Pedido</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {itemsForCheckout.map(item => (
-                    <div key={item.id} className="flex justify-between items-center text-sm">
-                      <span className="text-muted-foreground">{item.name} x {item.quantity}</span>
-                      <span>{formatCurrency(item.price * item.quantity)}</span>
-                    </div>
-                  ))}
-                  <Separator />
-                  <div className="flex justify-between">
-                    <p className="text-muted-foreground">Subtotal</p>
-                    <p>{formatCurrency(checkoutTotal)}</p>
-                  </div>
-                  <div className="flex justify-between">
-                    <p className="text-muted-foreground">Envío</p>
-                    <p>Gratis</p>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between font-bold text-lg">
-                    <p>Total</p>
-                    <p>{formatCurrency(checkoutTotal)}</p>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                    <Button type="submit" className="w-full">
-                        Realizar Pedido
-                    </Button>
-                </CardFooter>
               </Card>
             </div>
           </form>
