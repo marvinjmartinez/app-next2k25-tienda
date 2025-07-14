@@ -19,6 +19,18 @@ import { LogoTienda } from '@/components/logo-tienda';
 import type { Quote } from '@/app/sales/create-quote/page';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, getSelectedItemsTotal, getCartItemCount, clearCart, toggleItemSelection, isItemSelected, getSelectedItems } = useCart();
@@ -190,7 +202,7 @@ export default function CartPage() {
                   <CardContent className="p-0">
                     <div className="space-y-4">
                       {cartItems.map(item => (
-                        <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border-b last:border-b-0">
+                        <div key={item.id} className="flex flex-col md:flex-row items-start gap-4 p-4 border-b last:border-b-0">
                           {/* Columna de Checkbox e Info */}
                           <div className="flex items-center gap-4 flex-1">
                             <Checkbox
@@ -207,7 +219,7 @@ export default function CartPage() {
                           </div>
                           
                           {/* Columna de Controles y Subtotal */}
-                          <div className="flex sm:flex-col items-end gap-2 w-full sm:w-auto">
+                          <div className="w-full md:w-auto flex flex-col items-end gap-2">
                             <div className="flex items-center justify-end gap-2 w-full">
                                 <div className="flex items-center border rounded-md">
                                     <Button
@@ -234,9 +246,25 @@ export default function CartPage() {
                                         <Plus className="h-4 w-4" />
                                     </Button>
                                 </div>
-                                <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)} className="text-muted-foreground hover:text-destructive h-8 w-8">
-                                <Trash2 className="h-4 w-4" />
-                                </Button>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>¿Confirmar eliminación?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Esta acción eliminará permanentemente "{item.name}" de tu carrito.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => removeFromCart(item.id)}>Eliminar</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </div>
                             <p className="font-semibold w-24 text-right">{formatCurrency(item.price * item.quantity)}</p>
                           </div>
