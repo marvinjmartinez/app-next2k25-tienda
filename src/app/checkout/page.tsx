@@ -1,3 +1,4 @@
+
 // src/app/checkout/page.tsx
 "use client";
 
@@ -18,10 +19,13 @@ import { LogoTienda } from '@/components/logo-tienda';
 
 
 export default function CheckoutPage() {
-  const { cartItems, getCartTotal, clearCart } = useCart();
+  const { getSelectedItems, getSelectedItemsTotal, clearCart } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+
+  const itemsForCheckout = getSelectedItems();
+  const checkoutTotal = getSelectedItemsTotal();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -49,9 +53,9 @@ export default function CheckoutPage() {
           customerId: user.id,
           customerName: user.name,
           date: new Date().toISOString().split('T')[0],
-          total: getCartTotal(),
+          total: checkoutTotal,
           status: 'Pagada',
-          items: cartItems.map(item => ({
+          items: itemsForCheckout.map(item => ({
             id: item.id,
             name: item.name,
             price: getPriceForCustomer(item, user.role),
@@ -80,11 +84,11 @@ export default function CheckoutPage() {
           description: "Gracias por tu compra. Tu pedido ha sido registrado.",
       });
 
-      clearCart();
+      clearCart(); // Clear entire cart after purchase
       router.push('/account/dashboard');
   }
 
-  if (cartItems.length === 0) {
+  if (itemsForCheckout.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen text-center">
             <h1 className="text-2xl font-bold mb-4">Tu carrito está vacío</h1>
@@ -110,9 +114,9 @@ export default function CheckoutPage() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="mb-8">
               <Button variant="outline" asChild>
-                  <Link href="/products">
+                  <Link href="/cart">
                       <ArrowLeft className="mr-2 h-4 w-4" />
-                      Volver a la tienda
+                      Volver al carrito
                   </Link>
               </Button>
           </div>
@@ -181,7 +185,7 @@ export default function CheckoutPage() {
                   <CardTitle>Resumen del Pedido</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {cartItems.map(item => (
+                  {itemsForCheckout.map(item => (
                     <div key={item.id} className="flex justify-between items-center text-sm">
                       <span className="text-muted-foreground">{item.name} x {item.quantity}</span>
                       <span>{formatCurrency(item.price * item.quantity)}</span>
@@ -190,7 +194,7 @@ export default function CheckoutPage() {
                   <Separator />
                   <div className="flex justify-between">
                     <p className="text-muted-foreground">Subtotal</p>
-                    <p>{formatCurrency(getCartTotal())}</p>
+                    <p>{formatCurrency(checkoutTotal)}</p>
                   </div>
                   <div className="flex justify-between">
                     <p className="text-muted-foreground">Envío</p>
@@ -199,7 +203,7 @@ export default function CheckoutPage() {
                   <Separator />
                   <div className="flex justify-between font-bold text-lg">
                     <p>Total</p>
-                    <p>{formatCurrency(getCartTotal())}</p>
+                    <p>{formatCurrency(checkoutTotal)}</p>
                   </div>
                 </CardContent>
                 <CardFooter>

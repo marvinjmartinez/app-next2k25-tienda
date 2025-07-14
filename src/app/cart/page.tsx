@@ -1,3 +1,4 @@
+
 // src/app/cart/page.tsx
 "use client";
 
@@ -17,13 +18,13 @@ import { useRouter } from 'next/navigation';
 import { LogoTienda } from '@/components/logo-tienda';
 import type { Quote } from '@/app/sales/create-quote/page';
 import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function CartPage() {
-  const { cartItems, removeFromCart, updateQuantity, getCartTotal, getCartItemCount, clearCart } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, getSelectedItemsTotal, getCartItemCount, clearCart, toggleItemSelection, isItemSelected, getSelectedItems } = useCart();
   const { user, logout, isAuthenticated } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
-
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -41,16 +42,24 @@ export default function CartPage() {
   }
 
   const handleSaveForLater = () => {
-    if (!isAuthenticated || !user || cartItems.length === 0) return;
+    const selectedItemsToSave = getSelectedItems();
+    if (!isAuthenticated || !user || selectedItemsToSave.length === 0) {
+       toast({
+        variant: 'destructive',
+        title: "Selecciona productos",
+        description: "Debes seleccionar al menos un producto para guardar.",
+      });
+      return;
+    }
 
     const newQuote: Quote = {
       id: `COT-${Date.now().toString().slice(-4)}`,
       customerId: user.id,
       customerName: user.name,
       date: new Date().toISOString().split('T')[0],
-      total: getCartTotal(),
+      total: getSelectedItemsTotal(),
       status: 'Borrador',
-      items: cartItems.map(item => ({
+      items: selectedItemsToSave.map(item => ({
         ...item,
         hint: '',
         stock: 0, 
@@ -66,12 +75,13 @@ export default function CartPage() {
       localStorage.setItem('saved_quotes', JSON.stringify(existingQuotes));
 
       toast({
-        title: "Carrito Guardado",
-        description: "Tus productos se han guardado en 'Mis Compras' para después.",
+        title: "Productos Guardados",
+        description: "Los productos seleccionados se han guardado en 'Mis Compras' para después.",
       });
 
-      clearCart();
-      router.push(getDashboardPath());
+      // Remove saved items from cart
+      selectedItemsToSave.forEach(item => removeFromCart(item.id));
+      
     } catch (error) {
       console.error("Error saving cart for later", error);
       toast({
@@ -80,6 +90,18 @@ export default function CartPage() {
         description: "No se pudo guardar tu carrito. Inténtalo de nuevo.",
       });
     }
+  }
+
+  const handleCheckout = () => {
+    if (getSelectedItems().length === 0) {
+      toast({
+        variant: 'destructive',
+        title: "No hay productos seleccionados",
+        description: "Por favor, selecciona los productos que deseas comprar.",
+      });
+      return;
+    }
+    router.push('/checkout');
   }
 
 
@@ -169,6 +191,12 @@ export default function CartPage() {
                     <div className="space-y-6">
                       {cartItems.map(item => (
                         <div key={item.id} className="flex items-center gap-4 p-4 border-b last:border-b-0">
+                           <Checkbox
+                            id={`select-${item.id}`}
+                            checked={isItemSelected(item.id)}
+                            onCheckedChange={() => toggleItemSelection(item.id)}
+                            aria-label={`Seleccionar ${item.name}`}
+                          />
                           <Image src={item.image} alt={item.name} width={80} height={80} className="rounded-md object-cover" />
                           <div className="flex-1">
                             <p className="font-semibold">{item.name}</p>
@@ -215,11 +243,12 @@ export default function CartPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Resumen del Pedido</CardTitle>
+                    <CardDescription>El total se calcula con base en los artículos seleccionados.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex justify-between">
-                      <p className="text-muted-foreground">Subtotal</p>
-                      <p>{formatCurrency(getCartTotal())}</p>
+                      <p className="text-muted-foreground">Subtotal (Seleccionado)</p>
+                      <p>{formatCurrency(getSelectedItemsTotal())}</p>
                     </div>
                      <div className="flex justify-between">
                       <p className="text-muted-foreground">Envío</p>
@@ -228,18 +257,18 @@ export default function CartPage() {
                     <Separator />
                     <div className="flex justify-between font-bold text-lg">
                       <p>Total</p>
-                      <p>{formatCurrency(getCartTotal())}</p>
+                      <p>{formatCurrency(getSelectedItemsTotal())}</p>
                     </div>
                   </CardContent>
                   <CardFooter className="flex-col gap-2 items-stretch">
                     {isAuthenticated ? (
                         <>
-                          <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" asChild>
-                              <Link href="/checkout">Proceder al Pago</Link>
+                          <Button className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" onClick={handleCheckout} disabled={getSelectedItems().length === 0}>
+                              Proceder al Pago
                           </Button>
-                           <Button variant="outline" className="w-full" onClick={handleSaveForLater}>
+                           <Button variant="outline" className="w-full" onClick={handleSaveForLater} disabled={getSelectedItems().length === 0}>
                               <Save className="mr-2 h-4 w-4" />
-                              Guardar para después
+                              Guardar seleccionados
                           </Button>
                         </>
                     ) : (

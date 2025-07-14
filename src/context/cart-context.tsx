@@ -18,12 +18,17 @@ interface CartItem {
 // Define the shape of the cart context
 interface CartContextType {
   cartItems: CartItem[];
+  selectedItems: Set<string>;
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
+  toggleItemSelection: (id: string) => void;
   clearCart: () => void;
   getCartTotal: () => number;
+  getSelectedItemsTotal: () => number;
+  getSelectedItems: () => CartItem[];
   getCartItemCount: () => number;
+  isItemSelected: (id: string) => boolean;
 }
 
 // Create the context with a default undefined value
@@ -60,6 +65,7 @@ const getPriceForCustomer = (product: Product, customerRole: UserRole) => {
 // Create the provider component
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const { user, isLoading } = useAuth();
   const [isCartLoaded, setIsCartLoaded] = useState(false);
   
@@ -69,7 +75,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Effect to load cart from localStorage when user or loading state changes.
   useEffect(() => {
-    // Wait until auth is resolved.
     if (isLoading) return;
 
     const cartKey = getCartStorageKey();
@@ -77,28 +82,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const storedCart = localStorage.getItem(cartKey);
       if (storedCart) {
         const parsedCart: CartItem[] = JSON.parse(storedCart);
-
-        // Recalculate prices on load, in case user role or prices changed
         const allProducts = getProducts();
         const updatedCart = parsedCart.map(item => {
           const productData = allProducts.find(p => p.id === item.id);
-          if (productData) {
-            return {
-              ...item,
-              price: getPriceForCustomer(productData, user?.role || 'cliente'),
-            };
-          }
-          return item;
+          return {
+            ...item,
+            price: productData ? getPriceForCustomer(productData, user?.role || 'cliente') : item.price,
+          };
         });
         setCartItems(updatedCart);
-
+        // Initially, select all items when cart is loaded.
+        setSelectedItems(new Set(updatedCart.map(item => item.id)));
       } else {
-        // If no specific cart is found for the user/guest, clear items.
         setCartItems([]);
+        setSelectedItems(new Set());
       }
     } catch (error) {
         console.error("Failed to load cart from localStorage", error);
-        setCartItems([]); // Reset on error
+        setCartItems([]);
     } finally {
         setIsCartLoaded(true);
     }
@@ -107,7 +108,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Effect to save cart to localStorage whenever it changes.
   useEffect(() => {
-    // Only save after initial load has completed.
     if (isCartLoaded) {
       const cartKey = getCartStorageKey();
       try {
@@ -116,26 +116,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
         console.error("Failed to save cart to localStorage", error);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartItems, isCartLoaded]);
+  }, [cartItems, isCartLoaded, user]);
 
 
   const addToCart = (item: CartItem) => {
     setCartItems(prevItems => {
       const existingItem = prevItems.find(i => i.id === item.id);
       if (existingItem) {
-        // If item exists, update its quantity
         return prevItems.map(i =>
           i.id === item.id ? { ...i, quantity: i.quantity + item.quantity } : i
         );
       }
-      // Otherwise, add the new item
       return [...prevItems, item];
     });
+    // Select the new item automatically
+    setSelectedItems(prev => new Set(prev).add(item.id));
   };
 
   const removeFromCart = (id: string) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+    setSelectedItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(id);
+        return newSet;
+    });
   };
 
   const updateQuantity = (id: string, quantity: number) => {
@@ -150,23 +154,55 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => {
     setCartItems([]);
+    setSelectedItems(new Set());
   };
 
   const getCartTotal = () => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  };
+
+  const getSelectedItems = () => {
+    return cartItems.filter(item => selectedItems.has(item.id));
+  };
+  
+  const getSelectedItemsTotal = () => {
+    return cartItems
+      .filter(item => selectedItems.has(item.id))
+      .reduce((total, item) => total + item.price * item.quantity, 0);
   };
   
   const getCartItemCount = () => {
     return cartItems.reduce((count, item) => count + item.quantity, 0);
   };
 
+  const toggleItemSelection = (id: string) => {
+    setSelectedItems(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            newSet.add(id);
+        }
+        return newSet;
+    });
+  };
+
+  const isItemSelected = (id: string) => {
+    return selectedItems.has(id);
+  }
+
   const value = {
     cartItems,
+    selectedItems,
     addToCart,
     removeFromCart,
     updateQuantity,
+    toggleItemSelection,
+    isItemSelected,
     clearCart,
     getCartTotal,
+    getSelectedItems,
+    getSelectedItemsTotal,
     getCartItemCount,
   };
 
