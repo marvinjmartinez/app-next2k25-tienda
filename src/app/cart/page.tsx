@@ -6,7 +6,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useCart } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { Trash2, ShoppingCart, User, LogOut, LayoutDashboard, Save, Plus, Minus } from 'lucide-react';
