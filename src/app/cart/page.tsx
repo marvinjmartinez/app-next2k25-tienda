@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, ShoppingCart, User, LogOut, LayoutDashboard, Save } from 'lucide-react';
+import { Trash2, ShoppingCart, User, LogOut, LayoutDashboard, Save, Plus, Minus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -175,13 +175,31 @@ export default function CartPage() {
                             <p className="text-sm text-muted-foreground">{formatCurrency(item.price)}</p>
                           </div>
                           <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(e) => updateQuantity(item.id, parseInt(e.target.value, 10))}
-                              className="w-16 h-9 text-center"
-                            />
+                             <div className="flex items-center border rounded-md">
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-9 w-9"
+                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                    disabled={item.quantity <= 1}
+                                >
+                                    <Minus className="h-4 w-4" />
+                                </Button>
+                                <Input
+                                    type="text"
+                                    readOnly
+                                    value={item.quantity}
+                                    className="w-12 h-9 text-center border-0 bg-transparent focus-visible:ring-0"
+                                />
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-9 w-9"
+                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                >
+                                    <Plus className="h-4 w-4" />
+                                </Button>
+                            </div>
                             <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.id)}>
                               <Trash2 className="h-4 w-4 text-destructive" />
                             </Button>
