@@ -23,7 +23,7 @@ interface ProductCardProps {
 export function ProductCard({ product, categoryName, onAddToCart, onImageClick, onViewDetails, className }: ProductCardProps) {
 
   return (
-    <Card className={cn("overflow-hidden group flex flex-col", className)}>
+    <Card className={cn("group flex flex-col", className)}>
       <CardHeader className="p-0 relative">
         <button onClick={() => onImageClick(product)} className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
           <Maximize className="h-6 w-6 text-white" />
@@ -49,18 +49,7 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
         </Link>
         <CardDescription className="text-primary font-semibold text-base mt-1">${product.price.toFixed(2)}</CardDescription>
       </CardContent>
-      <CardFooter className="p-2 pt-0 flex gap-1">
-        {onViewDetails && ( // This button is now effectively unused in POS but kept for flexibility
-          <Button
-            size="sm"
-            variant="outline"
-            className="px-2 h-8"
-            onClick={() => onViewDetails(product)}
-            title="Ver detalles"
-          >
-            <Maximize className="h-4 w-4" />
-          </Button>
-        )}
+      <CardFooter className="p-3 pt-0">
         <Button
           className="w-full h-8"
           size="sm"
