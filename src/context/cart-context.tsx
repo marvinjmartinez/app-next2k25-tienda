@@ -52,13 +52,13 @@ const getPriceForCustomer = (product: Product, customerRole: UserRole) => {
 
   switch (customerRole) {
       case 'cliente_especial':
-          return product.priceTiers.cliente_especial;
+          return product.priceTiers.tipo2;
       case 'vendedor':
-          return product.priceTiers.vendedor;
+          return product.priceTiers.tipo3;
       case 'cliente':
       case 'admin':
       default:
-          return product.priceTiers.cliente;
+          return product.priceTiers.tipo1;
   }
 }
 

@@ -6,9 +6,9 @@ import productsData from '@/data/products.json';
 import categoriesData from '@/data/categories.json';
 
 export interface PriceTiers {
-    cliente: number;
-    cliente_especial: number;
-    vendedor: number;
+    tipo1: number; // Público general
+    tipo2: number; // Cliente especial, mayorista
+    tipo3: number; // Costo para vendedor o distribuidor
 }
 
 export interface Product {

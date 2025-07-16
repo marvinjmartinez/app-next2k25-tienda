@@ -18,7 +18,7 @@ import { Trash2, Search, Plus, Send, Save } from 'lucide-react';
 
 import type { Product } from '@/lib/dummy-data';
 import { getProducts, type PriceTiers } from '@/lib/dummy-data';
-import type { User as AuthUser } from '@/context/auth-context';
+import type { User as AuthUser, UserRole } from '@/context/auth-context';
 import usersData from '@/data/users.json';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
@@ -58,21 +58,20 @@ export default function CreateQuotePage() {
   const { addToCart } = useCart();
   const { toast } = useToast();
 
-  const getPriceForCustomer = useCallback((product: Product, customerRole: AuthUser['role']) => {
+  const getPriceForCustomer = useCallback((product: Product, customerRole: UserRole) => {
     if (!product.priceTiers) {
         return product.price; // Fallback
     }
-    const role = customerRole || 'cliente';
 
-    switch (role) {
+    switch (customerRole) {
         case 'cliente_especial':
-            return product.priceTiers.cliente_especial;
+            return product.priceTiers.tipo2;
         case 'vendedor':
-            return product.priceTiers.vendedor;
+            return product.priceTiers.tipo3;
         case 'cliente':
         case 'admin': // Admins get client price by default on quotes
         default:
-            return product.priceTiers.cliente;
+            return product.priceTiers.tipo1;
     }
   }, []);
   

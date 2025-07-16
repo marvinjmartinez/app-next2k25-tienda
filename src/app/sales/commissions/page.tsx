@@ -23,10 +23,16 @@ const COMMISSIONS_STORAGE_KEY = 'settled_commissions';
 
 // Definición de tasas de comisión (simuladas)
 const COMMISSION_RATES: { [key in keyof PriceTiers]: number } = {
-  cliente: 0.05,          // 5% para ventas a precio de cliente normal
-  cliente_especial: 0.03, // 3% para ventas a precio de cliente especial
-  vendedor: 0.0,            // 0% para ventas a precio de vendedor (sin comisión sobre costo)
+  tipo1: 0.05, // 5% para ventas a precio público
+  tipo2: 0.03, // 3% para ventas a precio especial
+  tipo3: 0.0,  // 0% para ventas a precio de costo (sin comisión)
 };
+
+const priceTierNames: { [key in keyof PriceTiers]: string } = {
+    tipo1: 'Público',
+    tipo2: 'Especial',
+    tipo3: 'Costo',
+}
 
 interface CommissionData {
   salespersonId: string;
@@ -85,17 +91,17 @@ export default function CommissionsPage() {
     });
 
     sales.forEach(sale => {
-      // Asumimos que la venta se le atribuye al cliente, si es vendedor.
       // En un sistema real, se guardaría el ID del vendedor que realiza la venta.
+      // Aquí simulamos que si un vendedor compra, la comisión es para él.
       const salespersonId = sale.customer?.id;
       if (salespersonId && data[salespersonId]) {
         sale.items.forEach(item => {
           const product = products.find(p => p.id === item.id);
           if (!product || !product.priceTiers) return;
 
-          let priceTier: keyof PriceTiers = 'cliente';
-          if (item.price === product.priceTiers.cliente_especial) priceTier = 'cliente_especial';
-          else if (item.price === product.priceTiers.vendedor) priceTier = 'vendedor';
+          let priceTier: keyof PriceTiers = 'tipo1';
+          if (item.price === product.priceTiers.tipo2) priceTier = 'tipo2';
+          else if (item.price === product.priceTiers.tipo3) priceTier = 'tipo3';
 
           const commissionRate = COMMISSION_RATES[priceTier];
           const commission = item.price * item.quantity * commissionRate;
@@ -235,7 +241,7 @@ export default function CommissionsPage() {
                         <TableRow>
                             <TableHead># Venta</TableHead>
                             <TableHead>Producto</TableHead>
-                            <TableHead>Nivel de Precio</TableHead>
+                            <TableHead>Tipo de Precio</TableHead>
                             <TableHead className="text-right">Comisión</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -248,7 +254,7 @@ export default function CommissionsPage() {
                                     <div className="text-sm text-muted-foreground">{detail.quantity} x {formatCurrency(detail.salePrice)}</div>
                                 </TableCell>
                                 <TableCell>
-                                    <Badge variant="secondary" className="capitalize">{detail.priceTier.replace('_', ' ')}</Badge>
+                                    <Badge variant="secondary" className="capitalize">{priceTierNames[detail.priceTier]}</Badge>
                                 </TableCell>
                                 <TableCell className="text-right">{formatCurrency(detail.commission)}</TableCell>
                             </TableRow>

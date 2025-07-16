@@ -13,10 +13,10 @@ import { Separator } from '@/components/ui/separator';
 import { CreditCard, Truck, Lock, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/auth-context';
+import { useAuth, type UserRole } from '@/context/auth-context';
 import type { Quote } from '@/app/sales/create-quote/page';
 import { LogoTienda } from '@/components/logo-tienda';
-
+import type { Product } from '@/lib/dummy-data';
 
 export default function CheckoutPage() {
   const { getSelectedItems, getSelectedItemsTotal, clearCart } = useCart();
@@ -219,14 +219,16 @@ export default function CheckoutPage() {
   );
 }
 
-const getPriceForCustomer = (product: { price: number }, role: string) => {
-  // This is a simplified placeholder. In a real app, you'd fetch the full product data.
+const getPriceForCustomer = (product: { price: number; priceTiers?: Product['priceTiers'] }, role: UserRole) => {
+  if (!product.priceTiers) {
+    return product.price; // Fallback for items added before tiers
+  }
   switch (role) {
     case 'cliente_especial':
-      return product.price * 0.9;
+      return product.priceTiers.tipo2;
     case 'vendedor':
-      return product.price * 0.85;
+      return product.priceTiers.tipo3;
     default:
-      return product.price;
+      return product.priceTiers.tipo1;
   }
 };

@@ -44,9 +44,9 @@ export default function TariffsPage() {
     const loadedProducts = getProducts().map(p => ({
         ...p,
         priceTiers: p.priceTiers ?? {
-            cliente: p.price,
-            cliente_especial: p.price * 0.9,
-            vendedor: p.price * 0.85,
+            tipo1: p.price,
+            tipo2: p.price * 0.9,
+            tipo3: p.price * 0.85,
         }
     }));
     setProducts(loadedProducts);
@@ -96,7 +96,7 @@ export default function TariffsPage() {
         <CardHeader>
           <CardTitle>Tarifas de Precios por Producto</CardTitle>
           <CardDescription>
-            Modifica los precios para cada tipo de cliente y guarda los cambios.
+            Modifica los precios para cada tipo de cliente. El Precio Tipo 3 (Costo) se usa como base para el cálculo de comisiones.
           </CardDescription>
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <div className="relative w-full">
@@ -126,9 +126,9 @@ export default function TariffsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Producto</TableHead>
-                <TableHead className="text-right">Cliente Normal</TableHead>
-                <TableHead className="text-right">Cliente Especial</TableHead>
-                <TableHead className="text-right">Vendedor (Comisión)</TableHead>
+                <TableHead className="text-right">Precio Tipo 1 (Público)</TableHead>
+                <TableHead className="text-right">Precio Tipo 2 (Especial)</TableHead>
+                <TableHead className="text-right">Precio Tipo 3 (Costo)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -138,8 +138,8 @@ export default function TariffsPage() {
                   <TableCell className="text-right">
                     <Input
                       type="number"
-                      value={product.priceTiers?.cliente ?? ''}
-                      onChange={(e) => handlePriceChange(product.id, 'cliente', e.target.value)}
+                      value={product.priceTiers?.tipo1 ?? ''}
+                      onChange={(e) => handlePriceChange(product.id, 'tipo1', e.target.value)}
                       className="w-28 text-right ml-auto"
                       step="0.01"
                     />
@@ -147,8 +147,8 @@ export default function TariffsPage() {
                   <TableCell className="text-right">
                     <Input
                       type="number"
-                       value={product.priceTiers?.cliente_especial ?? ''}
-                       onChange={(e) => handlePriceChange(product.id, 'cliente_especial', e.target.value)}
+                       value={product.priceTiers?.tipo2 ?? ''}
+                       onChange={(e) => handlePriceChange(product.id, 'tipo2', e.target.value)}
                       className="w-28 text-right ml-auto"
                       step="0.01"
                     />
@@ -156,8 +156,8 @@ export default function TariffsPage() {
                   <TableCell className="text-right">
                      <Input
                       type="number"
-                       value={product.priceTiers?.vendedor ?? ''}
-                       onChange={(e) => handlePriceChange(product.id, 'vendedor', e.target.value)}
+                       value={product.priceTiers?.tipo3 ?? ''}
+                       onChange={(e) => handlePriceChange(product.id, 'tipo3', e.target.value)}
                       className="w-28 text-right ml-auto"
                       step="0.01"
                     />
