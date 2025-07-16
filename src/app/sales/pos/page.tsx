@@ -65,6 +65,8 @@ export default function PosPage() {
     const [viewerImages, setViewerImages] = useState<string[]>([]);
     const [viewerProductName, setViewerProductName] = useState('');
     const [productDetail, setProductDetail] = useState<Product | null>(null);
+    const [isCustomerPopoverOpen, setIsCustomerPopoverOpen] = useState(false);
+
 
     useEffect(() => {
         setAllProducts(getProducts());
@@ -227,7 +229,7 @@ export default function PosPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="relative">
-                            <Popover>
+                            <Popover open={isCustomerPopoverOpen} onOpenChange={setIsCustomerPopoverOpen}>
                                 <PopoverTrigger asChild>
                                     <Button variant="outline" className="w-full justify-start text-left font-normal pr-8">
                                         <User className="mr-2 h-4 w-4" />
@@ -246,7 +248,7 @@ export default function PosPage() {
                                     </div>
                                     <ScrollArea className="h-60">
                                         {filteredCustomers.map(c => (
-                                        <div key={c.id} className="p-2 hover:bg-muted cursor-pointer text-sm" onClick={() => { setSelectedCustomer(c); setCustomerSearch(''); }}>
+                                        <div key={c.id} className="p-2 hover:bg-muted cursor-pointer text-sm" onClick={() => { setSelectedCustomer(c); setCustomerSearch(''); setIsCustomerPopoverOpen(false); }}>
                                             <p className="font-medium">{c.name}</p>
                                             <p className="text-xs text-muted-foreground">{c.email}</p>
                                         </div>
