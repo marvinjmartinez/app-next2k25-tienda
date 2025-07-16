@@ -34,7 +34,7 @@ interface FileUploadResponse {
  */
 export async function uploadFile(file: Blob, path: string): Promise<{ path: string; url: string }> {
   const formData = new FormData();
-  formData.append('file', file, 'generated-image.png'); // Se le da un nombre de archivo genérico
+  formData.append('archivo', file, 'generated-image.png'); // Clave corregida a 'archivo'
   formData.append('path', path);
 
   const response = await fetch(`${API_BASE_URL}/files`, {
