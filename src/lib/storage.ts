@@ -4,15 +4,16 @@ import { Storage } from "@google-cloud/storage";
 
 // Validar que el bucket de almacenamiento exista en las variables de entorno
 if (!process.env.FIREBASE_STORAGE_BUCKET) {
-  throw new Error("La variable de entorno FIREBASE_STORAGE_BUCKET no está definida.");
+  // Comentamos el error para no bloquear la app si se usa file-manager.ts
+  // throw new Error("La variable de entorno FIREBASE_STORAGE_BUCKET no está definida.");
+  console.warn("ADVERTENCIA: La variable de entorno FIREBASE_STORAGE_BUCKET no está definida. La subida directa a GCS no funcionará.");
 }
 
-const bucketName = process.env.FIREBASE_STORAGE_BUCKET;
+const bucketName = process.env.FIREBASE_STORAGE_BUCKET!;
 const folder = "product-images"; // Se puede mantener una carpeta por defecto
 
 // Inicializar Storage. El SDK buscará automáticamente las credenciales
 // en el entorno de ejecución (Application Default Credentials).
-// No es necesario pasar el objeto `credentials`.
 const storage = new Storage();
 const bucket = storage.bucket(bucketName);
 

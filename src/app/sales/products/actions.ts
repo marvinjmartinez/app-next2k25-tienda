@@ -2,14 +2,14 @@
 "use server";
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
-import { subirImagenDesdeBase64 } from "@/lib/storage";
+import { uploadFileFromDataURI } from "@/lib/file-manager";
 import { z } from "zod";
 
 const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
 });
 
-// Acción para generar la imagen, subirla a GCS y devolver la URL pública.
+// Acción para generar la imagen, subirla a través de la API de Laravel y devolver la URL.
 export async function generateProductImageAction(formData: FormData): Promise<{ success: boolean; data?: { imageUrl: string; }; error?: string; }> {
     const rawData = Object.fromEntries(formData.entries());
     const validation = generateImageSchema.safeParse(rawData);
@@ -30,8 +30,8 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // 2. Subir la imagen a Google Cloud Storage
-        const publicUrl = await subirImagenDesdeBase64(dataUri);
+        // 2. Subir la imagen a través de la API de Laravel
+        const { url: publicUrl } = await uploadFileFromDataURI(dataUri, 'imagenes');
 
         // 3. Devolver la URL pública.
         return { success: true, data: { imageUrl: publicUrl } };
