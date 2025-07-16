@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Minus, Trash2, User, DollarSign, X, CreditCard, Wallet } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, User, DollarSign, X, CreditCard, Wallet, FileText } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -37,7 +37,7 @@ export interface PosSale {
     subtotal: number;
     tax: number;
     total: number;
-    paymentMethod: 'Efectivo' | 'Tarjeta';
+    paymentMethod: 'Efectivo' | 'Tarjeta' | 'Crédito';
     status: 'Completada';
 }
 
@@ -53,7 +53,7 @@ export default function PosPage() {
     const [customerSearch, setCustomerSearch] = useState('');
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
     const [amountReceived, setAmountReceived] = useState<number | string>('');
-    const [paymentMethod, setPaymentMethod] = useState<'Efectivo' | 'Tarjeta'>('Efectivo');
+    const [paymentMethod, setPaymentMethod] = useState<PosSale['paymentMethod']>('Efectivo');
     const [isViewerOpen, setIsViewerOpen] = useState(false);
     const [viewerImages, setViewerImages] = useState<string[]>([]);
     const [viewerProductName, setViewerProductName] = useState('');
@@ -110,7 +110,7 @@ export default function PosPage() {
     const total = useMemo(() => subtotal + tax, [subtotal, tax]);
 
     const change = useMemo(() => {
-        if (paymentMethod === 'Tarjeta') return 0;
+        if (paymentMethod !== 'Efectivo') return 0;
         const received = typeof amountReceived === 'number' ? amountReceived : parseFloat(amountReceived);
         if (isNaN(received)) return 0;
         return received >= total ? received - total : 0;
@@ -288,7 +288,7 @@ export default function PosPage() {
                             <p className="text-muted-foreground">Total a Pagar</p>
                             <p className="text-4xl font-bold">{formatCurrency(total)}</p>
                         </div>
-                        <RadioGroup defaultValue="Efectivo" className="grid grid-cols-2 gap-4" onValueChange={(value: 'Efectivo' | 'Tarjeta') => setPaymentMethod(value)}>
+                        <RadioGroup defaultValue="Efectivo" className="grid grid-cols-3 gap-4" onValueChange={(value: PosSale['paymentMethod']) => setPaymentMethod(value)}>
                             <div>
                                 <RadioGroupItem value="Efectivo" id="cash" className="peer sr-only" />
                                 <Label htmlFor="cash" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
@@ -301,6 +301,13 @@ export default function PosPage() {
                                 <Label htmlFor="card" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
                                     <CreditCard className="mb-3 h-6 w-6" />
                                     Tarjeta
+                                </Label>
+                            </div>
+                             <div>
+                                <RadioGroupItem value="Crédito" id="credit" className="peer sr-only" />
+                                <Label htmlFor="credit" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <FileText className="mb-3 h-6 w-6" />
+                                    Crédito
                                 </Label>
                             </div>
                         </RadioGroup>
@@ -323,10 +330,23 @@ export default function PosPage() {
                                 <p className="text-2xl font-semibold text-primary">{formatCurrency(change)}</p>
                             </div>
                         )}
+                         {paymentMethod === 'Crédito' && !selectedCustomer && (
+                            <p className="text-center text-sm text-destructive">
+                                Debes seleccionar un cliente para una venta a crédito.
+                            </p>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setPaymentModalOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleConfirmSale} disabled={paymentMethod === 'Efectivo' && Number(amountReceived) < total}>Confirmar Venta</Button>
+                        <Button 
+                            onClick={handleConfirmSale} 
+                            disabled={
+                                (paymentMethod === 'Efectivo' && Number(amountReceived) < total) || 
+                                (paymentMethod === 'Crédito' && !selectedCustomer)
+                            }
+                        >
+                            Confirmar Venta
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

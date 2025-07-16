@@ -8,28 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MoreHorizontal, Search, Eye, ChevronLeft, ChevronRight, CreditCard, Wallet } from 'lucide-react';
+import { MoreHorizontal, Search, Eye, ChevronLeft, ChevronRight, CreditCard, Wallet, FileText } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import { formatCurrency } from '@/lib/utils';
-import type { Product } from '@/lib/dummy-data';
-
-interface PosCartItem extends Product {
-    quantity: number;
-}
-
-interface PosSale {
-    id: string;
-    date: string;
-    customer?: { id: string; name: string };
-    items: PosCartItem[];
-    subtotal: number;
-    tax: number;
-    total: number;
-    paymentMethod: 'Efectivo' | 'Tarjeta';
-    status: 'Completada';
-}
+import type { PosSale } from '../page';
 
 const SALES_STORAGE_KEY = 'pos_sales';
 
@@ -42,6 +26,12 @@ const formatDate = (dateString: string) => {
         minute: '2-digit',
     });
 };
+
+const paymentIcons: {[key in PosSale['paymentMethod']]: React.ReactNode} = {
+    Efectivo: <Wallet className="h-4 w-4 text-muted-foreground" />,
+    Tarjeta: <CreditCard className="h-4 w-4 text-muted-foreground" />,
+    Crédito: <FileText className="h-4 w-4 text-muted-foreground" />,
+}
 
 export default function PosHistoryPage() {
     const [sales, setSales] = useState<PosSale[]>([]);
@@ -115,7 +105,7 @@ export default function PosHistoryPage() {
                                     <TableCell>{sale.customer?.name || 'Cliente General'}</TableCell>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
-                                            {sale.paymentMethod === 'Efectivo' ? <Wallet className="h-4 w-4 text-muted-foreground" /> : <CreditCard className="h-4 w-4 text-muted-foreground" />}
+                                            {paymentIcons[sale.paymentMethod]}
                                             <span>{sale.paymentMethod}</span>
                                         </div>
                                     </TableCell>
