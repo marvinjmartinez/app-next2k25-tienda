@@ -38,12 +38,11 @@ const generateProductImageFlow = ai.defineFlow(
     outputSchema: GenerateProductImageOutputSchema,
   },
   async (input) => {
-    // Llamada a la IA simplificada al máximo
     const {media} = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
       prompt: `Product photo, ${input.hint}, clean, studio lighting, white background.`,
       config: {
-        responseModalities: ['IMAGE'],
+        responseModalities: ['IMAGE', 'TEXT'],
         safetySettings: [
             {
                 category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
