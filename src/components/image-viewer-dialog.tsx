@@ -2,8 +2,9 @@
 "use client";
 
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { X } from 'lucide-react';
 
 interface ImageViewerDialogProps {
   images: string[];
@@ -42,6 +43,10 @@ export function ImageViewerDialog({ images, open, onOpenChange, productName }: I
             </>
           )}
         </Carousel>
+        <DialogClose className="absolute right-2 top-2 rounded-full p-2 text-white bg-black/30 hover:bg-black/50 transition-colors">
+            <X className="h-6 w-6" />
+            <span className="sr-only">Cerrar</span>
+        </DialogClose>
       </DialogContent>
     </Dialog>
   );
