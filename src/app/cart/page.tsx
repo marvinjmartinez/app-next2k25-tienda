@@ -68,6 +68,8 @@ export default function CartPage() {
       id: `COT-${Date.now().toString().slice(-4)}`,
       customerId: user.id,
       customerName: user.name,
+      salespersonId: (user.role === 'admin' || user.role === 'vendedor') ? user.id : undefined,
+      salespersonName: (user.role === 'admin' || user.role === 'vendedor') ? user.name : undefined,
       date: new Date().toISOString().split('T')[0],
       total: getSelectedItemsTotal(),
       status: 'Borrador',
@@ -164,10 +166,6 @@ export default function CartPage() {
                   <DropdownMenuItem onClick={() => router.push(getDashboardPath())}>
                       <LayoutDashboard className="mr-2 h-4 w-4" />
                       <span>Mi Panel</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Cerrar Sesión</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -321,6 +319,11 @@ export default function CartPage() {
           )}
         </div>
       </main>
+      <footer className="bg-foreground text-background">
+        <div className="container mx-auto flex h-16 items-center justify-center px-4 md:px-6">
+          <p className="text-center text-sm text-muted-foreground">© 2024 Distrimin SAS. Todos los derechos reservados.</p>
+        </div>
+      </footer>
     </div>
   );
 }

@@ -77,6 +77,7 @@ const initialDummyQuotes: Quote[] = [
       id: 'COT-001',
       customerName: 'Constructora Roble',
       customerId: 'user-roble',
+      salespersonName: 'Vendedor User',
       date: '2024-07-08',
       total: 15890.50,
       status: 'Pagada',
@@ -89,6 +90,7 @@ const initialDummyQuotes: Quote[] = [
       id: 'COT-002',
       customerName: 'Vendedor User',
       customerId: 'user-vendedor',
+      salespersonName: 'Admin User',
       date: '2024-07-10',
       total: 3250.00,
       status: 'Borrador',
@@ -102,6 +104,7 @@ const initialDummyQuotes: Quote[] = [
       id: 'COT-003',
       customerName: 'Proyectos Urbanos S.A.',
       customerId: 'user-urbanos',
+      salespersonName: 'Vendedor User',
       date: '2024-07-11',
       total: 78500.00,
       status: 'Enviada',
@@ -114,6 +117,7 @@ const initialDummyQuotes: Quote[] = [
       id: 'COT-004',
       customerName: 'Cliente Ejemplo',
       customerId: 'user-cliente',
+      salespersonName: 'Admin User',
       date: '2024-07-12',
       total: 890.00,
       status: 'Borrador',
@@ -233,6 +237,7 @@ export default function QuotesPage() {
                 <TableRow>
                   <TableHead># Cotización</TableHead>
                   <TableHead>Cliente</TableHead>
+                  <TableHead>Asesor</TableHead>
                   <TableHead>Fecha</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Total</TableHead>
@@ -244,6 +249,7 @@ export default function QuotesPage() {
                   <TableRow key={quote.id}>
                     <TableCell className="font-medium">{quote.id}</TableCell>
                     <TableCell>{quote.customerName}</TableCell>
+                    <TableCell>{quote.salespersonName || 'N/A'}</TableCell>
                     <TableCell>{formatDate(quote.date)}</TableCell>
                     <TableCell>
                       <Badge variant={statusBadges[quote.status] || 'outline'}>
@@ -305,7 +311,7 @@ export default function QuotesPage() {
                   </TableRow>
                 )) : (
                   <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
+                      <TableCell colSpan={7} className="h-24 text-center">
                           No hay cotizaciones para mostrar.
                       </TableCell>
                   </TableRow>

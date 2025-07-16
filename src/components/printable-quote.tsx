@@ -43,9 +43,17 @@ export function PrintableQuote({ quote }: PrintableQuoteProps) {
         </div>
       </header>
 
-      <section className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h3 className="font-semibold text-gray-700">Cliente:</h3>
-        <p className="font-bold text-lg">{quote.customerName}</p>
+      <section className="mt-6 p-4 bg-gray-50 rounded-lg flex justify-between">
+        <div>
+            <h3 className="font-semibold text-gray-700">Cliente:</h3>
+            <p className="font-bold text-lg">{quote.customerName}</p>
+        </div>
+        {quote.salespersonName && (
+            <div className="text-right">
+                <h3 className="font-semibold text-gray-700">Asesor:</h3>
+                <p>{quote.salespersonName}</p>
+            </div>
+        )}
       </section>
 
       <section className="mt-6">

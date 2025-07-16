@@ -17,8 +17,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Trash2, Search, Plus, Send, Save } from 'lucide-react';
 
 import type { Product } from '@/lib/dummy-data';
-import { getProducts, type PriceTiers } from '@/lib/dummy-data';
+import { getProducts } from '@/lib/dummy-data';
 import type { User as AuthUser, UserRole } from '@/context/auth-context';
+import { useAuth } from '@/context/auth-context';
 import usersData from '@/data/users.json';
 import { useCart } from '@/context/cart-context';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +35,8 @@ export interface Quote {
   id: string;
   customerId: string;
   customerName: string;
+  salespersonId?: string;
+  salespersonName?: string;
   date: string;
   total: number;
   status: 'Pagada' | 'Enviada' | 'Borrador' | 'Cancelada';
@@ -57,6 +60,7 @@ export default function CreateQuotePage() {
   
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { user: loggedInUser } = useAuth();
 
   const getPriceForCustomer = useCallback((product: Product, customerRole: UserRole) => {
     if (!product.priceTiers) {
@@ -178,12 +182,14 @@ export default function CreateQuotePage() {
   }
   
   const saveQuoteToLocalStorage = (status: 'Borrador' | 'Enviada') => {
-      if (!validateQuote() || !selectedCustomer) return;
+      if (!validateQuote() || !selectedCustomer || !loggedInUser) return;
 
       const quoteData: Quote = {
           id: isEditing ? editQuoteId! : `COT-${Date.now().toString().slice(-4)}`,
           customerId: selectedCustomerId!,
           customerName: selectedCustomer.name,
+          salespersonId: loggedInUser.id,
+          salespersonName: loggedInUser.name,
           date: new Date().toISOString().split('T')[0],
           total: quoteTotal,
           status,

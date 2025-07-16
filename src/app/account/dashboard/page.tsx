@@ -78,6 +78,7 @@ export default function AccountDashboardPage() {
                             <TableRow>
                                 <TableHead># Pedido</TableHead>
                                 <TableHead>Fecha</TableHead>
+                                <TableHead>Asesor</TableHead>
                                 <TableHead>Estado</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
                                 <TableHead className="text-right">Acciones</TableHead>
@@ -89,6 +90,7 @@ export default function AccountDashboardPage() {
                             <TableRow key={purchase.id}>
                                 <TableCell className="font-medium">{purchase.id}</TableCell>
                                 <TableCell>{formatDate(purchase.date)}</TableCell>
+                                <TableCell>{purchase.salespersonName || 'N/A'}</TableCell>
                                 <TableCell>
                                     <Badge variant={statusBadges[purchase.status] || 'outline'}>
                                         {purchase.status}
@@ -105,7 +107,7 @@ export default function AccountDashboardPage() {
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center h-24">
+                                <TableCell colSpan={6} className="text-center h-24">
                                     No has realizado ninguna compra todavía.
                                 </TableCell>
                             </TableRow>

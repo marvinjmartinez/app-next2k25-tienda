@@ -52,6 +52,8 @@ export default function CheckoutPage() {
           id: `COT-${Date.now().toString().slice(-4)}`,
           customerId: user.id,
           customerName: user.name,
+          salespersonId: (user.role === 'admin' || user.role === 'vendedor') ? user.id : undefined,
+          salespersonName: (user.role === 'admin' || user.role === 'vendedor') ? user.name : undefined,
           date: new Date().toISOString().split('T')[0],
           total: checkoutTotal,
           status: 'Pagada',
