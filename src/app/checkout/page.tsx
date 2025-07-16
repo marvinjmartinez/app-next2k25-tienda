@@ -17,6 +17,7 @@ import { useAuth, type UserRole } from '@/context/auth-context';
 import type { Quote } from '@/app/sales/create-quote/page';
 import { LogoTienda } from '@/components/logo-tienda';
 import type { Product } from '@/lib/dummy-data';
+import { getPriceForCustomer } from '@/lib/utils';
 
 export default function CheckoutPage() {
   const { getSelectedItems, getSelectedItemsTotal, clearCart } = useCart();
@@ -60,7 +61,7 @@ export default function CheckoutPage() {
           items: itemsForCheckout.map(item => ({
             id: item.id,
             name: item.name,
-            price: getPriceForCustomer(item, user.role),
+            price: getPriceForCustomer({ price: item.price } as Product, user.role),
             quantity: item.quantity,
             image: item.image,
             hint: '',
@@ -220,17 +221,3 @@ export default function CheckoutPage() {
     </div>
   );
 }
-
-const getPriceForCustomer = (product: { price: number; priceTiers?: Product['priceTiers'] }, role: UserRole) => {
-  if (!product.priceTiers) {
-    return product.price; // Fallback for items added before tiers
-  }
-  switch (role) {
-    case 'cliente_especial':
-      return product.priceTiers.tipo2;
-    case 'vendedor':
-      return product.priceTiers.tipo3;
-    default:
-      return product.priceTiers.tipo1;
-  }
-};

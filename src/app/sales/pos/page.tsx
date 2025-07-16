@@ -27,7 +27,7 @@ import { getProducts, categories } from '@/lib/dummy-data';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AuthUser } from '@/context/auth-context';
 import usersData from '@/data/users.json';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getPriceForCustomer } from '@/lib/utils';
 import { ProductCard } from '@/components/product-card';
 import { ImageViewerDialog } from '@/components/image-viewer-dialog';
 
@@ -94,6 +94,25 @@ export default function PosPage() {
         setAllUsers(loadUsers());
     }, []);
     
+    // Recalculate cart prices when customer changes
+    useEffect(() => {
+        if (!selectedCustomer || cart.length === 0) return;
+
+        setCart(prevCart => {
+            return prevCart.map(item => {
+                const productData = allProducts.find(p => p.id === item.id);
+                if (productData) {
+                    return {
+                        ...item,
+                        price: getPriceForCustomer(productData, selectedCustomer.role)
+                    };
+                }
+                return item;
+            });
+        });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedCustomer]);
+
     const handleAddNewUser = (newUser: AuthUser) => {
         const updatedUsers = [newUser, ...allUsers];
         setAllUsers(updatedUsers);
@@ -103,10 +122,10 @@ export default function PosPage() {
             registeredUsers.unshift(newUser);
             localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(registeredUsers));
         }
-        setSelectedCustomer(newUser); // Select the new customer automatically
+        setSelectedCustomer(newUser);
         toast({ title: "Cliente Creado", description: `${newUser.name} ha sido añadido y seleccionado.`});
-        setCreateCustomerModalOpen(false); // Close create modal
-        setCustomerModalOpen(false); // Close main customer modal
+        setCreateCustomerModalOpen(false);
+        setCustomerModalOpen(false);
     };
 
     const handleOpenImageViewer = (product: Product) => {
@@ -139,19 +158,20 @@ export default function PosPage() {
 
     const addToCart = useCallback((product: Product) => {
         setCart(prevCart => {
+            const price = getPriceForCustomer(product, selectedCustomer?.role || 'cliente');
             const existingItem = prevCart.find(item => item.id === product.id);
             if (existingItem) {
                 return prevCart.map(item =>
-                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                    item.id === product.id ? { ...item, quantity: item.quantity + 1, price } : item
                 );
             }
-            return [...prevCart, { ...product, quantity: 1 }];
+            return [...prevCart, { ...product, quantity: 1, price }];
         });
         toast({
             title: "Producto agregado",
             description: `${product.name} añadido a la venta.`,
         })
-    }, [toast]);
+    }, [toast, selectedCustomer]);
 
     const updateQuantity = (productId: string, quantity: number) => {
         if (quantity < 1) {
