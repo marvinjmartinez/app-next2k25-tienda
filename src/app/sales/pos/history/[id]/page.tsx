@@ -93,6 +93,9 @@ export default function SaleDetailPage() {
             <Separator className="my-2 border-dashed" />
             <div className="text-xs space-y-1">
                 <div className="flex justify-between"><span>Subtotal:</span><span>{formatCurrency(sale.subtotal)}</span></div>
+                {sale.shippingCost > 0 && (
+                     <div className="flex justify-between"><span>Envío:</span><span>{formatCurrency(sale.shippingCost)}</span></div>
+                )}
                 <div className="flex justify-between"><span>IVA (16%):</span><span>{formatCurrency(sale.tax)}</span></div>
                 <div className="flex justify-between font-bold text-sm"><span>TOTAL:</span><span>{formatCurrency(sale.total)}</span></div>
             </div>

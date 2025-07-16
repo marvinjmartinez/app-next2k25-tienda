@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Minus, Trash2, User, DollarSign, X, CreditCard, Wallet, FileText } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, User, DollarSign, X, CreditCard, Wallet, FileText, Truck } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
@@ -42,6 +42,7 @@ export interface PosSale {
     items: PosCartItem[];
     subtotal: number;
     tax: number;
+    shippingCost: number;
     total: number;
     paymentMethod: 'Efectivo' | 'Tarjeta' | 'Crédito';
     status: 'Completada';
@@ -58,6 +59,7 @@ export default function PosPage() {
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [selectedCustomer, setSelectedCustomer] = useState<AuthUser | null>(null);
     const [customerSearch, setCustomerSearch] = useState('');
+    const [shippingCost, setShippingCost] = useState<number | string>('');
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
     const [amountReceived, setAmountReceived] = useState<number | string>('');
     const [paymentMethod, setPaymentMethod] = useState<PosSale['paymentMethod']>('Efectivo');
@@ -123,7 +125,11 @@ export default function PosPage() {
     
     const subtotal = useMemo(() => cart.reduce((acc, item) => acc + item.price * item.quantity, 0), [cart]);
     const tax = useMemo(() => subtotal * 0.16, [subtotal]);
-    const total = useMemo(() => subtotal + tax, [subtotal, tax]);
+    const numericShippingCost = useMemo(() => {
+        const cost = typeof shippingCost === 'number' ? shippingCost : parseFloat(shippingCost);
+        return isNaN(cost) ? 0 : cost;
+    }, [shippingCost]);
+    const total = useMemo(() => subtotal + tax + numericShippingCost, [subtotal, tax, numericShippingCost]);
 
     const change = useMemo(() => {
         if (paymentMethod !== 'Efectivo') return 0;
@@ -140,6 +146,7 @@ export default function PosPage() {
             items: cart,
             subtotal,
             tax,
+            shippingCost: numericShippingCost,
             total,
             paymentMethod,
             status: 'Completada',
@@ -162,6 +169,7 @@ export default function PosPage() {
         setCart([]);
         setSelectedCustomer(null);
         setCustomerSearch('');
+        setShippingCost('');
         setAmountReceived('');
         setPaymentMethod('Efectivo');
         setPaymentModalOpen(false);
@@ -286,11 +294,29 @@ export default function PosPage() {
                                 </TableBody>
                             </Table>
                         </ScrollArea>
-                            <Separator />
-
+                        <Separator />
+                        
                         <div className="space-y-2">
-                            <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-                            <div className="flex justify-between"><span className="text-muted-foreground">IVA (16%)</span><span>{formatCurrency(tax)}</span></div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">Subtotal</span>
+                                <span>{formatCurrency(subtotal)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-muted-foreground">IVA (16%)</span>
+                                <span>{formatCurrency(tax)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm">
+                                <Label htmlFor="shipping" className="text-muted-foreground flex items-center gap-2"><Truck className="h-4 w-4" />Costo de Envío</Label>
+                                <Input 
+                                    id="shipping"
+                                    type="number"
+                                    className="w-24 h-8 text-right"
+                                    placeholder="0.00"
+                                    value={shippingCost}
+                                    onChange={(e) => setShippingCost(e.target.value)}
+                                />
+                            </div>
+                            <Separator />
                             <div className="flex justify-between text-xl font-bold"><span >Total</span><span>{formatCurrency(total)}</span></div>
                         </div>
                     </CardContent>
