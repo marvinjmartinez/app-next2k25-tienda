@@ -174,7 +174,7 @@ export default function PosPage() {
                         </CardHeader>
                         <CardContent>
                             <ScrollArea className="h-[65vh]">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pr-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 pr-4">
                                     {filteredProducts.map(p => (
                                         <ProductCard 
                                             key={p.id}
@@ -362,8 +362,8 @@ export default function PosPage() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{productDetail?.name}</DialogTitle>
-                        <DialogDescription className="pt-2 text-base text-foreground">
-                            {productDetail?.description || "Este producto no tiene una descripción detallada."}
+                        <DialogDescription className="pt-2">
+                           {productDetail?.description || "Este producto no tiene una descripción detallada."}
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter>

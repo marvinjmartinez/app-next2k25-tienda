@@ -2,11 +2,10 @@
 "use client";
 
 import Image from 'next/image';
-import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Maximize } from 'lucide-react';
+import { ShoppingCart, Maximize, FileText } from 'lucide-react';
 import { Product } from '@/lib/dummy-data';
 import { cn } from '@/lib/utils';
 
@@ -43,13 +42,22 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
             priority={product.featured}
           />
       </CardHeader>
-      <CardContent className="p-3 flex-grow">
-        <Link href={`/products/${product.id}`} passHref>
-          <CardTitle as="a" className="text-sm h-10 leading-tight font-medium hover:text-primary cursor-pointer">{product.name}</CardTitle>
-        </Link>
-        <CardDescription className="text-primary font-semibold text-base mt-1">${product.price.toFixed(2)}</CardDescription>
+      <CardContent className="p-3 flex-grow flex flex-col">
+          <p className="text-sm font-medium h-10 leading-tight hover:text-primary">{product.name}</p>
+          <p className="text-primary font-semibold text-base mt-auto pt-2">${product.price.toFixed(2)}</p>
       </CardContent>
-      <CardFooter className="p-3 pt-0">
+      <CardFooter className="p-3 pt-0 flex gap-2">
+        {onViewDetails && (
+            <Button
+                variant="outline"
+                className="w-full h-8"
+                size="sm"
+                onClick={() => onViewDetails(product)}
+            >
+                <FileText className="mr-2 h-4 w-4" />
+                Detalle
+            </Button>
+        )}
         <Button
           className="w-full h-8"
           size="sm"
