@@ -15,6 +15,10 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  type?: 'natural' | 'empresa';
+  identification?: string;
+  phone?: string;
+  address?: string;
 }
 
 // Usuarios de ejemplo
@@ -113,6 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               name,
               email,
               role: 'cliente', // Por defecto se registran como clientes
+              type: 'natural',
           };
 
           registeredUsers.push(newUser);

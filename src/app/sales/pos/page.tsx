@@ -6,11 +6,10 @@ import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Minus, Trash2, User, DollarSign, X, CreditCard, Wallet, FileText, Truck } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, User, DollarSign, X, CreditCard, Wallet, FileText, Truck, Building, UserPlus } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
@@ -48,31 +47,65 @@ export interface PosSale {
     status: 'Completada';
 }
 
-const dummyCustomers: AuthUser[] = usersData as AuthUser[];
+const USERS_STORAGE_KEY = 'registered_users';
 const SALES_STORAGE_KEY = 'pos_sales';
+
+const loadUsers = (): AuthUser[] => {
+    if (typeof window === 'undefined') {
+        return usersData as AuthUser[];
+    }
+    const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+    const registeredUsers = storedUsers ? JSON.parse(storedUsers) : [];
+    // Combine initial data with registered data, ensuring no duplicates
+    const allUsers = [...(usersData as AuthUser[])];
+    const registeredUserIds = new Set(allUsers.map(u => u.id));
+    for (const regUser of registeredUsers) {
+        if (!registeredUserIds.has(regUser.id)) {
+            allUsers.push(regUser);
+        }
+    }
+    return allUsers;
+};
 
 export default function PosPage() {
     const { toast } = useToast();
     const [allProducts, setAllProducts] = useState<Product[]>([]);
+    const [allUsers, setAllUsers] = useState<AuthUser[]>([]);
     const [cart, setCart] = useState<PosCartItem[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [selectedCustomer, setSelectedCustomer] = useState<AuthUser | null>(null);
-    const [customerSearch, setCustomerSearch] = useState('');
     const [shippingCost, setShippingCost] = useState<number | string>('');
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
+    const [isCustomerModalOpen, setCustomerModalOpen] = useState(false);
+    const [isCreateCustomerModalOpen, setCreateCustomerModalOpen] = useState(false);
+    const [customerSearch, setCustomerSearch] = useState('');
     const [amountReceived, setAmountReceived] = useState<number | string>('');
     const [paymentMethod, setPaymentMethod] = useState<PosSale['paymentMethod']>('Efectivo');
     const [isViewerOpen, setIsViewerOpen] = useState(false);
     const [viewerImages, setViewerImages] = useState<string[]>([]);
     const [viewerProductName, setViewerProductName] = useState('');
     const [productDetail, setProductDetail] = useState<Product | null>(null);
-    const [isCustomerPopoverOpen, setIsCustomerPopoverOpen] = useState(false);
-
 
     useEffect(() => {
         setAllProducts(getProducts());
+        setAllUsers(loadUsers());
     }, []);
+    
+    const handleAddNewUser = (newUser: AuthUser) => {
+        const updatedUsers = [newUser, ...allUsers];
+        setAllUsers(updatedUsers);
+        if (typeof window !== 'undefined') {
+            const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
+            const registeredUsers = storedUsers ? JSON.parse(storedUsers) : [];
+            registeredUsers.unshift(newUser);
+            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(registeredUsers));
+        }
+        setSelectedCustomer(newUser); // Select the new customer automatically
+        toast({ title: "Cliente Creado", description: `${newUser.name} ha sido añadido y seleccionado.`});
+        setCreateCustomerModalOpen(false); // Close create modal
+        setCustomerModalOpen(false); // Close main customer modal
+    };
 
     const handleOpenImageViewer = (product: Product) => {
         setViewerImages([product.image, ...(product.gallery || [])]);
@@ -94,9 +127,12 @@ export default function PosPage() {
     }, [searchQuery, categoryFilter, allProducts]);
     
     const filteredCustomers = useMemo(() => {
-        if (!customerSearch) return dummyCustomers.slice(0, 10);
-        return dummyCustomers.filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()));
-    }, [customerSearch]);
+        if (!customerSearch) return allUsers;
+        return allUsers.filter(c => 
+            c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
+            (c.identification && c.identification.toLowerCase().includes(customerSearch.toLowerCase()))
+        );
+    }, [customerSearch, allUsers]);
 
 
     const addToCart = useCallback((product: Product) => {
@@ -237,34 +273,16 @@ export default function PosPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="relative">
-                            <Popover open={isCustomerPopoverOpen} onOpenChange={setIsCustomerPopoverOpen}>
-                                <PopoverTrigger asChild>
-                                    <Button variant="outline" className="w-full justify-start text-left font-normal pr-8">
-                                        <User className="mr-2 h-4 w-4" />
-                                        <span className="truncate">{selectedCustomer ? selectedCustomer.name : "Cliente General"}</span>
-                                    </Button>
-                                </PopoverTrigger>
-                                {selectedCustomer && (
-                                    <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setSelectedCustomer(null)}>
-                                        <X className="h-4 w-4"/>
-                                        <span className="sr-only">Quitar cliente</span>
-                                    </Button>
-                                )}
-                                <PopoverContent className="w-80 p-0">
-                                    <div className="p-2 border-b">
-                                            <Input placeholder="Buscar cliente..." value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} />
-                                    </div>
-                                    <ScrollArea className="h-60">
-                                        {filteredCustomers.map(c => (
-                                        <div key={c.id} className="p-2 hover:bg-muted cursor-pointer text-sm" onClick={() => { setSelectedCustomer(c); setCustomerSearch(''); setIsCustomerPopoverOpen(false); }}>
-                                            <p className="font-medium">{c.name}</p>
-                                            <p className="text-xs text-muted-foreground">{c.email}</p>
-                                        </div>
-                                        ))}
-                                        {filteredCustomers.length === 0 && <p className="p-4 text-center text-sm text-muted-foreground">No se encontraron clientes</p>}
-                                    </ScrollArea>
-                                </PopoverContent>
-                            </Popover>
+                           <Button onClick={() => setCustomerModalOpen(true)} variant="outline" className="w-full justify-start text-left font-normal pr-8">
+                               <User className="mr-2 h-4 w-4" />
+                               <span className="truncate">{selectedCustomer ? selectedCustomer.name : "Cliente General"}</span>
+                           </Button>
+                           {selectedCustomer && (
+                                <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setSelectedCustomer(null)}>
+                                    <X className="h-4 w-4"/>
+                                    <span className="sr-only">Quitar cliente</span>
+                                </Button>
+                            )}
                         </div>
                         <Separator />
                         
@@ -403,7 +421,63 @@ export default function PosPage() {
                 </DialogContent>
             </Dialog>
 
-                <ImageViewerDialog
+            <Dialog open={isCustomerModalOpen} onOpenChange={setCustomerModalOpen}>
+                <DialogContent className="max-w-3xl">
+                    <DialogHeader>
+                        <DialogTitle>Seleccionar Cliente</DialogTitle>
+                        <DialogDescription>Busca un cliente existente o crea uno nuevo.</DialogDescription>
+                    </DialogHeader>
+                    <div className="flex gap-4 items-center pt-4">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input placeholder="Buscar por nombre o identificación..." className="pl-10" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} />
+                        </div>
+                        <Button onClick={() => setCreateCustomerModalOpen(true)}>
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Crear Cliente
+                        </Button>
+                    </div>
+                    <ScrollArea className="h-96 mt-4 border rounded-lg">
+                        <Table>
+                             <TableHeader className="sticky top-0 bg-muted">
+                                <TableRow>
+                                    <TableHead>Identificación</TableHead>
+                                    <TableHead>Nombre</TableHead>
+                                    <TableHead>Tipo</TableHead>
+                                    <TableHead></TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {filteredCustomers.map(c => (
+                                    <TableRow key={c.id}>
+                                        <TableCell className="font-mono text-xs">{c.identification || 'N/A'}</TableCell>
+                                        <TableCell>
+                                            <div className="font-medium">{c.name}</div>
+                                            <div className="text-xs text-muted-foreground">{c.email}</div>
+                                        </TableCell>
+                                        <TableCell className="capitalize">{c.type}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button size="sm" onClick={() => { setSelectedCustomer(c); setCustomerModalOpen(false); }}>Seleccionar</Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                         {filteredCustomers.length === 0 && <p className="text-center text-sm text-muted-foreground p-8">No se encontraron clientes.</p>}
+                    </ScrollArea>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isCreateCustomerModalOpen} onOpenChange={setCreateCustomerModalOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Crear Nuevo Cliente</DialogTitle>
+                    </DialogHeader>
+                    <CreateCustomerForm onCustomerCreated={handleAddNewUser} />
+                </DialogContent>
+            </Dialog>
+
+            <ImageViewerDialog
                 open={isViewerOpen}
                 onOpenChange={setIsViewerOpen}
                 images={viewerImages}
@@ -423,5 +497,72 @@ export default function PosPage() {
                 </DialogContent>
             </Dialog>
         </>
+    );
+}
+
+function CreateCustomerForm({ onCustomerCreated }: { onCustomerCreated: (user: AuthUser) => void }) {
+    const [customerType, setCustomerType] = useState<'natural' | 'empresa'>('natural');
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const name = customerType === 'natural'
+            ? `${formData.get('firstName')} ${formData.get('lastName')}`
+            : formData.get('companyName');
+
+        const newUser: AuthUser = {
+            id: `user_${Date.now()}`,
+            name: name as string,
+            email: formData.get('email') as string,
+            role: 'cliente',
+            type: customerType,
+            identification: formData.get('identification') as string,
+            phone: formData.get('phone') as string,
+            address: formData.get('address') as string,
+        };
+        onCustomerCreated(newUser);
+    }
+    
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <RadioGroup defaultValue="natural" onValueChange={(value: 'natural' | 'empresa') => setCustomerType(value)} className="grid grid-cols-2 gap-4">
+                <div>
+                    <RadioGroupItem value="natural" id="natural" className="peer sr-only" />
+                    <Label htmlFor="natural" className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                        <User className="h-5 w-5" />
+                        Persona Natural
+                    </Label>
+                </div>
+                 <div>
+                    <RadioGroupItem value="empresa" id="empresa" className="peer sr-only" />
+                    <Label htmlFor="empresa" className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                        <Building className="h-5 w-5" />
+                        Empresa
+                    </Label>
+                </div>
+            </RadioGroup>
+
+            {customerType === 'natural' ? (
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1"><Label htmlFor="firstName">Nombres</Label><Input id="firstName" name="firstName" required/></div>
+                    <div className="space-y-1"><Label htmlFor="lastName">Apellidos</Label><Input id="lastName" name="lastName" required/></div>
+                </div>
+            ) : (
+                <div className="space-y-1"><Label htmlFor="companyName">Razón Social</Label><Input id="companyName" name="companyName" required/></div>
+            )}
+            
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1"><Label htmlFor="identification">Identificación (Cédula/RUC)</Label><Input id="identification" name="identification" required/></div>
+                <div className="space-y-1"><Label htmlFor="email">Correo Electrónico</Label><Input id="email" name="email" type="email" required/></div>
+            </div>
+             <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1"><Label htmlFor="phone">Teléfono</Label><Input id="phone" name="phone" required/></div>
+                <div className="space-y-1"><Label htmlFor="address">Dirección</Label><Input id="address" name="address" required/></div>
+            </div>
+             <DialogFooter className="pt-4">
+                <DialogClose asChild><Button variant="outline">Cancelar</Button></DialogClose>
+                <Button type="submit">Guardar Cliente</Button>
+            </DialogFooter>
+        </form>
     );
 }

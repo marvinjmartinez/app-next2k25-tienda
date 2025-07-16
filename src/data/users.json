@@ -6,7 +6,11 @@
     "email": "sistemas@distrimin.com",
     "role": "admin",
     "since": "2020-01-01",
-    "status": "activo"
+    "status": "activo",
+    "type": "natural",
+    "identification": "123456789-0",
+    "phone": "55-5555-5555",
+    "address": "Oficina Central, Ciudad Ejemplo"
   },
   {
     "id": "user-vendedor",
@@ -14,7 +18,11 @@
     "email": "vendedor@distrimin.com",
     "role": "vendedor",
     "since": "2023-01-20",
-    "status": "activo"
+    "status": "activo",
+    "type": "natural",
+    "identification": "987654321-0",
+    "phone": "55-5555-5556",
+    "address": "Sucursal Norte, Ciudad Ejemplo"
   },
   {
     "id": "user-cliente",
@@ -22,7 +30,11 @@
     "email": "cliente@distrimin.com",
     "role": "cliente",
     "since": "2024-03-10",
-    "status": "inactivo"
+    "status": "inactivo",
+    "type": "natural",
+    "identification": "112233445-5",
+    "phone": "55-1234-5678",
+    "address": "Calle Falsa 123, Ciudad Ejemplo"
   },
   {
     "id": "user-roble",
@@ -30,7 +42,11 @@
     "email": "compras@constructoraroble.com",
     "role": "cliente_especial",
     "since": "2021-08-15",
-    "status": "activo"
+    "status": "activo",
+    "type": "empresa",
+    "identification": "CR-ROBLE-85",
+    "phone": "55-8765-4321",
+    "address": "Parque Industrial Roble Lote 15"
   },
   {
     "id": "user-urbanos",
@@ -38,6 +54,10 @@
     "email": "proyectos@urbanos.com",
     "role": "cliente_especial",
     "since": "2020-05-30",
-    "status": "activo"
+    "status": "activo",
+    "type": "empresa",
+    "identification": "PU-URBANOS-20",
+    "phone": "55-4321-8765",
+    "address": "Torre Corporativa, Piso 10"
   }
 ]
