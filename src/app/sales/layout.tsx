@@ -165,6 +165,16 @@ export default function SalesLayout({
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
+            <SidebarFooter>
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton onClick={logout} tooltip="Cerrar Sesión">
+                            <LogOut />
+                            <span>Cerrar Sesión</span>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+            </SidebarFooter>
         </Sidebar>
         <SidebarInset>
             <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
@@ -193,10 +203,6 @@ export default function SalesLayout({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => router.push('/')}>
                       <span>Ir a la tienda</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={logout}>
-                        <LogOut className="mr-2 h-4 w-4" />
-                        <span>Cerrar Sesión</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
