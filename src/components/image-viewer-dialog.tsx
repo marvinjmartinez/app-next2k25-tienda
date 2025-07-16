@@ -2,9 +2,10 @@
 "use client";
 
 import Image from 'next/image';
-import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { X } from 'lucide-react';
+import * as DialogPrimitive from "@radix-ui/react-dialog";
 
 interface ImageViewerDialogProps {
   images: string[];
@@ -43,7 +44,7 @@ export function ImageViewerDialog({ images, open, onOpenChange, productName }: I
             </>
           )}
         </Carousel>
-        <DialogPrimitive.Close className="absolute right-2 top-2 rounded-full p-2 text-white bg-black/30 hover:bg-black/50 transition-colors opacity-70 hover:opacity-100 ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+        <DialogPrimitive.Close className="absolute right-2 top-2 rounded-sm p-1 opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-secondary data-[state=open]:text-muted-foreground text-white bg-black/30 hover:bg-black/50">
             <X className="h-6 w-6" />
             <span className="sr-only">Cerrar</span>
         </DialogPrimitive.Close>
@@ -51,6 +52,3 @@ export function ImageViewerDialog({ images, open, onOpenChange, productName }: I
     </Dialog>
   );
 }
-
-// Re-importing to fix the issue
-import * as DialogPrimitive from "@radix-ui/react-dialog"
