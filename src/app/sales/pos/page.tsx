@@ -26,7 +26,6 @@ import type { Product } from '@/lib/dummy-data';
 import { getProducts, categories } from '@/lib/dummy-data';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AuthUser } from '@/context/auth-context';
-import usersData from '@/data/users.json';
 import { formatCurrency, getPriceForCustomer } from '@/lib/utils';
 import { ProductCard } from '@/components/product-card';
 import { ImageViewerDialog } from '@/components/image-viewer-dialog';
@@ -48,31 +47,21 @@ export interface PosSale {
     status: 'Completada';
 }
 
-const USERS_STORAGE_KEY = 'registered_users';
+const POS_CUSTOMERS_KEY = 'pos_customers';
 const SALES_STORAGE_KEY = 'pos_sales';
 
+
 const loadUsers = (): AuthUser[] => {
-    if (typeof window === 'undefined') {
-        return usersData as AuthUser[];
-    }
-    const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-    const registeredUsers = storedUsers ? JSON.parse(storedUsers) : [];
-    // Combine initial data with registered data, ensuring no duplicates
-    const allUsers = [...(usersData as AuthUser[])];
-    const registeredUserIds = new Set(allUsers.map(u => u.id));
-    for (const regUser of registeredUsers) {
-        if (!registeredUserIds.has(regUser.id)) {
-            allUsers.push(regUser);
-        }
-    }
-    return allUsers;
+    if (typeof window === 'undefined') return [];
+    const storedUsers = localStorage.getItem(POS_CUSTOMERS_KEY);
+    return storedUsers ? JSON.parse(storedUsers) : [];
 };
 
 export default function PosPage() {
     const { toast } = useToast();
     const router = useRouter();
     const [allProducts, setAllProducts] = useState<Product[]>([]);
-    const [allUsers, setAllUsers] = useState<AuthUser[]>([]);
+    const [allCustomers, setAllCustomers] = useState<AuthUser[]>([]);
     const [cart, setCart] = useState<PosCartItem[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
@@ -91,7 +80,7 @@ export default function PosPage() {
 
     useEffect(() => {
         setAllProducts(getProducts());
-        setAllUsers(loadUsers());
+        setAllCustomers(loadUsers());
     }, []);
     
     // Recalculate cart prices when customer changes
@@ -114,13 +103,10 @@ export default function PosPage() {
     }, [selectedCustomer]);
 
     const handleAddNewUser = (newUser: AuthUser) => {
-        const updatedUsers = [newUser, ...allUsers];
-        setAllUsers(updatedUsers);
+        const updatedUsers = [newUser, ...allCustomers];
+        setAllCustomers(updatedUsers);
         if (typeof window !== 'undefined') {
-            const storedUsers = localStorage.getItem(USERS_STORAGE_KEY);
-            const registeredUsers = storedUsers ? JSON.parse(storedUsers) : [];
-            registeredUsers.unshift(newUser);
-            localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(registeredUsers));
+            localStorage.setItem(POS_CUSTOMERS_KEY, JSON.stringify(updatedUsers));
         }
         setSelectedCustomer(newUser);
         toast({ title: "Cliente Creado", description: `${newUser.name} ha sido añadido y seleccionado.`});
@@ -148,12 +134,12 @@ export default function PosPage() {
     }, [searchQuery, categoryFilter, allProducts]);
     
     const filteredCustomers = useMemo(() => {
-        if (!customerSearch) return allUsers;
-        return allUsers.filter(c => 
+        if (!customerSearch) return allCustomers;
+        return allCustomers.filter(c => 
             c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
             (c.identification && c.identification.toLowerCase().includes(customerSearch.toLowerCase()))
         );
-    }, [customerSearch, allUsers]);
+    }, [customerSearch, allCustomers]);
 
 
     const addToCart = useCallback((product: Product) => {
