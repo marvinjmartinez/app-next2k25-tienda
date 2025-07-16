@@ -7,12 +7,14 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Minus, Trash2, User, DollarSign, X } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, User, DollarSign, X, CreditCard, Wallet } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Label } from "@/components/ui/label"
 
 import type { Product } from '@/lib/dummy-data';
 import { getProducts } from '@/lib/dummy-data';
@@ -27,7 +29,7 @@ interface PosCartItem extends Product {
     quantity: number;
 }
 
-interface PosSale {
+export interface PosSale {
     id: string;
     date: string;
     customer?: { id: string; name: string };
@@ -35,6 +37,7 @@ interface PosSale {
     subtotal: number;
     tax: number;
     total: number;
+    paymentMethod: 'Efectivo' | 'Tarjeta';
     status: 'Completada';
 }
 
@@ -50,6 +53,7 @@ export default function PosPage() {
     const [customerSearch, setCustomerSearch] = useState('');
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
     const [amountReceived, setAmountReceived] = useState<number | string>('');
+    const [paymentMethod, setPaymentMethod] = useState<'Efectivo' | 'Tarjeta'>('Efectivo');
     const [isViewerOpen, setIsViewerOpen] = useState(false);
     const [viewerImages, setViewerImages] = useState<string[]>([]);
     const [viewerProductName, setViewerProductName] = useState('');
@@ -106,10 +110,11 @@ export default function PosPage() {
     const total = useMemo(() => subtotal + tax, [subtotal, tax]);
 
     const change = useMemo(() => {
+        if (paymentMethod === 'Tarjeta') return 0;
         const received = typeof amountReceived === 'number' ? amountReceived : parseFloat(amountReceived);
         if (isNaN(received)) return 0;
         return received >= total ? received - total : 0;
-    }, [amountReceived, total]);
+    }, [amountReceived, total, paymentMethod]);
 
     const handleConfirmSale = () => {
         const newSale: PosSale = {
@@ -120,6 +125,7 @@ export default function PosPage() {
             subtotal,
             tax,
             total,
+            paymentMethod,
             status: 'Completada',
         };
 
@@ -141,6 +147,7 @@ export default function PosPage() {
         setSelectedCustomer(null);
         setCustomerSearch('');
         setAmountReceived('');
+        setPaymentMethod('Efectivo');
         setPaymentModalOpen(false);
     };
 
@@ -148,9 +155,9 @@ export default function PosPage() {
         <>
             <div className="space-y-6">
                 <PageHeader title="Punto de Venta" description="Realiza ventas rápidas y gestiona transacciones en tiempo real." />
-                <div className="grid md:grid-cols-3 gap-8 items-start">
+                <div className="grid md:grid-cols-3 lg:grid-cols-[1fr_400px] gap-8 items-start">
                     {/* Center Column: Product Search and Results */}
-                    <div className="md:col-span-2 space-y-4">
+                    <div className="md:col-span-2 lg:col-span-1 space-y-4">
                         <Card>
                             <CardHeader>
                                 <div className="relative">
@@ -281,25 +288,45 @@ export default function PosPage() {
                             <p className="text-muted-foreground">Total a Pagar</p>
                             <p className="text-4xl font-bold">{formatCurrency(total)}</p>
                         </div>
-                        <div className="space-y-2">
-                            <label htmlFor="amount-received">Monto Recibido</label>
-                             <Input 
-                                id="amount-received" 
-                                type="number" 
-                                placeholder="Ej: 500.00" 
-                                value={amountReceived}
-                                onChange={(e) => setAmountReceived(e.target.value === '' ? '' : parseFloat(e.target.value))}
-                                className="text-center text-lg h-12"
-                             />
-                        </div>
-                        <div className="text-center">
-                            <p className="text-muted-foreground">Cambio</p>
-                            <p className="text-2xl font-semibold text-primary">{formatCurrency(change)}</p>
-                        </div>
+                        <RadioGroup defaultValue="Efectivo" className="grid grid-cols-2 gap-4" onValueChange={(value: 'Efectivo' | 'Tarjeta') => setPaymentMethod(value)}>
+                            <div>
+                                <RadioGroupItem value="Efectivo" id="cash" className="peer sr-only" />
+                                <Label htmlFor="cash" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <Wallet className="mb-3 h-6 w-6" />
+                                    Efectivo
+                                </Label>
+                            </div>
+                            <div>
+                                <RadioGroupItem value="Tarjeta" id="card" className="peer sr-only" />
+                                <Label htmlFor="card" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                    <CreditCard className="mb-3 h-6 w-6" />
+                                    Tarjeta
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                         {paymentMethod === 'Efectivo' && (
+                            <div className="space-y-2">
+                                <Label htmlFor="amount-received">Monto Recibido</Label>
+                                <Input 
+                                    id="amount-received" 
+                                    type="number" 
+                                    placeholder="Ej: 500.00" 
+                                    value={amountReceived}
+                                    onChange={(e) => setAmountReceived(e.target.value === '' ? '' : parseFloat(e.target.value))}
+                                    className="text-center text-lg h-12"
+                                />
+                            </div>
+                         )}
+                        {paymentMethod === 'Efectivo' && (
+                             <div className="text-center">
+                                <p className="text-muted-foreground">Cambio</p>
+                                <p className="text-2xl font-semibold text-primary">{formatCurrency(change)}</p>
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setPaymentModalOpen(false)}>Cancelar</Button>
-                        <Button onClick={handleConfirmSale} disabled={Number(amountReceived) < total}>Confirmar Venta</Button>
+                        <Button onClick={handleConfirmSale} disabled={paymentMethod === 'Efectivo' && Number(amountReceived) < total}>Confirmar Venta</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

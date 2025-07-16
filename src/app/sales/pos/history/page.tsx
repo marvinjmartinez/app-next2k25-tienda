@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MoreHorizontal, Search, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MoreHorizontal, Search, Eye, ChevronLeft, ChevronRight, CreditCard, Wallet } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -27,6 +27,7 @@ interface PosSale {
     subtotal: number;
     tax: number;
     total: number;
+    paymentMethod: 'Efectivo' | 'Tarjeta';
     status: 'Completada';
 }
 
@@ -62,7 +63,7 @@ export default function PosHistoryPage() {
     const filteredSales = useMemo(() => {
         return sales.filter(sale => 
             sale.id.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            sale.customer?.name.toLowerCase().includes(searchQuery.toLowerCase())
+            (sale.customer?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [sales, searchQuery]);
     
@@ -101,6 +102,7 @@ export default function PosHistoryPage() {
                                 <TableHead># Venta</TableHead>
                                 <TableHead>Fecha</TableHead>
                                 <TableHead>Cliente</TableHead>
+                                <TableHead>Pago</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
                                 <TableHead className="text-right">Acciones</TableHead>
                             </TableRow>
@@ -111,6 +113,12 @@ export default function PosHistoryPage() {
                                     <TableCell className="font-medium">{sale.id}</TableCell>
                                     <TableCell>{formatDate(sale.date)}</TableCell>
                                     <TableCell>{sale.customer?.name || 'Cliente General'}</TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            {sale.paymentMethod === 'Efectivo' ? <Wallet className="h-4 w-4 text-muted-foreground" /> : <CreditCard className="h-4 w-4 text-muted-foreground" />}
+                                            <span>{sale.paymentMethod}</span>
+                                        </div>
+                                    </TableCell>
                                     <TableCell className="text-right">{formatCurrency(sale.total)}</TableCell>
                                     <TableCell className="text-right">
                                         <Button asChild variant="ghost" size="icon">
@@ -123,7 +131,7 @@ export default function PosHistoryPage() {
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">No se encontraron ventas.</TableCell>
+                                    <TableCell colSpan={6} className="h-24 text-center">No se encontraron ventas.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>
@@ -163,4 +171,3 @@ export default function PosHistoryPage() {
         </div>
     );
 }
-

@@ -17,21 +17,8 @@ import { Badge } from '@/components/ui/badge';
 
 import type { Product } from '@/lib/dummy-data';
 import { formatCurrency } from '@/lib/utils';
+import { PosSale } from '../page';
 
-interface PosCartItem extends Product {
-    quantity: number;
-}
-
-interface PosSale {
-    id: string;
-    date: string;
-    customer?: { id: string; name: string };
-    items: PosCartItem[];
-    subtotal: number;
-    tax: number;
-    total: number;
-    status: 'Completada';
-}
 
 const SALES_STORAGE_KEY = 'pos_sales';
 
@@ -82,6 +69,7 @@ export default function SaleDetailPage() {
                 <p>Venta: {sale.id}</p>
                 <p>Fecha: {formatDate(sale.date)}</p>
                 <p>Cliente: {sale.customer?.name || 'Cliente General'}</p>
+                <p>Forma de Pago: {sale.paymentMethod}</p>
             </div>
             <Separator className="my-2 border-dashed" />
             <table className="w-full text-xs">
