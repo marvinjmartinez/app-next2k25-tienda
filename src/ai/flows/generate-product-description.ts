@@ -42,7 +42,8 @@ Genera una descripción de entre 40 y 60 palabras que sea:
 - Informativa: Describe sus características, materiales y usos principales.
 - Profesional: Usa un tono adecuado para una ferretería.
 
-Devuelve únicamente la descripción en un solo párrafo continuo, sin ningún otro texto o formato.
+Formatea tu respuesta como un objeto JSON con el campo "description", así:
+{ "description": "Tu descripción aquí..." }
 `,
 });
 
