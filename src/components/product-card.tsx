@@ -46,7 +46,7 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
           <p className="text-sm font-medium h-10 leading-tight hover:text-primary">{product.name}</p>
           <p className="text-primary font-semibold text-base mt-auto pt-2">${product.price.toFixed(2)}</p>
       </CardContent>
-      <CardFooter className="p-3 pt-0 flex gap-2">
+      <CardFooter className="p-3 pt-0 flex flex-col gap-2 items-stretch">
         {onViewDetails && (
             <Button
                 variant="outline"
