@@ -123,16 +123,24 @@ export default function CartPage() {
   }
 
   const handlePrint = () => {
-    const selected = getSelectedItems();
-    if (selected.length === 0) {
+    let itemsForPrinting: CartItem[] = getSelectedItems();
+    let totalForPrinting: number = getSelectedItemsTotal();
+    
+    // If no items are selected, print all items in the cart
+    if (itemsForPrinting.length === 0 && cartItems.length > 0) {
+        itemsForPrinting = cartItems;
+        totalForPrinting = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+    }
+
+    if (itemsForPrinting.length === 0) {
         toast({
             variant: "destructive",
-            title: "No hay productos seleccionados",
-            description: "Por favor, selecciona los productos que deseas imprimir.",
+            title: "Carrito vacío",
+            description: "No hay productos en el carrito para imprimir.",
         });
         return;
     }
-    setItemsToPrint(selected);
+    setItemsToPrint(itemsForPrinting);
     setTimeout(() => {
         window.print();
         setItemsToPrint(null);
@@ -166,31 +174,13 @@ export default function CartPage() {
                 </Link>
             </Button>
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src="https://placehold.co/40x40.png" alt={user.name} data-ai-hint="person portrait" />
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">
-                        {user.email}
-                      </p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push(getDashboardPath())}>
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
-                      <span>Mi Panel</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center gap-2">
+                <div className="text-right">
+                    <span className="text-sm font-medium block">{user.name}</span>
+                    <span className="text-xs text-muted-foreground">{user.email}</span>
+                </div>
+                <User className="h-5 w-5 text-muted-foreground" />
+              </div>
             ) : (
                 <Link href="/login">
                     <Button>
@@ -331,9 +321,9 @@ export default function CartPage() {
                             <Link href="/login">Iniciar Sesión para Pagar</Link>
                         </Button>
                     )}
-                    <Button variant="secondary" className="w-full" onClick={handlePrint} disabled={getSelectedItems().length === 0}>
+                    <Button variant="secondary" className="w-full" onClick={handlePrint} disabled={cartItems.length === 0}>
                         <Printer className="mr-2 h-4 w-4" />
-                        Imprimir Selección
+                        Imprimir Carrito
                     </Button>
                      <Button variant="link" className="w-full" asChild>
                         <Link href="/products">Continuar comprando</Link>
@@ -355,10 +345,11 @@ export default function CartPage() {
         {itemsToPrint && (
             <PrintableCart
                 items={itemsToPrint}
-                total={getSelectedItemsTotal()}
+                total={itemsToPrint.reduce((total, item) => total + item.price * item.quantity, 0)}
             />
         )}
     </div>
     </>
   );
 }
+
