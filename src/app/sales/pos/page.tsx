@@ -24,8 +24,9 @@ import {
 
 import type { Product } from '@/lib/dummy-data';
 import { getProducts, categories } from '@/lib/dummy-data';
+import posCustomersData from '@/data/pos_customers.json';
 import { useToast } from '@/hooks/use-toast';
-import type { User as AuthUser } from '@/context/auth-context';
+import type { User as AuthUser, UserRole } from '@/context/auth-context';
 import { formatCurrency, getPriceForCustomer } from '@/lib/utils';
 import { ProductCard } from '@/components/product-card';
 import { ImageViewerDialog } from '@/components/image-viewer-dialog';
@@ -47,25 +48,45 @@ export interface PosSale {
     status: 'Completada';
 }
 
+interface PosCustomer {
+    id: string;
+    name: string;
+    email?: string;
+    type: 'natural' | 'empresa';
+    role?: UserRole; // Role is optional for POS customers
+    identification?: string;
+    phone?: string;
+    address?: string;
+}
+
 const POS_CUSTOMERS_KEY = 'pos_customers';
 const SALES_STORAGE_KEY = 'pos_sales';
 
-
-const loadUsers = (): AuthUser[] => {
+const loadUsers = (): PosCustomer[] => {
     if (typeof window === 'undefined') return [];
-    const storedUsers = localStorage.getItem(POS_CUSTOMERS_KEY);
-    return storedUsers ? JSON.parse(storedUsers) : [];
+    try {
+        const storedUsers = localStorage.getItem(POS_CUSTOMERS_KEY);
+        if (storedUsers) {
+            return JSON.parse(storedUsers);
+        } else {
+            localStorage.setItem(POS_CUSTOMERS_KEY, JSON.stringify(posCustomersData));
+            return posCustomersData;
+        }
+    } catch (error) {
+        console.error("Error loading POS customers:", error);
+        return posCustomersData;
+    }
 };
 
 export default function PosPage() {
     const { toast } = useToast();
     const router = useRouter();
     const [allProducts, setAllProducts] = useState<Product[]>([]);
-    const [allCustomers, setAllCustomers] = useState<AuthUser[]>([]);
+    const [allCustomers, setAllCustomers] = useState<PosCustomer[]>([]);
     const [cart, setCart] = useState<PosCartItem[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
-    const [selectedCustomer, setSelectedCustomer] = useState<AuthUser | null>(null);
+    const [selectedCustomer, setSelectedCustomer] = useState<PosCustomer | null>(null);
     const [shippingCost, setShippingCost] = useState<number | string>('');
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
     const [isCustomerModalOpen, setCustomerModalOpen] = useState(false);
@@ -93,7 +114,7 @@ export default function PosPage() {
                 if (productData) {
                     return {
                         ...item,
-                        price: getPriceForCustomer(productData, selectedCustomer.role)
+                        price: getPriceForCustomer(productData, selectedCustomer.role || 'cliente')
                     };
                 }
                 return item;
@@ -102,7 +123,7 @@ export default function PosPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCustomer]);
 
-    const handleAddNewUser = (newUser: AuthUser) => {
+    const handleAddNewUser = (newUser: PosCustomer) => {
         const updatedUsers = [newUser, ...allCustomers];
         setAllCustomers(updatedUsers);
         if (typeof window !== 'undefined') {
@@ -511,7 +532,7 @@ export default function PosPage() {
     );
 }
 
-function CreateCustomerForm({ onCustomerCreated }: { onCustomerCreated: (user: AuthUser) => void }) {
+function CreateCustomerForm({ onCustomerCreated }: { onCustomerCreated: (user: PosCustomer) => void }) {
     const [customerType, setCustomerType] = useState<'natural' | 'empresa'>('natural');
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -521,8 +542,8 @@ function CreateCustomerForm({ onCustomerCreated }: { onCustomerCreated: (user: A
             ? `${formData.get('firstName')} ${formData.get('lastName')}`
             : formData.get('companyName');
 
-        const newUser: AuthUser = {
-            id: `user_${Date.now()}`,
+        const newUser: PosCustomer = {
+            id: `pos_user_${Date.now()}`,
             name: name as string,
             email: formData.get('email') as string,
             role: 'cliente',

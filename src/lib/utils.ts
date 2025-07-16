@@ -14,7 +14,7 @@ export const formatCurrency = (amount: number) => {
     }).format(amount);
 };
 
-export const getPriceForCustomer = (product: Product, customerRole: UserRole) => {
+export const getPriceForCustomer = (product: Product, customerRole: UserRole | 'cliente' = 'cliente') => {
   if (!product.priceTiers) {
       return product.price; // Fallback
   }

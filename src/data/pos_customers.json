@@ -1,0 +1,33 @@
+
+[
+  {
+    "id": "pos_user_1",
+    "name": "Juan Pérez",
+    "email": "juan.perez@example.com",
+    "role": "cliente",
+    "type": "natural",
+    "identification": "1712345678",
+    "phone": "0991234567",
+    "address": "Av. Amazonas y Colón"
+  },
+  {
+    "id": "pos_user_2",
+    "name": "Ana García",
+    "email": "ana.garcia@example.com",
+    "role": "cliente",
+    "type": "natural",
+    "identification": "1787654321",
+    "phone": "0987654321",
+    "address": "Calle La Pradera 456"
+  },
+  {
+    "id": "pos_user_3",
+    "name": "Acme Corp S.A.",
+    "email": "contacto@acmecorp.com",
+    "role": "cliente_especial",
+    "type": "empresa",
+    "identification": "1791234567001",
+    "phone": "022555666",
+    "address": "Parque Industrial, Lote 5"
+  }
+]
