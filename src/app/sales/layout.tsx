@@ -114,11 +114,6 @@ export default function SalesLayout({
                 </SidebarMenuItem>
               )}
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Punto de Venta" isActive={pathname.startsWith('/sales/pos')}>
-                  <Link href="/sales/pos"><Terminal /><span>Ventas POS</span></Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/profile')} tooltip="Perfil">
                   <Link href="/sales/profile"><User /><span>Perfil</span></Link>
                 </SidebarMenuButton>
@@ -132,6 +127,11 @@ export default function SalesLayout({
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/quotes')} tooltip="Mis Compras">
                   <Link href="/sales/quotes"><Star /><span>Mis Compras</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild tooltip="Punto de Venta" isActive={pathname.startsWith('/sales/pos')}>
+                  <Link href="/sales/pos"><Terminal /><span>Ventas POS</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
