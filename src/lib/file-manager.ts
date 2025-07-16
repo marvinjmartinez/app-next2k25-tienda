@@ -37,7 +37,7 @@ export async function uploadFile(file: Blob, path: string): Promise<{ path: stri
   formData.append('file', file, 'generated-image.png'); // Se le da un nombre de archivo genérico
   formData.append('path', path);
 
-  const response = await fetch(`${API_BASE_URL}/files/upload`, {
+  const response = await fetch(`${API_BASE_URL}/files`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${API_TOKEN}`,
@@ -59,7 +59,6 @@ export async function uploadFile(file: Blob, path: string): Promise<{ path: stri
   return { path: result.path, url: result.url };
 }
 
-
 /**
  * Sube un archivo desde un Data URI (base64).
  * @param dataURI El Data URI de la imagen a subir.
@@ -71,14 +70,13 @@ export async function uploadFileFromDataURI(dataURI: string, path: string): Prom
     return uploadFile(blob, path);
 }
 
-
 /**
  * Elimina un archivo a través de la API.
  * @param path La ruta del archivo a eliminar.
  * @returns Una promesa que indica si la operación fue exitosa.
  */
 export async function deleteFile(path: string): Promise<{ success: boolean }> {
-  const response = await fetch(`${API_BASE_URL}/files/delete/${path}`, {
+  const response = await fetch(`${API_BASE_URL}/files/${path}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${API_TOKEN}`,
@@ -104,8 +102,8 @@ export async function replaceFile(path: string, newFile: File): Promise<{ path: 
   const formData = new FormData();
   formData.append('file', newFile);
 
-  const response = await fetch(`${API_BASE_URL}/files/replace/${path}`, {
-    method: 'POST',
+  const response = await fetch(`${API_BASE_URL}/files/${path}`, {
+    method: 'PUT',
     headers: {
       'Authorization': `Bearer ${API_TOKEN}`,
       'Accept': 'application/json',
@@ -119,4 +117,27 @@ export async function replaceFile(path: string, newFile: File): Promise<{ path: 
   }
 
   return response.json();
+}
+
+/**
+ * Obtiene la URL (potencialmente firmada) para un archivo existente.
+ * @param path La ruta del archivo en el almacenamiento.
+ * @returns Una promesa que se resuelve con la URL del archivo.
+ */
+export async function getFileUrl(path: string): Promise<{ url: string }> {
+  const response = await fetch(`${API_BASE_URL}/files/${path}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${API_TOKEN}`,
+      'Accept': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`Error al obtener la URL del archivo: ${response.statusText} - ${errorData.message || ''}`);
+  }
+
+  const result: { url: string } = await response.json();
+  return result;
 }
