@@ -117,12 +117,7 @@ export default function SalesLayout({
                   <Link href="/sales/quotes"><Star /><span>Mis Compras</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Punto de Venta" isActive={pathname.startsWith('/sales/pos')}>
-                  <Link href="/sales/pos"><Store /><span>Ventas POS</span></Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
+              
               {isAdmin && (
                 <>
                     <SidebarMenuItem>
@@ -145,7 +140,20 @@ export default function SalesLayout({
                         <Link href="/sales/commissions"><History /><span>Comisiones</span></Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+                    <SidebarMenuItem>
+                        <SidebarMenuButton asChild tooltip="Punto de Venta" isActive={pathname.startsWith('/sales/pos')}>
+                        <Link href="/sales/pos"><Store /><span>Ventas POS</span></Link>
+                        </SidebarMenuButton>
+                    </SidebarMenuItem>
                 </>
+              )}
+
+              {!isAdmin && (
+                 <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip="Punto de Venta" isActive={pathname.startsWith('/sales/pos')}>
+                    <Link href="/sales/pos"><Store /><span>Ventas POS</span></Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
               )}
 
               <SidebarMenuItem>
