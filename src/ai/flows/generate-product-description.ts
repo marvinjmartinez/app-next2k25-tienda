@@ -42,7 +42,7 @@ Genera una descripción de entre 40 y 60 palabras que sea:
 - Informativa: Describe sus características, materiales y usos principales.
 - Profesional: Usa un tono adecuado para una ferretería.
 
-La descripción debe ser un solo párrafo continuo.
+Devuelve únicamente la descripción en un solo párrafo continuo, sin ningún otro texto o formato.
 `,
 });
 
