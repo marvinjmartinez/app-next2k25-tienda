@@ -25,7 +25,7 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
     <Card className={cn("overflow-hidden group flex flex-col", className)}>
       <CardHeader className="p-0 relative">
         <button onClick={() => onImageClick(product)} className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Maximize className="h-8 w-8 text-white" />
+          <Maximize className="h-6 w-6 text-white" />
           <span className="sr-only">Ampliar imagen</span>
         </button>
         {product.stock === 0 && (
@@ -37,32 +37,19 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
             alt={product.name}
             width={300}
             height={300}
-            className="w-full h-48 object-cover"
+            className="w-full h-32 object-cover"
             data-ai-hint={product.hint}
             priority={product.featured}
           />
       </CardHeader>
-      <CardContent className="p-4 flex-grow">
-        <CardTitle className="text-lg h-12 leading-tight">{product.name}</CardTitle>
-        <p className="text-xs uppercase font-medium text-muted-foreground tracking-wider mt-1">{categoryName}</p>
-        <p className="text-sm text-muted-foreground mt-1">
-          {product.stock > 0 ? `${product.stock} en existencia` : "Sin existencias"}
-        </p>
-        <CardDescription className="text-primary font-semibold text-lg mt-2">${product.price.toFixed(2)}</CardDescription>
+      <CardContent className="p-3 flex-grow">
+        <CardTitle className="text-sm h-10 leading-tight font-medium">{product.name}</CardTitle>
+        <CardDescription className="text-primary font-semibold text-base mt-1">${product.price.toFixed(2)}</CardDescription>
       </CardContent>
-      <CardFooter className="p-4 pt-0 grid grid-cols-2 gap-2">
-         <Button
-          variant="outline"
-          className="w-full"
-          asChild
-        >
-          <Link href={`/products/${product.id}`}>
-            <ExternalLink className="mr-2 h-4 w-4" />
-            Ver Detalle
-          </Link>
-        </Button>
+      <CardFooter className="p-2 pt-0">
         <Button
           className="w-full"
+          size="sm"
           onClick={() => onAddToCart(product)}
           disabled={product.stock === 0}
         >
