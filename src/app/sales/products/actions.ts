@@ -99,6 +99,10 @@ export async function generateProductDescriptionAction(formData: FormData): Prom
         return { success: true, data: { description: result.description } };
     } catch (error) {
         console.error("Error en generateProductDescriptionAction:", error);
-        return { success: false, error: "Ocurrió un error al generar la descripción." };
+        const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado al generar la descripción.";
+        if (errorMessage.includes("API key not valid")) {
+            return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
+        }
+        return { success: false, error: errorMessage };
     }
 }
