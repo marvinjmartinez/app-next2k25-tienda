@@ -2,6 +2,7 @@
 "use client";
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,11 +44,13 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
           />
       </CardHeader>
       <CardContent className="p-3 flex-grow flex flex-col">
-          <p className="text-sm font-medium h-16 leading-tight hover:text-primary line-clamp-3">{product.name}</p>
+          <Link href={`/products/${product.id}`} className="text-sm font-medium h-16 leading-tight hover:text-primary line-clamp-3">
+            {product.name}
+          </Link>
           <p className="text-primary font-semibold text-base mt-auto pt-2">${product.price.toFixed(2)}</p>
       </CardContent>
       <CardFooter className="p-3 pt-0 flex flex-col gap-2 items-stretch">
-        {onViewDetails && (
+        {onViewDetails ? (
             <Button
                 variant="outline"
                 className="w-full h-8"
@@ -56,6 +59,18 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
             >
                 <FileText className="mr-2 h-4 w-4" />
                 Detalle
+            </Button>
+        ) : (
+             <Button
+                variant="outline"
+                className="w-full h-8"
+                size="sm"
+                asChild
+            >
+                <Link href={`/products/${product.id}`}>
+                    <FileText className="mr-2 h-4 w-4" />
+                    Ver Detalle
+                </Link>
             </Button>
         )}
         <Button

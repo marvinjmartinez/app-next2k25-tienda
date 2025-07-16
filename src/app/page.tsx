@@ -10,7 +10,7 @@ import { ShoppingCart, User, Search, LogOut, LayoutDashboard } from 'lucide-reac
 import { useCart } from '@/context/cart-context'; 
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
-import { categories, type Product, initialProducts, getProducts } from '@/lib/dummy-data';
+import { categories, type Product, getProducts } from '@/lib/dummy-data';
 import { useRouter } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
@@ -19,8 +19,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ProductCard } from '@/components/product-card';
 import { ImageViewerDialog } from '@/components/image-viewer-dialog';
 import { LogoTienda } from '@/components/logo-tienda';
-
-const PRODUCTS_STORAGE_KEY = 'crud_products';
 
 export default function HomePage() {
   const { addToCart, getCartItemCount } = useCart();
