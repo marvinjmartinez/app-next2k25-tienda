@@ -1,7 +1,7 @@
 // src/app/sales/pos/history/[id]/page.tsx
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
@@ -40,14 +40,7 @@ export default function SaleDetailPage() {
 
     const [sale, setSale] = useState<PosSale | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-
-    const onAfterPrint = useCallback((cameFromPos: boolean) => {
-        if (cameFromPos) {
-            router.replace('/sales/pos');
-        } else {
-            router.replace(`/sales/pos/history/${id}`);
-        }
-    }, [router, id]);
+    const printTriggered = useRef(false);
 
     useEffect(() => {
         if (typeof id === 'string') {
@@ -59,12 +52,15 @@ export default function SaleDetailPage() {
                     setSale(foundSale || null);
 
                     const cameFromPos = searchParams.get('print') === 'true';
-                    if (cameFromPos) {
+                    if (cameFromPos && !printTriggered.current) {
+                        printTriggered.current = true; // Mark that print has been triggered
                         setTimeout(() => {
+                            window.onafterprint = () => {
+                                router.replace('/sales/pos');
+                                window.onafterprint = null; // Clean up the event listener
+                            };
                             window.print();
-                            // Navegar de vuelta a la caja después de imprimir
-                            onAfterPrint(true);
-                        }, 500);
+                        }, 500); // A small delay ensures content is rendered
                     }
                 }
             } catch (error) {
@@ -73,7 +69,7 @@ export default function SaleDetailPage() {
         }
         setIsLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [id]);
+    }, [id]); // This effect now only depends on the ID, preventing re-runs
 
     const Receipt = ({ sale }: { sale: PosSale }) => (
         <div className="bg-white text-black font-mono p-4 w-full max-w-md mx-auto border rounded-lg">
