@@ -75,7 +75,7 @@ export default function AccountLayout({
           <SidebarHeader>
             <Link href="/" className="flex items-center gap-2">
                 <LogoTienda width={40} height={40} className="h-10 w-auto" />
-                <span className="font-semibold text-lg group-data-[state=expanded]:inline hidden">Mi Cuenta</span>
+                <span className="font-semibold text-lg hidden group-data-[state=expanded]:inline">Mi Cuenta</span>
             </Link>
           </SidebarHeader>
           <SidebarContent>
