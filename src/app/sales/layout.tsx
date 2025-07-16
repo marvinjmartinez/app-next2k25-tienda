@@ -30,7 +30,6 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LogoTienda } from '@/components/logo-tienda';
 
 export default function SalesLayout({
   children,
@@ -96,13 +95,16 @@ export default function SalesLayout({
       <div className="flex min-h-screen w-full bg-muted/40">
         <Sidebar>
           <SidebarHeader>
-            <Link href="/" className="flex items-center justify-center group-data-[state=expanded]:hidden">
-                <LogoTienda width={40} height={40} className="h-10 w-auto" />
-            </Link>
-            <Link href="/" className="hidden items-center gap-2 group-data-[state=expanded]:flex">
-                <LogoTienda width={40} height={40} className="h-10 w-auto" />
-                <span className="font-semibold text-lg">Distrimin SAS</span>
-            </Link>
+              <div className="flex items-center gap-3">
+                  <Avatar className="size-10">
+                      <AvatarImage src="https://placehold.co/40x40.png" alt={user.name} data-ai-hint="person portrait" />
+                      <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col group-data-[collapsible=icon]:hidden">
+                      <span className="font-semibold text-sm">{user.name}</span>
+                      <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
+                  </div>
+              </div>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
