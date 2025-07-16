@@ -73,10 +73,10 @@
     "image": "https://placehold.co/600x400.png",
     "hint": "ladder",
     "description": "Escalera de tijera ligera y extremadamente resistente, fabricada en aluminio de alta calidad (Tipo III). Con una altura de 6 pies (1.83 m), soporta hasta 90 kg. Sus patas con goma antiderrapante y tirantes antipellizcos garantizan la máxima seguridad en cualquier tarea.",
-    "stock": 0,
+    "stock": 10,
     "category": "herramientas",
     "featured": true,
-    "status": "inactivo",
+    "status": "activo",
     "gallery": []
   },
   {
