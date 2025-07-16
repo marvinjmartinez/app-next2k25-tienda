@@ -30,8 +30,8 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // 2. Subir la imagen a través de la API de Laravel
-        const { url: publicUrl } = await uploadFileFromDataURI(dataUri, 'imagenes');
+        // 2. Subir la imagen a través de la API de Laravel con la ruta especificada
+        const { url: publicUrl } = await uploadFileFromDataURI(dataUri, 'distrimin/productos');
 
         // 3. Devolver la URL pública.
         return { success: true, data: { imageUrl: publicUrl } };
