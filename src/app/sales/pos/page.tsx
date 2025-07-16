@@ -362,10 +362,10 @@ export default function PosPage() {
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{productDetail?.name}</DialogTitle>
+                        <DialogDescription className="pt-2 text-base text-foreground">
+                            {productDetail?.description || "Este producto no tiene una descripción detallada."}
+                        </DialogDescription>
                     </DialogHeader>
-                    <div className="prose prose-sm text-muted-foreground">
-                        <p>{productDetail?.description}</p>
-                    </div>
                     <DialogFooter>
                         <Button onClick={() => setProductDetail(null)}>Cerrar</Button>
                     </DialogFooter>
