@@ -99,7 +99,7 @@ export default function SalesLayout({
       <div className="flex min-h-screen w-full bg-muted/40">
         <Sidebar>
           <SidebarHeader>
-             <Link href="/" className="flex items-center justify-center group-data-[state=expanded]:hidden">
+            <Link href="/" className="flex items-center justify-center group-data-[state=expanded]:hidden">
                 <LogoTienda width={40} height={40} className="h-10 w-auto" />
             </Link>
             <Link href="/" className="hidden items-center gap-2 group-data-[state=expanded]:flex">
@@ -153,6 +153,11 @@ export default function SalesLayout({
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/tariffs')} tooltip="Tarifas">
                         <Link href="/sales/tariffs"><DollarSign /><span>Tarifas</span></Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/commissions')} tooltip="Comisiones">
+                        <Link href="/sales/commissions"><History /><span>Comisiones</span></Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                 </>
