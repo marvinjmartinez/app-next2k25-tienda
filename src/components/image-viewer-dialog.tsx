@@ -43,11 +43,14 @@ export function ImageViewerDialog({ images, open, onOpenChange, productName }: I
             </>
           )}
         </Carousel>
-        <DialogClose className="absolute right-2 top-2 rounded-full p-2 text-white bg-black/30 hover:bg-black/50 transition-colors">
+        <DialogPrimitive.Close className="absolute right-2 top-2 rounded-full p-2 text-white bg-black/30 hover:bg-black/50 transition-colors opacity-70 hover:opacity-100 ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
             <X className="h-6 w-6" />
             <span className="sr-only">Cerrar</span>
-        </DialogClose>
+        </DialogPrimitive.Close>
       </DialogContent>
     </Dialog>
   );
 }
+
+// Re-importing to fix the issue
+import * as DialogPrimitive from "@radix-ui/react-dialog"
