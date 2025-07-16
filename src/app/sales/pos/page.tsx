@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search, Plus, Minus, Trash2, User, DollarSign, X, CreditCard, Wallet, FileText, Truck, Building, UserPlus } from 'lucide-react';
+import { Search, Plus, Minus, Trash2, User, DollarSign, X, CreditCard, Wallet, FileText, Truck, UserPlus } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -30,6 +30,7 @@ import type { UserRole } from '@/context/auth-context';
 import { formatCurrency, getPriceForCustomer } from '@/lib/utils';
 import { ProductCard } from '@/components/product-card';
 import { ImageViewerDialog } from '@/components/image-viewer-dialog';
+import { PosCustomerFormDialog } from '@/components/pos-customer-form';
 
 interface PosCartItem extends Product {
     quantity: number;
@@ -78,6 +79,12 @@ const loadUsers = (): PosCustomer[] => {
     }
 };
 
+const saveUsers = (users: PosCustomer[]) => {
+    if (typeof window !== 'undefined') {
+        localStorage.setItem(POS_CUSTOMERS_KEY, JSON.stringify(users));
+    }
+};
+
 export default function PosPage() {
     const { toast } = useToast();
     const router = useRouter();
@@ -90,6 +97,7 @@ export default function PosPage() {
     const [shippingCost, setShippingCost] = useState<number | string>('');
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
     const [isCustomerModalOpen, setCustomerModalOpen] = useState(false);
+    const [isCreateCustomerModalOpen, setCreateCustomerModalOpen] = useState(false);
     const [customerSearch, setCustomerSearch] = useState('');
     const [amountReceived, setAmountReceived] = useState<number | string>('');
     const [paymentMethod, setPaymentMethod] = useState<PosSale['paymentMethod']>('Efectivo');
@@ -228,6 +236,19 @@ export default function PosPage() {
 
         // Redirect to detail page for printing
         router.push(`/sales/pos/history/${newSale.id}?print=true`);
+    };
+
+    const handleCreateCustomer = (customerData: PosCustomer) => {
+        const updatedCustomers = [customerData, ...allCustomers];
+        setAllCustomers(updatedCustomers);
+        saveUsers(updatedCustomers);
+        setSelectedCustomer(customerData); // Auto-select the new customer
+        toast({
+            title: "Cliente Creado",
+            description: `El cliente ${customerData.name} ha sido creado y seleccionado.`,
+        });
+        setCreateCustomerModalOpen(false);
+        setCustomerModalOpen(false);
     };
 
     return (
@@ -444,13 +465,17 @@ export default function PosPage() {
                 <DialogContent className="max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Seleccionar Cliente</DialogTitle>
-                        <DialogDescription>Busca un cliente existente o crea uno nuevo desde la pestaña "Clientes".</DialogDescription>
+                        <DialogDescription>Busca un cliente existente o crea uno nuevo.</DialogDescription>
                     </DialogHeader>
                     <div className="flex gap-4 items-center pt-4">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input placeholder="Buscar por nombre o identificación..." className="pl-10" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} />
                         </div>
+                        <Button onClick={() => setCreateCustomerModalOpen(true)}>
+                            <UserPlus className="mr-2 h-4 w-4" />
+                            Crear Nuevo
+                        </Button>
                     </div>
                     <ScrollArea className="h-96 mt-4 border rounded-lg">
                         <Table>
@@ -482,6 +507,13 @@ export default function PosPage() {
                     </ScrollArea>
                 </DialogContent>
             </Dialog>
+            
+            <PosCustomerFormDialog 
+                isOpen={isCreateCustomerModalOpen}
+                onClose={() => setCreateCustomerModalOpen(false)}
+                onSave={handleCreateCustomer}
+                customer={null}
+            />
 
             <ImageViewerDialog
                 open={isViewerOpen}

@@ -6,15 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { MoreHorizontal, Search, UserPlus, Trash2, Pencil, Building, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MoreHorizontal, Search, UserPlus, Trash2, Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { type PosCustomer } from '../page';
 import posCustomersData from '@/data/pos_customers.json';
+import { PosCustomerFormDialog } from '@/components/pos-customer-form';
 
 const POS_CUSTOMERS_KEY = 'pos_customers';
 
@@ -205,108 +203,12 @@ export default function PosCustomersPage() {
                     </div>
                 </CardFooter>
             </Card>
-            <CustomerFormDialog
+            <PosCustomerFormDialog
                 isOpen={isFormOpen}
                 onClose={handleFormClose}
                 onSave={handleSave}
                 customer={selectedCustomer}
             />
         </>
-    );
-}
-
-// Subcomponente de formulario
-interface CustomerFormDialogProps {
-    isOpen: boolean;
-    onClose: () => void;
-    onSave: (data: PosCustomer) => void;
-    customer: PosCustomer | null;
-}
-
-function CustomerFormDialog({ isOpen, onClose, onSave, customer }: CustomerFormDialogProps) {
-    const [customerType, setCustomerType] = useState<'natural' | 'empresa'>('natural');
-
-    useEffect(() => {
-        if (customer) {
-            setCustomerType(customer.type);
-        } else {
-            setCustomerType('natural');
-        }
-    }, [customer]);
-
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const name = customerType === 'natural'
-            ? `${formData.get('firstName')} ${formData.get('lastName')}`
-            : formData.get('companyName');
-
-        const customerData: PosCustomer = {
-            id: customer?.id || `pos_user_${Date.now()}`,
-            name: name as string,
-            email: formData.get('email') as string,
-            role: customer?.role || 'cliente',
-            type: customerType,
-            identification: formData.get('identification') as string,
-            phone: formData.get('phone') as string,
-            address: formData.get('address') as string,
-        };
-        onSave(customerData);
-    };
-
-    const getNaturalNameParts = (fullName: string | undefined) => {
-        if (!fullName) return { firstName: '', lastName: '' };
-        const parts = fullName.split(' ');
-        const firstName = parts.slice(0, -1).join(' ');
-        const lastName = parts.length > 1 ? parts[parts.length - 1] : '';
-        return { firstName: firstName || fullName, lastName };
-    };
-
-    return (
-        <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{customer ? 'Editar Cliente' : 'Crear Nuevo Cliente'}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4 py-4">
-                    <RadioGroup value={customerType} onValueChange={(value: 'natural' | 'empresa') => setCustomerType(value)} className="grid grid-cols-2 gap-4">
-                        <div>
-                            <RadioGroupItem value="natural" id="natural" className="peer sr-only" />
-                            <Label htmlFor="natural" className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                <User className="h-5 w-5" /> Persona Natural
-                            </Label>
-                        </div>
-                        <div>
-                            <RadioGroupItem value="empresa" id="empresa" className="peer sr-only" />
-                            <Label htmlFor="empresa" className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                <Building className="h-5 w-5" /> Empresa
-                            </Label>
-                        </div>
-                    </RadioGroup>
-
-                    {customerType === 'natural' ? (
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1"><Label htmlFor="firstName">Nombres</Label><Input id="firstName" name="firstName" defaultValue={getNaturalNameParts(customer?.name).firstName} required /></div>
-                            <div className="space-y-1"><Label htmlFor="lastName">Apellidos</Label><Input id="lastName" name="lastName" defaultValue={getNaturalNameParts(customer?.name).lastName} required /></div>
-                        </div>
-                    ) : (
-                        <div className="space-y-1"><Label htmlFor="companyName">Razón Social</Label><Input id="companyName" name="companyName" defaultValue={customer?.name} required /></div>
-                    )}
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1"><Label htmlFor="identification">Identificación (Cédula/RUC)</Label><Input id="identification" name="identification" defaultValue={customer?.identification} required /></div>
-                        <div className="space-y-1"><Label htmlFor="email">Correo Electrónico</Label><Input id="email" name="email" type="email" defaultValue={customer?.email} required /></div>
-                    </div>
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1"><Label htmlFor="phone">Teléfono</Label><Input id="phone" name="phone" defaultValue={customer?.phone} required /></div>
-                        <div className="space-y-1"><Label htmlFor="address">Dirección</Label><Input id="address" name="address" defaultValue={customer?.address} required /></div>
-                    </div>
-                     <DialogFooter className="pt-4">
-                        <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
-                        <Button type="submit">Guardar Cliente</Button>
-                    </DialogFooter>
-                </form>
-            </DialogContent>
-        </Dialog>
     );
 }
