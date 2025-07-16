@@ -17,8 +17,6 @@ import {
     SidebarTrigger,
     SidebarFooter
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import React, { useEffect } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
@@ -99,7 +97,7 @@ export default function AccountLayout({
                 <SidebarMenuItem>
                     <SidebarMenuButton onClick={logout} tooltip="Cerrar Sesión">
                         <LogOut />
-                        <span>Cerrar Sesión</span>
+                        <span className="group-data-[collapsible=icon]:hidden">Cerrar Sesión</span>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
