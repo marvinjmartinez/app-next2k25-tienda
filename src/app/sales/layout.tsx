@@ -175,8 +175,11 @@ export default function SalesLayout({
                   <h1 className="font-semibold text-lg hidden sm:block">Panel de Ventas</h1>
                 </div>
                 <div className="flex items-center gap-2">
+                    <div className="text-right">
+                        <span className="text-sm font-medium block">{user.name}</span>
+                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                    </div>
                   <User className="h-5 w-5 text-muted-foreground" />
-                  <span className="text-sm font-medium">{user.name}</span>
                 </div>
             </header>
             <main className="flex-1 p-4 sm:p-6">
