@@ -48,13 +48,23 @@ export default function SaleDetailPage() {
                     const sales: PosSale[] = JSON.parse(storedSales);
                     const foundSale = sales.find(s => s.id === id);
                     setSale(foundSale || null);
+
+                    // Auto-print if this page was opened for it
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('print') === 'true') {
+                        setTimeout(() => {
+                           window.print();
+                           // Remove param to avoid re-printing on refresh
+                           router.replace(`/sales/pos/history/${id}`);
+                        }, 500);
+                    }
                 }
             } catch (error) {
                 console.error("Error loading sale from localStorage", error);
             }
         }
         setIsLoading(false);
-    }, [id]);
+    }, [id, router]);
 
     const Receipt = ({ sale }: { sale: PosSale }) => (
         <div className="bg-white text-black font-mono p-4 w-full max-w-md mx-auto border rounded-lg">

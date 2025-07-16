@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -69,6 +70,7 @@ const loadUsers = (): AuthUser[] => {
 
 export default function PosPage() {
     const { toast } = useToast();
+    const router = useRouter();
     const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [allUsers, setAllUsers] = useState<AuthUser[]>([]);
     const [cart, setCart] = useState<PosCartItem[]>([]);
@@ -209,6 +211,9 @@ export default function PosPage() {
         setAmountReceived('');
         setPaymentMethod('Efectivo');
         setPaymentModalOpen(false);
+
+        // Redirect to detail page for printing
+        router.push(`/sales/pos/history/${newSale.id}?print=true`);
     };
 
     return (
