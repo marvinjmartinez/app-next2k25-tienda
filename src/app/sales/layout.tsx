@@ -29,7 +29,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,6 +44,14 @@ export default function SalesLayout({
   const { user, logout, isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+
+  const isPosPage = pathname.startsWith('/sales/pos');
+  const [sidebarOpen, setSidebarOpen] = useState(!isPosPage);
+  
+  // Ensure sidebar collapses when navigating to POS page
+  useEffect(() => {
+    setSidebarOpen(!isPosPage);
+  }, [isPosPage]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -87,7 +95,7 @@ export default function SalesLayout({
   }
 
   return (
-    <SidebarProvider>
+    <SidebarProvider open={sidebarOpen} onOpenChange={setSidebarOpen}>
       <div className="flex min-h-screen w-full bg-muted/40">
         <Sidebar>
           <SidebarHeader>
@@ -98,11 +106,13 @@ export default function SalesLayout({
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/dashboard')} tooltip="Panel">
-                    <Link href="/sales/dashboard"><LayoutDashboard /><span>Panel</span></Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {isAdmin && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/dashboard')} tooltip="Panel">
+                      <Link href="/sales/dashboard"><LayoutDashboard /><span>Panel</span></Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Punto de Venta" isActive={pathname.startsWith('/sales/pos')}>
                   <Link href="/sales/pos"><Terminal /><span>Ventas POS</span></Link>
@@ -113,14 +123,18 @@ export default function SalesLayout({
                   <Link href="/sales/profile"><User /><span>Perfil</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {isAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/tariffs')} tooltip="Tarifas">
-                    <Link href="/sales/tariffs"><DollarSign /><span>Tarifas</span></Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
               
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/create-quote')} tooltip="Crear Cotización">
+                  <Link href="/sales/create-quote"><PlusCircle /><span>Crear Cotización</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/quotes')} tooltip="Mis Compras">
+                  <Link href="/sales/quotes"><Star /><span>Mis Compras</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
               {isAdmin && (
                 <>
                     <SidebarMenuItem>
@@ -133,19 +147,14 @@ export default function SalesLayout({
                         <Link href="/sales/products"><Package /><span>Productos</span></Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/tariffs')} tooltip="Tarifas">
+                        <Link href="/sales/tariffs"><DollarSign /><span>Tarifas</span></Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                 </>
               )}
 
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/create-quote')} tooltip="Crear Cotización">
-                  <Link href="/sales/create-quote"><PlusCircle /><span>Crear Cotización</span></Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/quotes')} tooltip="Mis Compras">
-                  <Link href="/sales/quotes"><Star /><span>Mis Compras</span></Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                  <SidebarMenuButton asChild isActive={pathname.startsWith('/products-store')} tooltip="Ir a la Tienda">
                   <Link href="/products"><ShoppingCart /><span>Ir a la Tienda</span></Link>
