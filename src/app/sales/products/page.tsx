@@ -55,7 +55,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { generateProductImageAction } from './actions';
+import { generateProductImageAction, generateProductDescriptionAction } from './actions';
 
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
@@ -75,6 +75,7 @@ export default function ProductsAdminPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isGenerating, startGeneratingTransition] = useTransition();
   const [isSaving, startSavingTransition] = useTransition();
+  const [isGeneratingDesc, startGeneratingDescTransition] = useTransition();
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -233,6 +234,40 @@ export default function ProductsAdminPage() {
           toast({ variant: 'destructive', title: "Error inesperado", description: "Ocurrió un error al procesar la imagen." });
         });
     });
+  };
+
+  const handleGenerateDescription = () => {
+      if (!productName || !productCategory) {
+          toast({
+              variant: 'destructive',
+              title: "Datos insuficientes",
+              description: "El nombre y la categoría son necesarios para generar una descripción.",
+          });
+          return;
+      }
+      
+      const formData = new FormData();
+      formData.append("name", productName);
+      formData.append("category", getCategoryName(productCategory));
+
+      startGeneratingDescTransition(() => {
+          generateProductDescriptionAction(formData)
+              .then((result) => {
+                  if (result.success && result.data?.description) {
+                      setProductDescription(result.data.description);
+                      toast({
+                          title: "Descripción Generada",
+                          description: "La descripción se ha autocompletado.",
+                      });
+                  } else {
+                      toast({ variant: 'destructive', title: "Error al generar descripción", description: result.error || "Ocurrió un error." });
+                  }
+              })
+              .catch((error) => {
+                  console.error("Error en handleGenerateDescription:", error);
+                  toast({ variant: 'destructive', title: "Error inesperado", description: "Ocurrió un error al generar la descripción." });
+              });
+      });
   };
 
   const handleChangeStatus = (productId: string, newStatus: 'activo' | 'inactivo') => {
@@ -518,7 +553,13 @@ export default function ProductsAdminPage() {
                                 <Input id="name" name="name" value={productName} onChange={(e) => setProductName(e.target.value)} required />
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="description">Descripción del Producto</Label>
+                                <div className="flex justify-between items-center">
+                                    <Label htmlFor="description">Descripción del Producto</Label>
+                                    <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGeneratingDesc || !productName || !productCategory}>
+                                        {isGeneratingDesc ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4" />}
+                                        Generar
+                                    </Button>
+                                </div>
                                 <Textarea id="description" name="description" value={productDescription} onChange={(e) => setProductDescription(e.target.value)} rows={4} />
                             </div>
                             <div className="grid grid-cols-2 gap-4">

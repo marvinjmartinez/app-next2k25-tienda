@@ -2,6 +2,7 @@
 "use server";
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
+import { generateProductDescription as generateProductDescriptionFlow } from "@/ai/flows/generate-product-description";
 import { uploadFileFromDataURI } from "@/lib/file-manager";
 import { z } from "zod";
 
@@ -69,4 +70,35 @@ export async function saveProductAction(formData: FormData): Promise<{ success: 
     
     // El cliente se encargará del guardado en localStorage.
     return { success: true };
+}
+
+
+const generateDescriptionSchema = z.object({
+  name: z.string().min(3, "El nombre del producto debe tener al menos 3 caracteres."),
+  category: z.string().min(1, "La categoría es requerida."),
+});
+
+export async function generateProductDescriptionAction(formData: FormData): Promise<{ success: boolean; data?: { description: string }; error?: string }> {
+    const rawData = Object.fromEntries(formData.entries());
+    const validation = generateDescriptionSchema.safeParse(rawData);
+
+    if (!validation.success) {
+        return { success: false, error: validation.error.flatten().fieldErrors.name?.[0] || "Entrada inválida." };
+    }
+
+    try {
+        const result = await generateProductDescriptionFlow({
+            name: validation.data.name,
+            category: validation.data.category,
+        });
+
+        if (!result.description) {
+            throw new Error("La IA no pudo generar una descripción.");
+        }
+
+        return { success: true, data: { description: result.description } };
+    } catch (error) {
+        console.error("Error en generateProductDescriptionAction:", error);
+        return { success: false, error: "Ocurrió un error al generar la descripción." };
+    }
 }
