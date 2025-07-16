@@ -16,10 +16,11 @@ interface ProductCardProps {
   categoryName: string;
   onAddToCart: (product: Product) => void;
   onImageClick: (product: Product) => void;
+  onViewDetails?: (product: Product) => void;
   className?: string;
 }
 
-export function ProductCard({ product, categoryName, onAddToCart, onImageClick, className }: ProductCardProps) {
+export function ProductCard({ product, categoryName, onAddToCart, onImageClick, onViewDetails, className }: ProductCardProps) {
 
   return (
     <Card className={cn("overflow-hidden group flex flex-col", className)}>
@@ -46,9 +47,20 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
         <CardTitle className="text-sm h-10 leading-tight font-medium">{product.name}</CardTitle>
         <CardDescription className="text-primary font-semibold text-base mt-1">${product.price.toFixed(2)}</CardDescription>
       </CardContent>
-      <CardFooter className="p-2 pt-0">
+      <CardFooter className="p-2 pt-0 flex gap-1">
+        {onViewDetails && (
+          <Button
+            size="sm"
+            variant="outline"
+            className="px-2 h-8"
+            onClick={() => onViewDetails(product)}
+            title="Ver detalles"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </Button>
+        )}
         <Button
-          className="w-full"
+          className="w-full h-8"
           size="sm"
           onClick={() => onAddToCart(product)}
           disabled={product.stock === 0}

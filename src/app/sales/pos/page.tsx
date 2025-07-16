@@ -56,6 +56,7 @@ export default function PosPage() {
     const [isViewerOpen, setIsViewerOpen] = useState(false);
     const [viewerImages, setViewerImages] = useState<string[]>([]);
     const [viewerProductName, setViewerProductName] = useState('');
+    const [productDetail, setProductDetail] = useState<Product | null>(null);
 
     useEffect(() => {
         setAllProducts(getProducts());
@@ -66,6 +67,10 @@ export default function PosPage() {
         setViewerProductName(product.name);
         setIsViewerOpen(true);
     };
+
+    const handleOpenProductDetail = (product: Product) => {
+        setProductDetail(product);
+    }
 
     const filteredProducts = useMemo(() => {
         return allProducts.filter(p => 
@@ -169,15 +174,16 @@ export default function PosPage() {
                         </CardHeader>
                         <CardContent>
                             <ScrollArea className="h-[65vh]">
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 pr-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pr-4">
                                     {filteredProducts.map(p => (
                                         <ProductCard 
-                                        key={p.id}
-                                        product={p}
-                                        categoryName=""
-                                        onAddToCart={addToCart}
-                                        onImageClick={handleOpenImageViewer}
-                                        className="w-full"
+                                            key={p.id}
+                                            product={p}
+                                            categoryName=""
+                                            onAddToCart={addToCart}
+                                            onImageClick={handleOpenImageViewer}
+                                            onViewDetails={handleOpenProductDetail}
+                                            className="w-full"
                                         />
                                     ))}
                                 </div>
@@ -352,6 +358,19 @@ export default function PosPage() {
                 images={viewerImages}
                 productName={viewerProductName}
             />
+            <Dialog open={!!productDetail} onOpenChange={(open) => !open && setProductDetail(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>{productDetail?.name}</DialogTitle>
+                    </DialogHeader>
+                    <div className="prose prose-sm text-muted-foreground">
+                        <p>{productDetail?.description}</p>
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setProductDetail(null)}>Cerrar</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }
