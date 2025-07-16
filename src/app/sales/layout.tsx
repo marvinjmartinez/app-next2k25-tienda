@@ -1,7 +1,7 @@
 // src/app/sales/layout.tsx
 "use client";
 
-import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Package, LogOut, LayoutDashboard, User, DollarSign } from 'lucide-react';
+import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Package, LogOut, LayoutDashboard, User, DollarSign, Terminal } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -99,6 +99,11 @@ export default function SalesLayout({
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/dashboard')} tooltip="Panel">
                     <Link href="/sales/dashboard"><LayoutDashboard /><span>Panel</span></Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/pos')} tooltip="Punto de Venta">
+                    <Link href="/sales/pos"><Terminal /><span>Punto de Venta</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
