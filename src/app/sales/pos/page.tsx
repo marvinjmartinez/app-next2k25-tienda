@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { PageHeader } from "@/components/page-header";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, Minus, Trash2, User, DollarSign, X } from 'lucide-react';
@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 import type { Product } from '@/lib/dummy-data';
 import { getProducts } from '@/lib/dummy-data';
@@ -19,7 +20,8 @@ import { useToast } from '@/hooks/use-toast';
 import type { User as AuthUser } from '@/context/auth-context';
 import usersData from '@/data/users.json';
 import { formatCurrency } from '@/lib/utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ProductCard } from '@/components/product-card';
+import { ImageViewerDialog } from '@/components/image-viewer-dialog';
 
 interface PosCartItem extends Product {
     quantity: number;
@@ -48,21 +50,29 @@ export default function PosPage() {
     const [customerSearch, setCustomerSearch] = useState('');
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
     const [amountReceived, setAmountReceived] = useState<number | string>('');
+    const [isViewerOpen, setIsViewerOpen] = useState(false);
+    const [viewerImages, setViewerImages] = useState<string[]>([]);
+    const [viewerProductName, setViewerProductName] = useState('');
 
     useEffect(() => {
         setAllProducts(getProducts());
     }, []);
 
+    const handleOpenImageViewer = (product: Product) => {
+        setViewerImages([product.image, ...(product.gallery || [])]);
+        setViewerProductName(product.name);
+        setIsViewerOpen(true);
+    };
+
     const filteredProducts = useMemo(() => {
-        if (!searchQuery) return [];
         return allProducts.filter(p => 
             p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
             p.id.toLowerCase().includes(searchQuery.toLowerCase())
-        ).slice(0, 10); // Limit results for performance
+        );
     }, [searchQuery, allProducts]);
     
     const filteredCustomers = useMemo(() => {
-        if (!customerSearch) return dummyCustomers;
+        if (!customerSearch) return dummyCustomers.slice(0, 10);
         return dummyCustomers.filter(c => c.name.toLowerCase().includes(customerSearch.toLowerCase()));
     }, [customerSearch]);
 
@@ -77,8 +87,11 @@ export default function PosPage() {
             }
             return [...prevCart, { ...product, quantity: 1 }];
         });
-        setSearchQuery('');
-    }, []);
+        toast({
+            title: "Producto agregado",
+            description: `${product.name} añadido a la venta.`,
+        })
+    }, [toast]);
 
     const updateQuantity = (productId: string, quantity: number) => {
         if (quantity < 1) {
@@ -93,13 +106,14 @@ export default function PosPage() {
     const total = useMemo(() => subtotal + tax, [subtotal, tax]);
 
     const change = useMemo(() => {
-        const received = typeof amountReceived === 'number' ? amountReceived : 0;
+        const received = typeof amountReceived === 'number' ? amountReceived : parseFloat(amountReceived);
+        if (isNaN(received)) return 0;
         return received >= total ? received - total : 0;
     }, [amountReceived, total]);
 
     const handleConfirmSale = () => {
         const newSale: PosSale = {
-            id: `VENTA-${Date.now()}`,
+            id: `VTA-${Date.now().toString().slice(-6)}`,
             date: new Date().toISOString(),
             customer: selectedCustomer ? { id: selectedCustomer.id, name: selectedCustomer.name } : undefined,
             items: cart,
@@ -135,70 +149,39 @@ export default function PosPage() {
             <div className="space-y-6">
                 <PageHeader title="Punto de Venta" description="Realiza ventas rápidas y gestiona transacciones en tiempo real." />
                 <div className="grid md:grid-cols-3 gap-8 items-start">
-                    {/* Left Side: Product Search and Results */}
+                    {/* Center Column: Product Search and Results */}
                     <div className="md:col-span-2 space-y-4">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input
-                                placeholder="Buscar producto por nombre o código..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pl-10"
-                            />
-                        </div>
-                        {searchQuery && (
-                            <Card>
-                                <CardContent className="p-2 max-h-60 overflow-y-auto">
-                                    {filteredProducts.length > 0 ? filteredProducts.map(p => (
-                                        <div key={p.id} className="flex items-center justify-between p-2 hover:bg-muted rounded-md cursor-pointer" onClick={() => addToCart(p)}>
-                                            <div className="flex items-center gap-3">
-                                                <Image src={p.image} alt={p.name} width={40} height={40} className="rounded-md object-cover" />
-                                                <div>
-                                                    <p className="font-medium">{p.name}</p>
-                                                    <p className="text-sm text-muted-foreground">Stock: {p.stock}</p>
-                                                </div>
-                                            </div>
-                                            <p className="font-semibold">{formatCurrency(p.price)}</p>
-                                        </div>
-                                    )) : <p className="text-center text-muted-foreground p-4">No se encontraron productos.</p>}
-                                </CardContent>
-                            </Card>
-                        )}
-                        {/* Cart Items */}
                         <Card>
-                            <CardHeader><CardTitle>Productos en la Venta</CardTitle></CardHeader>
+                            <CardHeader>
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Buscar producto por nombre o código..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-10"
+                                    />
+                                </div>
+                            </CardHeader>
                             <CardContent>
-                                <ScrollArea className="h-[400px]">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Producto</TableHead>
-                                                <TableHead className="w-[120px]">Cantidad</TableHead>
-                                                <TableHead className="text-right">Subtotal</TableHead>
-                                                <TableHead className="w-[50px]"></TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {cart.length > 0 ? cart.map(item => (
-                                                <TableRow key={item.id}>
-                                                    <TableCell>{item.name}</TableCell>
-                                                    <TableCell>
-                                                        <div className="flex items-center border rounded-md">
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity - 1)}><Minus className="h-4 w-4" /></Button>
-                                                            <Input readOnly value={item.quantity} className="w-10 h-8 text-center border-0 bg-transparent focus-visible:ring-0" />
-                                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity + 1)}><Plus className="h-4 w-4" /></Button>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-right font-medium">{formatCurrency(item.price * item.quantity)}</TableCell>
-                                                    <TableCell>
-                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => updateQuantity(item.id, 0)}><Trash2 className="h-4 w-4" /></Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            )) : (
-                                                <TableRow><TableCell colSpan={4} className="h-24 text-center">Agrega productos para empezar una venta.</TableCell></TableRow>
-                                            )}
-                                        </TableBody>
-                                    </Table>
+                                <ScrollArea className="h-[65vh]">
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 pr-4">
+                                        {filteredProducts.map(p => (
+                                           <ProductCard 
+                                            key={p.id}
+                                            product={p}
+                                            categoryName=""
+                                            onAddToCart={addToCart}
+                                            onImageClick={handleOpenImageViewer}
+                                            className="w-full"
+                                           />
+                                        ))}
+                                    </div>
+                                    {filteredProducts.length === 0 && (
+                                        <div className="text-center text-muted-foreground py-16">
+                                            {searchQuery ? "No se encontraron productos." : "Empieza buscando un producto."}
+                                        </div>
+                                    )}
                                 </ScrollArea>
                             </CardContent>
                         </Card>
@@ -210,34 +193,70 @@ export default function PosPage() {
                             <CardTitle>Resumen de Venta</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div>
+                            <div className="relative">
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                        <Button variant="outline" className="w-full justify-start text-left font-normal pr-8">
                                             <User className="mr-2 h-4 w-4" />
-                                            {selectedCustomer ? selectedCustomer.name : "Seleccionar Cliente"}
+                                            <span className="truncate">{selectedCustomer ? selectedCustomer.name : "Cliente General"}</span>
                                         </Button>
                                     </PopoverTrigger>
-                                     {selectedCustomer && <Button variant="ghost" size="icon" className="absolute right-2 top-11" onClick={() => setSelectedCustomer(null)}><X className="h-4 w-4"/></Button>}
+                                     {selectedCustomer && (
+                                        <Button variant="ghost" size="icon" className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8" onClick={() => setSelectedCustomer(null)}>
+                                            <X className="h-4 w-4"/>
+                                            <span className="sr-only">Quitar cliente</span>
+                                        </Button>
+                                     )}
                                     <PopoverContent className="w-80 p-0">
                                         <div className="p-2 border-b">
                                              <Input placeholder="Buscar cliente..." value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} />
                                         </div>
                                         <ScrollArea className="h-60">
                                            {filteredCustomers.map(c => (
-                                            <div key={c.id} className="p-2 hover:bg-muted cursor-pointer" onClick={() => { setSelectedCustomer(c); setCustomerSearch(''); }}>
-                                                {c.name}
+                                            <div key={c.id} className="p-2 hover:bg-muted cursor-pointer text-sm" onClick={() => { setSelectedCustomer(c); setCustomerSearch(''); }}>
+                                                <p className="font-medium">{c.name}</p>
+                                                <p className="text-xs text-muted-foreground">{c.email}</p>
                                             </div>
                                            ))}
+                                            {filteredCustomers.length === 0 && <p className="p-4 text-center text-sm text-muted-foreground">No se encontraron clientes</p>}
                                         </ScrollArea>
                                     </PopoverContent>
                                 </Popover>
                             </div>
                             <Separator />
+                            
+                            <ScrollArea className="h-48">
+                                <Table>
+                                    <TableBody>
+                                        {cart.length > 0 ? cart.map(item => (
+                                            <TableRow key={item.id}>
+                                                <TableCell className="p-2">
+                                                    <p className="font-medium truncate w-32">{item.name}</p>
+                                                    <div className="flex items-center gap-1">
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity - 1)}><Minus className="h-3 w-3" /></Button>
+                                                        <span className="w-5 text-center text-sm">{item.quantity}</span>
+                                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => updateQuantity(item.id, item.quantity + 1)}><Plus className="h-3 w-3" /></Button>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="p-2 text-right align-top">
+                                                    {formatCurrency(item.price * item.quantity)}
+                                                </TableCell>
+                                                <TableCell className="p-1 align-top">
+                                                    <Button variant="ghost" size="icon" className="text-destructive h-7 w-7" onClick={() => updateQuantity(item.id, 0)}><Trash2 className="h-4 w-4" /></Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        )) : (
+                                            <TableRow><TableCell colSpan={3} className="h-24 text-center text-muted-foreground">Agrega productos</TableCell></TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </ScrollArea>
+                             <Separator />
+
                             <div className="space-y-2">
                                 <div className="flex justify-between"><span className="text-muted-foreground">Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
                                 <div className="flex justify-between"><span className="text-muted-foreground">IVA (16%)</span><span>{formatCurrency(tax)}</span></div>
-                                <div className="flex justify-between text-lg font-bold"><span >Total</span><span>{formatCurrency(total)}</span></div>
+                                <div className="flex justify-between text-xl font-bold"><span >Total</span><span>{formatCurrency(total)}</span></div>
                             </div>
                         </CardContent>
                         <CardFooter>
@@ -284,7 +303,13 @@ export default function PosPage() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+             <ImageViewerDialog
+                open={isViewerOpen}
+                onOpenChange={setIsViewerOpen}
+                images={viewerImages}
+                productName={viewerProductName}
+            />
         </>
     );
 }
-

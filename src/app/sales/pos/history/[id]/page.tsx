@@ -12,6 +12,8 @@ import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Printer } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LogoTienda } from '@/components/logo-tienda';
+import { Badge } from '@/components/ui/badge';
 
 import type { Product } from '@/lib/dummy-data';
 import { formatCurrency } from '@/lib/utils';
@@ -67,6 +69,52 @@ export default function SaleDetailPage() {
         setIsLoading(false);
     }, [id]);
 
+    const Receipt = ({ sale }: { sale: PosSale }) => (
+        <div className="bg-white text-black font-mono p-4 w-full max-w-md mx-auto border rounded-lg">
+            <div className="text-center mb-4">
+                <LogoTienda width={48} height={48} className="mx-auto h-12 w-auto" />
+                <h2 className="text-xl font-bold">Distrimin SAS</h2>
+                <p className="text-xs">Av. de los Constructores 123</p>
+                <p className="text-xs">Ciudad Ejemplo, México</p>
+            </div>
+            <Separator className="my-2 border-dashed" />
+            <div className="text-xs">
+                <p>Venta: {sale.id}</p>
+                <p>Fecha: {formatDate(sale.date)}</p>
+                <p>Cliente: {sale.customer?.name || 'Cliente General'}</p>
+            </div>
+            <Separator className="my-2 border-dashed" />
+            <table className="w-full text-xs">
+                <thead>
+                    <tr>
+                        <th className="text-left font-semibold">Producto</th>
+                        <th className="text-right font-semibold">Cant.</th>
+                        <th className="text-right font-semibold">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {sale.items.map(item => (
+                        <tr key={item.id}>
+                            <td className="w-1/2 truncate pr-2">{item.name}</td>
+                            <td className="text-right">{item.quantity}</td>
+                            <td className="text-right">{formatCurrency(item.price * item.quantity)}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            <Separator className="my-2 border-dashed" />
+            <div className="text-xs space-y-1">
+                <div className="flex justify-between"><span>Subtotal:</span><span>{formatCurrency(sale.subtotal)}</span></div>
+                <div className="flex justify-between"><span>IVA (16%):</span><span>{formatCurrency(sale.tax)}</span></div>
+                <div className="flex justify-between font-bold text-sm"><span>TOTAL:</span><span>{formatCurrency(sale.total)}</span></div>
+            </div>
+            <Separator className="my-2 border-dashed" />
+            <div className="text-center text-xs mt-4">
+                <p>¡Gracias por su compra!</p>
+            </div>
+        </div>
+    );
+
     if (isLoading) {
         return (
             <div className="space-y-4">
@@ -88,7 +136,7 @@ export default function SaleDetailPage() {
     
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-start">
+            <div className="flex justify-between items-start no-print">
                 <PageHeader title={`Detalle de Venta #${sale.id}`} description={`Realizada el ${formatDate(sale.date)}`} />
                 <div className="flex gap-2">
                     <Button variant="outline" asChild>
@@ -103,50 +151,9 @@ export default function SaleDetailPage() {
                     </Button>
                 </div>
             </div>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Cliente: {sale.customer?.name || 'Cliente General'}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Producto</TableHead>
-                                <TableHead className="text-center">Cantidad</TableHead>
-                                <TableHead className="text-right">Precio Unit.</TableHead>
-                                <TableHead className="text-right">Subtotal</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {sale.items.map(item => (
-                                <TableRow key={item.id}>
-                                    <TableCell>{item.name}</TableCell>
-                                    <TableCell className="text-center">{item.quantity}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(item.price)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(item.price * item.quantity)}</TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-                <CardFooter className="flex justify-end">
-                    <div className="w-full max-w-sm space-y-2">
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Subtotal</span>
-                            <span>{formatCurrency(sale.subtotal)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">IVA (16%)</span>
-                            <span>{formatCurrency(sale.tax)}</span>
-                        </div>
-                        <Separator />
-                        <div className="flex justify-between font-bold text-lg">
-                            <span>Total</span>
-                            <span>{formatCurrency(sale.total)}</span>
-                        </div>
-                    </div>
-                </CardFooter>
-            </Card>
+             <div className="printable-content">
+                <Receipt sale={sale} />
+            </div>
         </div>
     );
 }
