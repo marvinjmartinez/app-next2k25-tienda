@@ -1,7 +1,7 @@
 // src/app/sales/layout.tsx
 "use client";
 
-import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Package, LogOut, LayoutDashboard, User, DollarSign, Terminal, History } from 'lucide-react';
+import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Package, LogOut, LayoutDashboard, User, DollarSign, Store, History } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -87,7 +87,7 @@ export default function SalesLayout({
       <div className="flex min-h-screen w-full bg-muted/40">
         <Sidebar>
           <SidebarHeader>
-             <Link href="/" className="flex items-center gap-2 font-semibold">
+              <Link href="/" className="flex items-center gap-2 font-semibold">
                 <LogoTienda width={32} height={32} />
                 <span className="group-data-[collapsible=icon]:hidden">Distrimin SAS</span>
               </Link>
@@ -119,7 +119,7 @@ export default function SalesLayout({
               </SidebarMenuItem>
                <SidebarMenuItem>
                 <SidebarMenuButton asChild tooltip="Punto de Venta" isActive={pathname.startsWith('/sales/pos')}>
-                  <Link href="/sales/pos"><Terminal /><span>Ventas POS</span></Link>
+                  <Link href="/sales/pos"><Store /><span>Ventas POS</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
