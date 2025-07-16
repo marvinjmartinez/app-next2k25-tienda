@@ -14,9 +14,16 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 import type { Product } from '@/lib/dummy-data';
-import { getProducts } from '@/lib/dummy-data';
+import { getProducts, categories } from '@/lib/dummy-data';
 import { useToast } from '@/hooks/use-toast';
 import type { User as AuthUser } from '@/context/auth-context';
 import usersData from '@/data/users.json';
@@ -48,6 +55,7 @@ export default function PosPage() {
     const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [cart, setCart] = useState<PosCartItem[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
     const [selectedCustomer, setSelectedCustomer] = useState<AuthUser | null>(null);
     const [customerSearch, setCustomerSearch] = useState('');
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -73,11 +81,13 @@ export default function PosPage() {
     }
 
     const filteredProducts = useMemo(() => {
-        return allProducts.filter(p => 
-            p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            p.id.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-    }, [searchQuery, allProducts]);
+        return allProducts.filter(p => {
+            const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
+            const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                  p.id.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchesCategory && matchesSearch;
+        });
+    }, [searchQuery, categoryFilter, allProducts]);
     
     const filteredCustomers = useMemo(() => {
         if (!customerSearch) return dummyCustomers.slice(0, 10);
@@ -162,14 +172,27 @@ export default function PosPage() {
                 <div className="md:col-span-2 lg:col-span-1 space-y-4">
                     <Card>
                         <CardHeader>
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                    placeholder="Buscar producto por nombre o código..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-10"
-                                />
+                            <div className="flex flex-col sm:flex-row gap-2">
+                                <div className="relative flex-1">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        placeholder="Buscar producto..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-10"
+                                    />
+                                </div>
+                                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                                    <SelectTrigger className="w-full sm:w-[200px]">
+                                        <SelectValue placeholder="Categoría" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">Todas</SelectItem>
+                                        {categories.map((cat) => (
+                                            <SelectItem key={cat.slug} value={cat.slug}>{cat.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </CardHeader>
                         <CardContent>
