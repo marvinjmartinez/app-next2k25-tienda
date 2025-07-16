@@ -1,7 +1,7 @@
 // src/app/sales/layout.tsx
 "use client";
 
-import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Package, LogOut, LayoutDashboard, User, DollarSign, Terminal } from 'lucide-react';
+import { Package2, Home, ShoppingCart, Users, Star, PlusCircle, Package, LogOut, LayoutDashboard, User, DollarSign, Terminal, History } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
@@ -16,6 +16,8 @@ import {
     SidebarInset,
     SidebarTrigger,
     SidebarFooter,
+    SidebarMenuSub,
+    SidebarMenuSubButton,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -101,10 +103,19 @@ export default function SalesLayout({
                     <Link href="/sales/dashboard"><LayoutDashboard /><span>Panel</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/pos')} tooltip="Punto de Venta">
-                    <Link href="/sales/pos"><Terminal /><span>Punto de Venta</span></Link>
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip="Punto de Venta" isActive={pathname.startsWith('/sales/pos')}>
+                  <Terminal />
+                  <span>Punto de Venta</span>
                 </SidebarMenuButton>
+                <SidebarMenuSub>
+                    <SidebarMenuSubButton asChild isActive={pathname === '/sales/pos'}>
+                        <Link href="/sales/pos"><span>Caja</span></Link>
+                    </SidebarMenuSubButton>
+                    <SidebarMenuSubButton asChild isActive={pathname.startsWith('/sales/pos/history')}>
+                        <Link href="/sales/pos/history"><span>Historial</span></Link>
+                    </SidebarMenuSubButton>
+                </SidebarMenuSub>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/profile')} tooltip="Perfil">
