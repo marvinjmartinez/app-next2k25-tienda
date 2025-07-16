@@ -31,6 +31,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { LogoTienda } from '@/components/logo-tienda';
 
 export default function SalesLayout({
   children,
@@ -96,16 +97,10 @@ export default function SalesLayout({
       <div className="flex min-h-screen w-full bg-muted/40">
         <Sidebar>
           <SidebarHeader>
-              <div className="flex items-center gap-3">
-                  <Avatar className="size-10">
-                      <AvatarImage src="https://placehold.co/40x40.png" alt={user.name} data-ai-hint="person portrait" />
-                      <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col group-data-[collapsible=icon]:hidden">
-                      <span className="font-semibold text-sm">{user.name}</span>
-                      <span className="text-xs text-muted-foreground capitalize">{user.role}</span>
-                  </div>
-              </div>
+             <Link href="/" className="flex items-center gap-2 font-semibold">
+                <LogoTienda width={32} height={32} />
+                <span className="group-data-[collapsible=icon]:hidden">Distrimin SAS</span>
+              </Link>
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
@@ -127,7 +122,7 @@ export default function SalesLayout({
                   <Link href="/sales/create-quote"><PlusCircle /><span>Crear Cotización</span></Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
+               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/quotes')} tooltip="Mis Compras">
                   <Link href="/sales/quotes"><Star /><span>Mis Compras</span></Link>
                 </SidebarMenuButton>
@@ -170,16 +165,6 @@ export default function SalesLayout({
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarContent>
-           <SidebarFooter>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={logout} tooltip="Cerrar Sesión">
-                  <LogOut />
-                  <span>Cerrar Sesión</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarFooter>
         </Sidebar>
         <SidebarInset>
             <header className="flex h-14 items-center justify-between gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
@@ -208,6 +193,10 @@ export default function SalesLayout({
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => router.push('/')}>
                       <span>Ir a la tienda</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={logout}>
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Cerrar Sesión</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
