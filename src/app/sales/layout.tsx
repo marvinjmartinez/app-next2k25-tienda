@@ -99,9 +99,12 @@ export default function SalesLayout({
       <div className="flex min-h-screen w-full bg-muted/40">
         <Sidebar>
           <SidebarHeader>
-            <Link href="/" className="flex items-center gap-2">
+             <Link href="/" className="flex items-center justify-center group-data-[state=expanded]:hidden">
                 <LogoTienda width={40} height={40} className="h-10 w-auto" />
-                <span className="font-semibold text-lg hidden group-data-[state=expanded]:inline">Distrimin SAS</span>
+            </Link>
+            <Link href="/" className="hidden items-center gap-2 group-data-[state=expanded]:flex">
+                <LogoTienda width={40} height={40} className="h-10 w-auto" />
+                <span className="font-semibold text-lg">Distrimin SAS</span>
             </Link>
           </SidebarHeader>
           <SidebarContent>
