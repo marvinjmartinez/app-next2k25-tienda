@@ -26,7 +26,7 @@ import type { Product } from '@/lib/dummy-data';
 import { getProducts, categories } from '@/lib/dummy-data';
 import posCustomersData from '@/data/pos_customers.json';
 import { useToast } from '@/hooks/use-toast';
-import type { User as AuthUser, UserRole } from '@/context/auth-context';
+import type { UserRole } from '@/context/auth-context';
 import { formatCurrency, getPriceForCustomer } from '@/lib/utils';
 import { ProductCard } from '@/components/product-card';
 import { ImageViewerDialog } from '@/components/image-viewer-dialog';
@@ -48,7 +48,7 @@ export interface PosSale {
     status: 'Completada';
 }
 
-interface PosCustomer {
+export interface PosCustomer {
     id: string;
     name: string;
     email?: string;
@@ -90,7 +90,6 @@ export default function PosPage() {
     const [shippingCost, setShippingCost] = useState<number | string>('');
     const [isPaymentModalOpen, setPaymentModalOpen] = useState(false);
     const [isCustomerModalOpen, setCustomerModalOpen] = useState(false);
-    const [isCreateCustomerModalOpen, setCreateCustomerModalOpen] = useState(false);
     const [customerSearch, setCustomerSearch] = useState('');
     const [amountReceived, setAmountReceived] = useState<number | string>('');
     const [paymentMethod, setPaymentMethod] = useState<PosSale['paymentMethod']>('Efectivo');
@@ -106,7 +105,7 @@ export default function PosPage() {
     
     // Recalculate cart prices when customer changes
     useEffect(() => {
-        if (!selectedCustomer || cart.length === 0) return;
+        if (cart.length === 0) return;
 
         setCart(prevCart => {
             return prevCart.map(item => {
@@ -114,7 +113,7 @@ export default function PosPage() {
                 if (productData) {
                     return {
                         ...item,
-                        price: getPriceForCustomer(productData, selectedCustomer.role || 'cliente')
+                        price: getPriceForCustomer(productData, selectedCustomer?.role || 'cliente')
                     };
                 }
                 return item;
@@ -122,18 +121,6 @@ export default function PosPage() {
         });
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCustomer]);
-
-    const handleAddNewUser = (newUser: PosCustomer) => {
-        const updatedUsers = [newUser, ...allCustomers];
-        setAllCustomers(updatedUsers);
-        if (typeof window !== 'undefined') {
-            localStorage.setItem(POS_CUSTOMERS_KEY, JSON.stringify(updatedUsers));
-        }
-        setSelectedCustomer(newUser);
-        toast({ title: "Cliente Creado", description: `${newUser.name} ha sido añadido y seleccionado.`});
-        setCreateCustomerModalOpen(false);
-        setCustomerModalOpen(false);
-    };
 
     const handleOpenImageViewer = (product: Product) => {
         setViewerImages([product.image, ...(product.gallery || [])]);
@@ -457,17 +444,13 @@ export default function PosPage() {
                 <DialogContent className="max-w-3xl">
                     <DialogHeader>
                         <DialogTitle>Seleccionar Cliente</DialogTitle>
-                        <DialogDescription>Busca un cliente existente o crea uno nuevo.</DialogDescription>
+                        <DialogDescription>Busca un cliente existente o crea uno nuevo desde la pestaña "Clientes".</DialogDescription>
                     </DialogHeader>
                     <div className="flex gap-4 items-center pt-4">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input placeholder="Buscar por nombre o identificación..." className="pl-10" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} />
                         </div>
-                        <Button onClick={() => setCreateCustomerModalOpen(true)}>
-                            <UserPlus className="mr-2 h-4 w-4" />
-                            Crear Cliente
-                        </Button>
                     </div>
                     <ScrollArea className="h-96 mt-4 border rounded-lg">
                         <Table>
@@ -500,15 +483,6 @@ export default function PosPage() {
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isCreateCustomerModalOpen} onOpenChange={setCreateCustomerModalOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Crear Nuevo Cliente</DialogTitle>
-                    </DialogHeader>
-                    <CreateCustomerForm onCustomerCreated={handleAddNewUser} />
-                </DialogContent>
-            </Dialog>
-
             <ImageViewerDialog
                 open={isViewerOpen}
                 onOpenChange={setIsViewerOpen}
@@ -529,72 +503,5 @@ export default function PosPage() {
                 </DialogContent>
             </Dialog>
         </>
-    );
-}
-
-function CreateCustomerForm({ onCustomerCreated }: { onCustomerCreated: (user: PosCustomer) => void }) {
-    const [customerType, setCustomerType] = useState<'natural' | 'empresa'>('natural');
-
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
-        const name = customerType === 'natural'
-            ? `${formData.get('firstName')} ${formData.get('lastName')}`
-            : formData.get('companyName');
-
-        const newUser: PosCustomer = {
-            id: `pos_user_${Date.now()}`,
-            name: name as string,
-            email: formData.get('email') as string,
-            role: 'cliente',
-            type: customerType,
-            identification: formData.get('identification') as string,
-            phone: formData.get('phone') as string,
-            address: formData.get('address') as string,
-        };
-        onCustomerCreated(newUser);
-    }
-    
-    return (
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
-            <RadioGroup defaultValue="natural" onValueChange={(value: 'natural' | 'empresa') => setCustomerType(value)} className="grid grid-cols-2 gap-4">
-                <div>
-                    <RadioGroupItem value="natural" id="natural" className="peer sr-only" />
-                    <Label htmlFor="natural" className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                        <User className="h-5 w-5" />
-                        Persona Natural
-                    </Label>
-                </div>
-                 <div>
-                    <RadioGroupItem value="empresa" id="empresa" className="peer sr-only" />
-                    <Label htmlFor="empresa" className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                        <Building className="h-5 w-5" />
-                        Empresa
-                    </Label>
-                </div>
-            </RadioGroup>
-
-            {customerType === 'natural' ? (
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1"><Label htmlFor="firstName">Nombres</Label><Input id="firstName" name="firstName" required/></div>
-                    <div className="space-y-1"><Label htmlFor="lastName">Apellidos</Label><Input id="lastName" name="lastName" required/></div>
-                </div>
-            ) : (
-                <div className="space-y-1"><Label htmlFor="companyName">Razón Social</Label><Input id="companyName" name="companyName" required/></div>
-            )}
-            
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1"><Label htmlFor="identification">Identificación (Cédula/RUC)</Label><Input id="identification" name="identification" required/></div>
-                <div className="space-y-1"><Label htmlFor="email">Correo Electrónico</Label><Input id="email" name="email" type="email" required/></div>
-            </div>
-             <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1"><Label htmlFor="phone">Teléfono</Label><Input id="phone" name="phone" required/></div>
-                <div className="space-y-1"><Label htmlFor="address">Dirección</Label><Input id="address" name="address" required/></div>
-            </div>
-             <DialogFooter className="pt-4">
-                <DialogClose asChild><Button variant="outline">Cancelar</Button></DialogClose>
-                <Button type="submit">Guardar Cliente</Button>
-            </DialogFooter>
-        </form>
     );
 }
