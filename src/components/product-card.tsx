@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Maximize, ExternalLink } from 'lucide-react';
+import { ShoppingCart, Maximize } from 'lucide-react';
 import { Product } from '@/lib/dummy-data';
 import { cn } from '@/lib/utils';
 
@@ -44,11 +44,13 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
           />
       </CardHeader>
       <CardContent className="p-3 flex-grow">
-        <CardTitle className="text-sm h-10 leading-tight font-medium">{product.name}</CardTitle>
+        <Link href={`/products/${product.id}`} passHref>
+          <CardTitle as="a" className="text-sm h-10 leading-tight font-medium hover:text-primary cursor-pointer">{product.name}</CardTitle>
+        </Link>
         <CardDescription className="text-primary font-semibold text-base mt-1">${product.price.toFixed(2)}</CardDescription>
       </CardContent>
       <CardFooter className="p-2 pt-0 flex gap-1">
-        {onViewDetails && (
+        {onViewDetails && ( // This button is now effectively unused in POS but kept for flexibility
           <Button
             size="sm"
             variant="outline"
@@ -56,7 +58,7 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
             onClick={() => onViewDetails(product)}
             title="Ver detalles"
           >
-            <ExternalLink className="h-4 w-4" />
+            <Maximize className="h-4 w-4" />
           </Button>
         )}
         <Button
