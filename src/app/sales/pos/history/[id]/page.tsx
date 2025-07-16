@@ -1,8 +1,8 @@
 // src/app/sales/pos/history/[id]/page.tsx
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 import { PageHeader } from '@/components/page-header';
@@ -35,10 +35,19 @@ const formatDate = (dateString: string) => {
 export default function SaleDetailPage() {
     const router = useRouter();
     const params = useParams();
+    const searchParams = useSearchParams();
     const { id } = params;
 
     const [sale, setSale] = useState<PosSale | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+
+    const onAfterPrint = useCallback((cameFromPos: boolean) => {
+        if (cameFromPos) {
+            router.replace('/sales/pos');
+        } else {
+            router.replace(`/sales/pos/history/${id}`);
+        }
+    }, [router, id]);
 
     useEffect(() => {
         if (typeof id === 'string') {
@@ -49,13 +58,12 @@ export default function SaleDetailPage() {
                     const foundSale = sales.find(s => s.id === id);
                     setSale(foundSale || null);
 
-                    // Auto-print if this page was opened for it
-                    const urlParams = new URLSearchParams(window.location.search);
-                    if (urlParams.get('print') === 'true') {
+                    const cameFromPos = searchParams.get('print') === 'true';
+                    if (cameFromPos) {
                         setTimeout(() => {
-                           window.print();
-                           // Remove param to avoid re-printing on refresh
-                           router.replace(`/sales/pos/history/${id}`);
+                            window.print();
+                            // Navegar de vuelta a la caja después de imprimir
+                            onAfterPrint(true);
                         }, 500);
                     }
                 }
@@ -64,7 +72,8 @@ export default function SaleDetailPage() {
             }
         }
         setIsLoading(false);
-    }, [id, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [id]);
 
     const Receipt = ({ sale }: { sale: PosSale }) => (
         <div className="bg-white text-black font-mono p-4 w-full max-w-md mx-auto border rounded-lg">
