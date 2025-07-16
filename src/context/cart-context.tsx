@@ -7,7 +7,7 @@ import { useAuth, type User, type UserRole } from './auth-context';
 import { getProducts, type Product } from '@/lib/dummy-data';
 
 // Define the shape of a cart item
-interface CartItem {
+export interface CartItem {
   id: string;
   name: string;
   price: number;

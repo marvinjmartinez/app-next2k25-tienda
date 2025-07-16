@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, ShoppingCart, User, LogOut, LayoutDashboard, Save, Plus, Minus } from 'lucide-react';
+import { Trash2, ShoppingCart, User, LogOut, LayoutDashboard, Save, Plus, Minus, Printer } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -30,6 +30,9 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useState } from 'react';
+import { PrintableCart } from '@/components/printable-cart';
+import type { CartItem } from '@/context/cart-context';
 
 
 export default function CartPage() {
@@ -37,6 +40,7 @@ export default function CartPage() {
   const { user, logout, isAuthenticated } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const [itemsToPrint, setItemsToPrint] = useState<CartItem[] | null>(null);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -118,9 +122,27 @@ export default function CartPage() {
     router.push('/checkout');
   }
 
+  const handlePrint = () => {
+    const selected = getSelectedItems();
+    if (selected.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "No hay productos seleccionados",
+            description: "Por favor, selecciona los productos que deseas imprimir.",
+        });
+        return;
+    }
+    setItemsToPrint(selected);
+    setTimeout(() => {
+        window.print();
+        setItemsToPrint(null);
+    }, 100);
+  }
+
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
+    <div className="flex flex-col min-h-screen no-print">
       <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
         <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
           <Link href="/" className="flex items-center gap-2">
@@ -309,6 +331,10 @@ export default function CartPage() {
                             <Link href="/login">Iniciar Sesión para Pagar</Link>
                         </Button>
                     )}
+                    <Button variant="secondary" className="w-full" onClick={handlePrint} disabled={getSelectedItems().length === 0}>
+                        <Printer className="mr-2 h-4 w-4" />
+                        Imprimir Selección
+                    </Button>
                      <Button variant="link" className="w-full" asChild>
                         <Link href="/products">Continuar comprando</Link>
                     </Button>
@@ -325,5 +351,14 @@ export default function CartPage() {
         </div>
       </footer>
     </div>
+    <div className="hidden printable-content">
+        {itemsToPrint && (
+            <PrintableCart
+                items={itemsToPrint}
+                total={getSelectedItemsTotal()}
+            />
+        )}
+    </div>
+    </>
   );
 }
