@@ -104,18 +104,9 @@ export default function SalesLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Punto de Venta" isActive={pathname.startsWith('/sales/pos')}>
-                  <Terminal />
-                  <span>Punto de Venta</span>
+                <SidebarMenuButton asChild tooltip="Punto de Venta" isActive={pathname.startsWith('/sales/pos')}>
+                  <Link href="/sales/pos"><Terminal /><span>Ventas POS</span></Link>
                 </SidebarMenuButton>
-                <SidebarMenuSub>
-                    <SidebarMenuSubButton asChild isActive={pathname === '/sales/pos'}>
-                        <Link href="/sales/pos"><span>Caja</span></Link>
-                    </SidebarMenuSubButton>
-                    <SidebarMenuSubButton asChild isActive={pathname.startsWith('/sales/pos/history')}>
-                        <Link href="/sales/pos/history"><span>Historial</span></Link>
-                    </SidebarMenuSubButton>
-                </SidebarMenuSub>
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith('/sales/profile')} tooltip="Perfil">
