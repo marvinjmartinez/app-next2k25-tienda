@@ -11,6 +11,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from '@/components/ui/table';
 import { formatCurrency } from '@/lib/utils';
+import { Label } from '@/components/ui/label';
 
 // Datos de demostración
 const summaryData = {
@@ -26,10 +27,8 @@ const salesByPaymentMethod = [
 ];
 
 export default function PosReportsPage() {
-    const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
-        from: new Date(new Date().setDate(1)),
-        to: new Date(),
-    });
+    const [startDate, setStartDate] = useState<Date | undefined>(new Date(new Date().setDate(1)));
+    const [endDate, setEndDate] = useState<Date | undefined>(new Date());
 
     return (
         <div className="space-y-6">
@@ -39,34 +38,49 @@ export default function PosReportsPage() {
                     <CardDescription>
                        Selecciona un rango de fechas para ver el rendimiento del punto de venta.
                     </CardDescription>
-                    <div className="flex items-center gap-4 pt-4">
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-[280px] justify-start text-left font-normal">
-                                    <CalendarIcon className="mr-2 h-4 w-4" />
-                                    {dateRange.from ? (
-                                        dateRange.to ? (
-                                            <>
-                                                {format(dateRange.from, "d 'de' LLL", {locale: es})} - {format(dateRange.to, "d 'de' LLL, y", {locale: es})}
-                                            </>
-                                        ) : (
-                                            format(dateRange.from, "d 'de' LLL, y", {locale: es})
-                                        )
-                                    ) : (
-                                        <span>Seleccionar fecha</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                    mode="range"
-                                    selected={dateRange}
-                                    onSelect={setDateRange}
-                                    initialFocus
-                                    locale={es}
-                                />
-                            </PopoverContent>
-                        </Popover>
+                    <div className="flex items-end gap-4 pt-4">
+                        <div className="grid gap-2">
+                           <Label htmlFor="start-date">Fecha de Inicio</Label>
+                           <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button id="start-date" variant="outline" className="w-[200px] justify-start text-left font-normal">
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {startDate ? format(startDate, "d 'de' LLL, y", {locale: es}) : <span>Seleccionar fecha</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={startDate}
+                                        onSelect={setStartDate}
+                                        initialFocus
+                                        locale={es}
+                                        disabled={(date) => date > (endDate || new Date()) || date < new Date("1900-01-01")}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                        <div className="grid gap-2">
+                           <Label htmlFor="end-date">Fecha de Fin</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button id="end-date" variant="outline" className="w-[200px] justify-start text-left font-normal">
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {endDate ? format(endDate, "d 'de' LLL, y", {locale: es}) : <span>Seleccionar fecha</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <Calendar
+                                        mode="single"
+                                        selected={endDate}
+                                        onSelect={setEndDate}
+                                        initialFocus
+                                        locale={es}
+                                        disabled={(date) => date < (startDate || new Date(0)) || date > new Date()}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                        </div>
                          <Button>Aplicar Filtro</Button>
                     </div>
                 </CardHeader>
