@@ -110,8 +110,7 @@ export async function generateProductDescriptionAction(formData: FormData): Prom
 
 
 export async function generateMissingProductImagesAction(products: Product[]): Promise<{ success: boolean; data?: Product[]; error?: string, generatedCount?: number }> {
-    const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
-    const productsToUpdate = products.filter(p => !p.image || p.image === SVG_PLACEHOLDER);
+    const productsToUpdate = products.filter(p => !p.image || p.image.includes('placehold.co'));
 
     if (productsToUpdate.length === 0) {
         return { success: true, data: products, generatedCount: 0 };

@@ -347,7 +347,7 @@ export default function ProductsAdminPage() {
   }, [filteredProducts, currentPage, itemsPerPage]);
 
   const productsWithoutImage = useMemo(() => {
-      return products.filter(p => !p.image || p.image === SVG_PLACEHOLDER).length;
+      return products.filter(p => !p.image || p.image.includes('placehold.co')).length;
   }, [products]);
 
   return (
