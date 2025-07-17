@@ -38,7 +38,7 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
             alt={product.name}
             width={300}
             height={300}
-            className="w-full h-32 object-cover"
+            className="w-full h-32 object-contain"
             data-ai-hint={product.hint}
             priority={product.featured}
           />
