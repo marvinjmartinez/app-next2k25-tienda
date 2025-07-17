@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Loader2 } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Loader2, ImagePlus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -55,7 +55,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { generateProductImageAction, generateProductDescriptionAction } from './actions';
+import { generateProductImageAction, generateProductDescriptionAction, generateMissingProductImagesAction } from './actions';
 
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
@@ -76,6 +76,7 @@ export default function ProductsAdminPage() {
   const [isGenerating, startGeneratingTransition] = useTransition();
   const [isSaving, startSavingTransition] = useTransition();
   const [isGeneratingDesc, startGeneratingDescTransition] = useTransition();
+  const [isGeneratingMissing, startGeneratingMissingTransition] = useTransition();
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -178,6 +179,7 @@ export default function ProductsAdminPage() {
             status: productStatus ? 'activo' : 'inactivo',
             image: productImage,
             gallery: galleryUrls,
+            priceTiers: selectedProduct?.priceTiers // Mantener los tiers si existen
         };
 
         let updatedProducts: Product[];
@@ -235,6 +237,22 @@ export default function ProductsAdminPage() {
         });
     });
   };
+
+  const handleGenerateMissingImages = () => {
+      startGeneratingMissingTransition(() => {
+        generateMissingProductImagesAction(products).then(result => {
+            if (result.success && result.data) {
+                updateProductsStateAndStorage(result.data);
+                toast({
+                    title: "Imágenes Generadas",
+                    description: `Se generaron ${result.generatedCount} imágenes para los productos faltantes.`
+                });
+            } else {
+                 toast({ variant: 'destructive', title: "Error al generar imágenes", description: result.error || "Ocurrió un error." });
+            }
+        });
+      });
+  }
 
   const handleGenerateDescription = () => {
       if (!productName || !productCategory) {
@@ -328,18 +346,44 @@ export default function ProductsAdminPage() {
       return filteredProducts.slice(startIndex, endIndex);
   }, [filteredProducts, currentPage, itemsPerPage]);
 
+  const productsWithoutImage = useMemo(() => {
+      return products.filter(p => !p.image || p.image === SVG_PLACEHOLDER).length;
+  }, [products]);
+
   return (
     <>
       <div className="space-y-6">
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start gap-4">
             <PageHeader
                 title="Gestión de Productos"
                 description="Añade, edita y gestiona todos los productos de la tienda."
             />
-            <Button onClick={handleAddNew}>
-                <PlusCircle className="mr-2" />
-                Añadir Producto
-            </Button>
+            <div className="flex gap-2">
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="outline" disabled={isGeneratingMissing || productsWithoutImage === 0}>
+                             {isGeneratingMissing ? <Loader2 className="mr-2 animate-spin" /> : <ImagePlus className="mr-2" />}
+                            Generar Faltantes ({productsWithoutImage})
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>¿Confirmar generación masiva?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Se generarán imágenes para <strong>{productsWithoutImage} productos</strong> que no tienen una. Este proceso puede tardar varios minutos y consumir recursos de la API.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleGenerateMissingImages}>Confirmar</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <Button onClick={handleAddNew}>
+                    <PlusCircle className="mr-2" />
+                    Añadir Producto
+                </Button>
+            </div>
         </div>
         <Card>
           <CardHeader>

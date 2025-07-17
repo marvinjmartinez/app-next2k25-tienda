@@ -5,6 +5,7 @@ import { generateProductImage as generateProductImageFlow } from "@/ai/flows/gen
 import { generateProductDescription as generateProductDescriptionFlow } from "@/ai/flows/generate-product-description";
 import { uploadFileFromDataURI } from "@/lib/file-manager";
 import { z } from "zod";
+import type { Product } from "@/lib/dummy-data";
 
 const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
@@ -104,5 +105,43 @@ export async function generateProductDescriptionAction(formData: FormData): Prom
             return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
         }
         return { success: false, error: errorMessage };
+    }
+}
+
+
+export async function generateMissingProductImagesAction(products: Product[]): Promise<{ success: boolean; data?: Product[]; error?: string, generatedCount?: number }> {
+    const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
+    const productsToUpdate = products.filter(p => !p.image || p.image === SVG_PLACEHOLDER);
+
+    if (productsToUpdate.length === 0) {
+        return { success: true, data: products, generatedCount: 0 };
+    }
+
+    let generatedCount = 0;
+    const updatedProducts = [...products];
+
+    try {
+        for (const product of productsToUpdate) {
+            const hint = product.hint || product.name;
+            if (!hint) continue;
+
+            const imageResult = await generateProductImageFlow({ hint });
+            if (imageResult.imageUrl) {
+                const { url: publicUrl } = await uploadFileFromDataURI(imageResult.imageUrl, 'distrimin/productos');
+                const productIndex = updatedProducts.findIndex(p => p.id === product.id);
+                if (productIndex !== -1) {
+                    updatedProducts[productIndex].image = publicUrl;
+                    generatedCount++;
+                }
+            }
+        }
+        return { success: true, data: updatedProducts, generatedCount };
+    } catch (error) {
+        console.error("Error en generateMissingProductImagesAction:", error);
+        const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado.";
+        if (errorMessage.includes("API key not valid")) {
+            return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
+        }
+        return { success: false, error: errorMessage, data: products };
     }
 }
