@@ -117,7 +117,8 @@ export async function generateMissingProductImagesAction(products: Product[]): P
     }
 
     let generatedCount = 0;
-    const updatedProducts = [...products];
+    // CORRECCIÓN: Usar una copia profunda para asegurar que los cambios se detecten en el cliente.
+    const updatedProducts: Product[] = JSON.parse(JSON.stringify(products));
 
     try {
         for (const product of productsToUpdate) {
