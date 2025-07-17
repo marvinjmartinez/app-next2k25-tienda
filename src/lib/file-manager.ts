@@ -32,9 +32,11 @@ interface FileUploadResponse {
  * @param path La ruta de destino en el almacenamiento.
  * @returns Una promesa que se resuelve con la ruta y la URL del archivo subido.
  */
-export async function uploadFile(file: Blob, path: string): Promise<{ path: string; url: string }> {
+export async function uploadFile(file: Blob | File, path: string): Promise<{ path: string; url: string }> {
   const formData = new FormData();
-  formData.append('archivo', file, 'generated-image.png'); // Clave corregida a 'archivo'
+  // Usa el nombre de archivo original si es un File, si no, uno por defecto.
+  const fileName = file instanceof File ? file.name : 'generated-image.png';
+  formData.append('archivo', file, fileName);
   formData.append('path', path);
 
   const response = await fetch(`${API_BASE_URL}/files`, {
@@ -47,8 +49,8 @@ export async function uploadFile(file: Blob, path: string): Promise<{ path: stri
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(`Error al subir archivo: ${response.statusText} - ${errorData.message || ''}`);
+    const errorData = await response.json().catch(() => ({ message: response.statusText }));
+    throw new Error(`Error al subir archivo: ${response.status} ${response.statusText} - ${errorData.message || 'No se pudo obtener más información del error.'}`);
   }
 
   const result: FileUploadResponse = await response.json();
@@ -58,6 +60,7 @@ export async function uploadFile(file: Blob, path: string): Promise<{ path: stri
 
   return { path: result.path, url: result.url };
 }
+
 
 /**
  * Sube un archivo desde un Data URI (base64).

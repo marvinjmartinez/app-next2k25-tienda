@@ -1,7 +1,7 @@
 // src/app/sales/products/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect, useTransition } from 'react';
+import { useState, useMemo, useEffect, useTransition, useRef } from 'react';
 import { PageHeader } from '@/components/page-header';
 import {
   Card,
@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Loader2, ImagePlus } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Loader2, ImagePlus, Upload } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -55,7 +55,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { generateProductImageAction, generateProductDescriptionAction, generateMissingProductImagesAction } from './actions';
+import { generateProductImageAction, generateProductDescriptionAction, generateMissingProductImagesAction, uploadProductImageAction } from './actions';
 
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
@@ -74,9 +74,13 @@ export default function ProductsAdminPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isGenerating, startGeneratingTransition] = useTransition();
+  const [isUploading, startUploadingTransition] = useTransition();
   const [isSaving, startSavingTransition] = useTransition();
   const [isGeneratingDesc, startGeneratingDescTransition] = useTransition();
   const [isGeneratingMissing, startGeneratingMissingTransition] = useTransition();
+  
+  const mainImageInputRef = useRef<HTMLInputElement>(null);
+  const galleryImageInputRef = useRef<HTMLInputElement>(null);
   
   // States for the form inside the dialog
   const [productName, setProductName] = useState('');
@@ -217,13 +221,13 @@ export default function ProductsAdminPage() {
       generateProductImageAction(formData)
         .then(async (result) => {
           if (result.success && result.data?.imageUrl) {
-              const dataUri = result.data.imageUrl;
+              const imageUrl = result.data.imageUrl;
               
               if (target === 'main') {
-                setProductImage(dataUri);
+                setProductImage(imageUrl);
                 toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado. No olvides guardar." });
               } else {
-                setGalleryUrls(prev => [...prev, dataUri]);
+                setGalleryUrls(prev => [...prev, imageUrl]);
                 setGalleryHint('');
                 toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido. No olvides guardar." });
               }
@@ -237,6 +241,37 @@ export default function ProductsAdminPage() {
         });
     });
   };
+  
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>, target: 'main' | 'gallery') => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      startUploadingTransition(() => {
+        uploadProductImageAction(formData)
+        .then(result => {
+             if (result.success && result.data?.imageUrl) {
+                if (target === 'main') {
+                    setProductImage(result.data.imageUrl);
+                    toast({ title: "Imagen Principal Subida", description: "No olvides guardar los cambios." });
+                } else {
+                    setGalleryUrls(prev => [...prev, result.data!.imageUrl]);
+                    toast({ title: "Imagen de Galería Subida", description: "No olvides guardar los cambios." });
+                }
+            } else {
+                 toast({ variant: 'destructive', title: "Error al subir imagen", description: result.error || "Ocurrió un error." });
+            }
+        })
+        .catch(error => {
+            console.error("Error en handleFileUpload:", error);
+            toast({ variant: 'destructive', title: "Error inesperado", description: "Ocurrió un error al subir la imagen." });
+        });
+      });
+      // Reset file input
+      event.target.value = '';
+  }
 
   const handleGenerateMissingImages = () => {
       startGeneratingMissingTransition(() => {
@@ -632,12 +667,7 @@ export default function ProductsAdminPage() {
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="hint">Pista de IA para imagen principal</Label>
-                                    <div className="flex gap-2">
-                                        <Input id="hint" name="hint" value={productHint} onChange={(e) => setProductHint(e.target.value)} placeholder="Ej: power tool" />
-                                        <Button type="button" variant="outline" size="icon" onClick={() => handleGenerateImage('main')} disabled={isGenerating || isSaving}>
-                                            {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-                                        </Button>
-                                    </div>
+                                    <Input id="hint" name="hint" value={productHint} onChange={(e) => setProductHint(e.target.value)} placeholder="Ej: power tool" />
                                 </div>
                             </div>
                             <div className="flex items-center space-x-2 pt-4">
@@ -666,6 +696,17 @@ export default function ProductsAdminPage() {
                                     <Image src={productImage || SVG_PLACEHOLDER} alt="Preview" width={80} height={80} className="rounded-md object-cover border" />
                                     <Input value={productImage === SVG_PLACEHOLDER ? 'Marcador de posición' : 'Imagen generada o URL'} readOnly className="flex-1" />
                                 </div>
+                                <div className="flex gap-2 mt-2">
+                                    <Button type="button" variant="outline" size="sm" onClick={() => handleGenerateImage('main')} disabled={isGenerating || isUploading}>
+                                        {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                                        Generar
+                                    </Button>
+                                    <input type="file" ref={mainImageInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'main')}/>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => mainImageInputRef.current?.click()} disabled={isUploading || isGenerating}>
+                                        {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                                        Subir
+                                    </Button>
+                                </div>
                             </div>
                              <div className="space-y-2">
                                 <Label>Galería de Imágenes</Label>
@@ -673,7 +714,7 @@ export default function ProductsAdminPage() {
                                     {galleryUrls.map((url, index) => (
                                         <div key={index} className="flex items-center gap-2 bg-muted p-1 rounded-md">
                                             <Image src={url || SVG_PLACEHOLDER} alt={`Gallery image ${index + 1}`} width={40} height={40} className="rounded object-cover" />
-                                            <p className="text-xs text-muted-foreground truncate flex-1">{url.startsWith('data:') ? 'Imagen generada' : url}</p>
+                                            <p className="text-xs text-muted-foreground truncate flex-1">{url.startsWith('data:') || url.includes('storage.googleapis.com') ? 'Imagen generada/subida' : url}</p>
                                             <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleRemoveGalleryUrl(url)}>
                                                 <Trash2 className="h-4 w-4 text-destructive" />
                                             </Button>
@@ -698,8 +739,12 @@ export default function ProductsAdminPage() {
                                         onChange={(e) => setGalleryHint(e.target.value)}
                                         className="h-9"
                                     />
-                                    <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isGenerating || isSaving}>
+                                    <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isGenerating || isUploading}>
                                          {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                                    </Button>
+                                     <input type="file" ref={galleryImageInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'gallery')}/>
+                                     <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => galleryImageInputRef.current?.click()} disabled={isUploading || isGenerating}>
+                                         {isUploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
                                     </Button>
                                 </div>
                             </div>
@@ -712,7 +757,7 @@ export default function ProductsAdminPage() {
                 <DialogClose asChild>
                     <Button type="button" variant="outline">Cancelar</Button>
                 </DialogClose>
-                <Button onClick={handleSave} disabled={isSaving || isGenerating}>
+                <Button onClick={handleSave} disabled={isSaving || isGenerating || isUploading}>
                     {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Guardando...</> : 'Guardar Cambios'}
                 </Button>
             </DialogFooter>

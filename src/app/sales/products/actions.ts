@@ -3,7 +3,7 @@
 
 import { generateProductImage as generateProductImageFlow } from "@/ai/flows/generate-product-image";
 import { generateProductDescription as generateProductDescriptionFlow } from "@/ai/flows/generate-product-description";
-import { uploadFileFromDataURI } from "@/lib/file-manager";
+import { uploadFile, uploadFileFromDataURI } from "@/lib/file-manager";
 import { z } from "zod";
 import type { Product } from "@/lib/dummy-data";
 
@@ -11,7 +11,7 @@ const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
 });
 
-// Acción para generar la imagen, subirla a través de la API de Laravel y devolver la URL.
+// Acción para generar la imagen, subirla a través de la API y devolver la URL.
 export async function generateProductImageAction(formData: FormData): Promise<{ success: boolean; data?: { imageUrl: string; }; error?: string; }> {
     const rawData = Object.fromEntries(formData.entries());
     const validation = generateImageSchema.safeParse(rawData);
@@ -32,7 +32,7 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
              throw new Error('La IA no pudo generar una imagen válida.');
         }
         
-        // 2. Subir la imagen a través de la API de Laravel con la ruta especificada
+        // 2. Subir la imagen a través de la API
         const { url: publicUrl } = await uploadFileFromDataURI(dataUri, 'distrimin/productos');
 
         // 3. Devolver la URL pública.
@@ -53,6 +53,25 @@ export async function generateProductImageAction(formData: FormData): Promise<{ 
         return { success: false, error: errorMessage };
     }
 }
+
+// Acción para subir una imagen manualmente
+export async function uploadProductImageAction(formData: FormData): Promise<{ success: boolean; data?: { imageUrl: string }; error?: string }> {
+    const file = formData.get('file') as File;
+
+    if (!file || file.size === 0) {
+        return { success: false, error: "No se seleccionó ningún archivo." };
+    }
+
+    try {
+        const { url: publicUrl } = await uploadFile(file, 'distrimin/productos');
+        return { success: true, data: { imageUrl: publicUrl } };
+    } catch (error) {
+        console.error("Error en uploadProductImageAction:", error);
+        const errorMessage = error instanceof Error ? error.message : "Error al subir la imagen.";
+        return { success: false, error: errorMessage };
+    }
+}
+
 
 // Acción simplificada solo para validación en el servidor.
 const productFormSchema = z.object({
@@ -117,7 +136,6 @@ export async function generateMissingProductImagesAction(products: Product[]): P
     }
 
     let generatedCount = 0;
-    // CORRECCIÓN: Usar una copia profunda para asegurar que los cambios se detecten en el cliente.
     const updatedProducts: Product[] = JSON.parse(JSON.stringify(products));
 
     try {
