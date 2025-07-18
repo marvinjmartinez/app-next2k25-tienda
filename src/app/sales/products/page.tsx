@@ -600,13 +600,13 @@ export default function ProductsAdminPage() {
                     Selecciona cómo quieres generar las imágenes para los productos.
                 </DialogDescription>
             </DialogHeader>
-            <div className="py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="py-4 flex flex-col md:flex-row gap-4">
                  <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('missing')}>
                     <div className="flex items-start gap-4 text-left">
                         <ImagePlus className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div>
                             <p className="font-semibold">Generar sólo faltantes ({productsWithoutImage})</p>
-                            <p className="text-sm text-muted-foreground">La IA creará imágenes para productos que usan un marcador de posición.</p>
+                            <p className="text-sm text-muted-foreground">La IA creará imágenes para productos sin imagen real.</p>
                         </div>
                     </div>
                 </Button>
