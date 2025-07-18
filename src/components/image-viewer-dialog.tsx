@@ -31,7 +31,7 @@ export function ImageViewerDialog({ images, open, onOpenChange, productName }: I
                       alt={`${productName} - imagen ampliada ${index + 1}`}
                       width={800}
                       height={800}
-                      className="w-full h-auto object-contain rounded-lg"
+                      className="w-auto h-auto object-contain rounded-lg"
                     />
                 </div>
               </CarouselItem>
