@@ -45,9 +45,9 @@ export default function PosClosingHistoryPage() {
 
     const totalPages = Math.ceil(history.length / itemsPerPage);
 
-    const getBadgeVariant = (difference: number): "default" | "destructive" | "outline" => {
+    const getBadgeVariant = (difference: number): "success" | "destructive" | "outline" => {
         if (difference < 0) return "destructive"; // Faltante (rojo)
-        if (difference > 0) return "default"; // Sobrante (verde/principal)
+        if (difference > 0) return "success"; // Sobrante (verde)
         return "outline"; // Cuadre exacto (neutral)
     };
 
