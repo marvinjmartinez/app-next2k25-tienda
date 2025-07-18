@@ -15,10 +15,10 @@ export default function PosLayout({ children }: { children: React.ReactNode }) {
 
   const getCurrentTab = () => {
     if (pathname.includes("/history")) return "/history";
+    if (pathname.includes("/closing-history")) return "/closing-history";
     if (pathname.includes("/closing")) return "/closing";
     if (pathname.includes("/customers")) return "/customers";
     if (pathname.includes("/reports")) return "/reports";
-    if (pathname.includes("/closing-history")) return "/closing-history";
     return ""; // Default tab for /sales/pos
   };
 
