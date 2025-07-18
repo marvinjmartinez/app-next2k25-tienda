@@ -45,6 +45,12 @@ export default function PosClosingHistoryPage() {
 
     const totalPages = Math.ceil(history.length / itemsPerPage);
 
+    const getBadgeVariant = (difference: number): "default" | "destructive" | "outline" => {
+        if (difference < 0) return "destructive"; // Faltante (rojo)
+        if (difference > 0) return "default"; // Sobrante (verde/principal)
+        return "outline"; // Cuadre exacto (neutral)
+    };
+
     return (
         <Card>
             <CardHeader>
@@ -72,7 +78,7 @@ export default function PosClosingHistoryPage() {
                                 <TableCell className="text-right">{formatCurrency(record.initialCash)}</TableCell>
                                 <TableCell className="text-right">{formatCurrency(record.countedCash)}</TableCell>
                                 <TableCell className="text-right">
-                                     <Badge variant={record.difference === 0 ? 'default' : 'destructive'}>
+                                     <Badge variant={getBadgeVariant(record.difference)}>
                                         {formatCurrency(record.difference)}
                                     </Badge>
                                 </TableCell>
