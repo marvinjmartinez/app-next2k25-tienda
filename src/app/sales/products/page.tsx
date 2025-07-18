@@ -425,7 +425,7 @@ export default function ProductsAdminPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">Todas las Categorías</SelectItem>
-                        {categories.map((cat) => (
+                        {categories.map(cat => (
                             <SelectItem key={cat.slug} value={cat.slug}>{cat.name}</SelectItem>
                         ))}
                     </SelectContent>
@@ -593,27 +593,27 @@ export default function ProductsAdminPage() {
       </div>
 
       <Dialog open={isBulkGenerateDialogOpen} onOpenChange={setBulkGenerateDialogOpen}>
-          <DialogContent className="sm:max-w-xl">
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
                 <DialogTitle>Generación Masiva de Imágenes</DialogTitle>
                 <DialogDescription>
                     Selecciona cómo quieres generar las imágenes para los productos.
                 </DialogDescription>
             </DialogHeader>
-            <div className="py-4 flex flex-col md:flex-row gap-4">
+            <div className="py-4 flex flex-col gap-4">
                  <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('missing')}>
-                    <div className="flex items-start gap-4 text-left">
+                    <div className="flex items-start gap-3">
                         <ImagePlus className="h-5 w-5 mt-1 flex-shrink-0" />
-                        <div>
+                        <div className="text-left">
                             <p className="font-semibold">Generar sólo faltantes ({productsWithoutImage})</p>
                             <p className="text-sm text-muted-foreground">La IA creará imágenes para productos sin imagen real.</p>
                         </div>
                     </div>
                 </Button>
                  <Button variant="destructive" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('all')}>
-                     <div className="flex items-start gap-4 text-left">
+                     <div className="flex items-start gap-3">
                         <AlertTriangle className="h-5 w-5 mt-1 flex-shrink-0" />
-                        <div>
+                        <div className="text-left">
                             <p className="font-semibold">Regenerar TODAS ({products.length})</p>
                             <p className="text-sm text-destructive-foreground/80">
                                 Se reemplazarán todas las imágenes. Esta acción es intensiva.
