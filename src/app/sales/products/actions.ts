@@ -128,8 +128,13 @@ export async function generateProductDescriptionAction(formData: FormData): Prom
 }
 
 
-export async function generateMissingProductImagesAction(products: Product[]): Promise<{ success: boolean; data?: Product[]; error?: string, generatedCount?: number }> {
-    const productsToUpdate = products.filter(p => !p.image || p.image.includes('placehold.co'));
+export async function generateMissingProductImagesAction(
+    { products, mode }: { products: Product[]; mode: 'missing' | 'all' }
+): Promise<{ success: boolean; data?: Product[]; error?: string, generatedCount?: number }> {
+    
+    const productsToUpdate = mode === 'missing' 
+        ? products.filter(p => !p.image || p.image.includes('placehold.co'))
+        : products;
 
     if (productsToUpdate.length === 0) {
         return { success: true, data: products, generatedCount: 0 };

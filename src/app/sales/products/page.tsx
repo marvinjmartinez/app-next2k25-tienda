@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Loader2, ImagePlus, Upload } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Loader2, ImagePlus, Upload, AlertTriangle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -72,6 +72,7 @@ export default function ProductsAdminPage() {
   const { toast } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isBulkGenerateDialogOpen, setBulkGenerateDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isGenerating, startGeneratingTransition] = useTransition();
   const [isUploading, startUploadingTransition] = useTransition();
@@ -270,14 +271,15 @@ export default function ProductsAdminPage() {
       event.target.value = '';
   }
 
-  const handleGenerateMissingImages = () => {
+  const handleGenerateMissingImages = (mode: 'missing' | 'all') => {
+      setBulkGenerateDialogOpen(false);
       startGeneratingMissingTransition(() => {
-        generateMissingProductImagesAction(products).then(result => {
+        generateMissingProductImagesAction({products, mode}).then(result => {
             if (result.success && result.data) {
                 updateProductsStateAndStorage(result.data);
                 toast({
                     title: "Imágenes Generadas",
-                    description: `Se generaron ${result.generatedCount} imágenes para los productos faltantes.`
+                    description: `Se generaron y actualizaron ${result.generatedCount} imágenes.`
                 });
             } else {
                  toast({ variant: 'destructive', title: "Error al generar imágenes", description: result.error || "Ocurrió un error." });
@@ -391,26 +393,10 @@ export default function ProductsAdminPage() {
                 description="Añade, edita y gestiona todos los productos de la tienda."
             />
             <div className="flex gap-2">
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="outline" disabled={isGeneratingMissing || productsWithoutImage === 0}>
-                             {isGeneratingMissing ? <Loader2 className="mr-2 animate-spin" /> : <ImagePlus className="mr-2" />}
-                            Generar Faltantes ({productsWithoutImage})
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>¿Confirmar generación masiva?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Se generarán imágenes para <strong>{productsWithoutImage} productos</strong> que no tienen una. Este proceso puede tardar varios minutos y consumir recursos de la API.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction onClick={handleGenerateMissingImages}>Confirmar</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                <Button variant="outline" onClick={() => setBulkGenerateDialogOpen(true)} disabled={isGeneratingMissing}>
+                     {isGeneratingMissing ? <Loader2 className="mr-2 animate-spin" /> : <ImagePlus className="mr-2" />}
+                    Generar Imágenes
+                </Button>
                 <Button onClick={handleAddNew}>
                     <PlusCircle className="mr-2" />
                     Añadir Producto
@@ -470,7 +456,7 @@ export default function ProductsAdminPage() {
                             alt={product.name}
                             width={40}
                             height={40}
-                            className="rounded-md object-cover"
+                            className="rounded-md object-contain"
                             data-ai-hint={product.name}
                         />
                         </TableCell>
@@ -605,6 +591,44 @@ export default function ProductsAdminPage() {
           </CardFooter>
         </Card>
       </div>
+
+      <Dialog open={isBulkGenerateDialogOpen} onOpenChange={setBulkGenerateDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Generación Masiva de Imágenes</DialogTitle>
+                <DialogDescription>
+                    Selecciona cómo quieres generar las imágenes para los productos.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+                <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('missing')}>
+                    <div className="flex items-start gap-3 text-left">
+                        <ImagePlus className="h-5 w-5 mt-1" />
+                        <div>
+                            <p className="font-semibold">Generar sólo faltantes ({productsWithoutImage})</p>
+                            <p className="text-sm text-muted-foreground">La IA creará imágenes únicamente para los productos que usan un marcador de posición.</p>
+                        </div>
+                    </div>
+                </Button>
+                 <Button variant="destructive" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('all')}>
+                     <div className="flex items-start gap-3 text-left">
+                        <AlertTriangle className="h-5 w-5 mt-1" />
+                        <div>
+                            <p className="font-semibold">Regenerar TODAS las imágenes ({products.length})</p>
+                            <p className="text-sm text-destructive-foreground/80">
+                                Se reemplazarán todas las imágenes existentes. Esta acción puede tardar y consumir muchos recursos.
+                            </p>
+                        </div>
+                    </div>
+                </Button>
+            </div>
+             <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="ghost">Cancelar</Button>
+                </DialogClose>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-3xl">
