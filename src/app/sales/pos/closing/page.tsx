@@ -1,7 +1,7 @@
 // src/app/sales/pos/closing/page.tsx
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,8 @@ import { Badge } from '@/components/ui/badge';
 import { Banknote, CreditCard, FileText, Scale } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
 
 // Datos de demostración (en una app real vendrían de las ventas del día)
 const systemData = {
@@ -19,8 +21,22 @@ const systemData = {
     creditSales: 2150.00,
 };
 
+export interface ClosingRecord {
+    id: string;
+    date: string;
+    userName: string;
+    initialCash: number;
+    countedCash: number;
+    expectedCash: number;
+    difference: number;
+}
+
+const CLOSING_HISTORY_KEY = 'pos_closing_history';
+
 export default function PosClosingPage() {
     const { toast } = useToast();
+    const { user } = useAuth();
+    const router = useRouter();
     const [initialCash, setInitialCash] = useState('2000');
     const [countedCash, setCountedCash] = useState('');
 
@@ -38,13 +54,45 @@ export default function PosClosingPage() {
             return;
         }
 
-        toast({
-            title: 'Caja Cerrada (Simulación)',
-            description: `Se ha registrado el cierre de caja con una diferencia de ${formatCurrency(difference)}.`,
-        });
-        
-        // Aquí se guardaría el registro del cierre y se reiniciarían los datos.
-        setCountedCash('');
+        if (!user) {
+            toast({
+                variant: 'destructive',
+                title: 'Usuario no encontrado',
+                description: 'No se puede cerrar caja sin un usuario autenticado.'
+            });
+            return;
+        }
+
+        const newClosingRecord: ClosingRecord = {
+            id: `cierre_${Date.now()}`,
+            date: new Date().toISOString(),
+            userName: user.name,
+            initialCash: parseFloat(initialCash) || 0,
+            countedCash: parseFloat(countedCash),
+            expectedCash: expectedCash,
+            difference: difference
+        };
+
+        try {
+            const history = JSON.parse(localStorage.getItem(CLOSING_HISTORY_KEY) || '[]');
+            history.unshift(newClosingRecord);
+            localStorage.setItem(CLOSING_HISTORY_KEY, JSON.stringify(history));
+
+            toast({
+                title: 'Caja Cerrada Exitosamente',
+                description: `Se ha registrado el cierre con una diferencia de ${formatCurrency(difference)}.`,
+            });
+            
+            // Redirigir al historial para ver el nuevo registro
+            router.push('/sales/pos/closing-history');
+        } catch (error) {
+            console.error("Error guardando el cierre de caja", error);
+            toast({
+                variant: 'destructive',
+                title: 'Error al guardar',
+                description: 'No se pudo guardar el registro del cierre de caja.',
+            });
+        }
     }
 
     return (
