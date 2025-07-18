@@ -146,7 +146,7 @@ export async function generateMissingProductImagesAction(
     
     try {
         for (const product of productsToUpdate) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 2000));
 
             const hint = product.name;
             if (!hint) continue;
