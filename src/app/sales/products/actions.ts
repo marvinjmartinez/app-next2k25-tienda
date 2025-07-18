@@ -140,7 +140,7 @@ export async function generateMissingProductImagesAction(products: Product[]): P
 
     try {
         for (const product of productsToUpdate) {
-            const hint = product.hint || product.name;
+            const hint = product.name; // Usar siempre el nombre del producto como pista
             if (!hint) continue;
 
             const imageResult = await generateProductImageFlow({ hint });

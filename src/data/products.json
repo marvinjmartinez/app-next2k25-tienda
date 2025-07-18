@@ -10,7 +10,7 @@
         "tipo3": 1650.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "power drill",
+    "hint": "Taladro Percutor Inalámbrico 20V",
     "description": "Potente taladro percutor inalámbrico de 20V con batería de ión de litio de larga duración. Diseñado para los trabajos más exigentes, es ideal para perforar en concreto, madera y metal. Cuenta con un selector de 2 velocidades, 16 posiciones de torque y luz LED para iluminar el área de trabajo. Incluye dos baterías, cargador rápido y maletín de transporte.",
     "stock": 15,
     "category": "herramientas",
@@ -32,7 +32,7 @@
         "tipo3": 425.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "hand tools",
+    "hint": "Juego de Destornilladores 25 pzs",
     "description": "Completo y versátil juego de 25 destornilladores de precisión. Las puntas magnéticas están fabricadas en acero cromo-vanadio para máxima durabilidad y resistencia a la corrosión. El mango ergonómico antideslizante proporciona un agarre cómodo y seguro. Incluye estuche organizador.",
     "stock": 30,
     "category": "herramientas",
@@ -51,7 +51,7 @@
         "tipo3": 1050.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "paint can",
+    "hint": "Pintura Vinílica Blanca 19L",
     "description": "Pintura vinil-acrílica de calidad superior con excelente poder cubriente, ideal para interiores y exteriores. Su acabado mate es lavable, resistente a la formación de hongos y de secado rápido. Una cubeta rinde hasta 150 m², dejando un acabado uniforme y duradero.",
     "stock": 8,
     "category": "pintura",
@@ -71,7 +71,7 @@
       "tipo3": 850.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "ladder",
+    "hint": "Escalera de Tijera de Aluminio 6 pies",
     "description": "Escalera de tijera ligera y extremadamente resistente, fabricada en aluminio de alta calidad (Tipo III). Con una altura de 6 pies (1.83 m), soporta hasta 90 kg. Sus patas con goma antiderrapante y tirantes antipellizcos garantizan la máxima seguridad en cualquier tarea.",
     "stock": 10,
     "category": "herramientas",
@@ -89,7 +89,7 @@
         "tipo3": 250.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "cement bag",
+    "hint": "Saco de Cemento Gris 50kg",
     "description": "Cemento Portland Compuesto (CPC 30R) de alta resistencia inicial y fraguado rápido. Perfecto para todo tipo de obras de construcción, desde cimentaciones y losas hasta castillos y columnas. Garantiza una mezcla trabajable y estructuras sólidas y duraderas.",
     "stock": 50,
     "category": "construccion",
@@ -108,7 +108,7 @@
       "tipo3": 125.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "pvc pipe",
+    "hint": "Tubo de PVC Sanitario 4 pulgadas",
     "description": "Tubo de PVC para uso sanitario de 4 pulgadas de diámetro por 6 metros de largo. Fabricado para resistir la corrosión y el ataque de productos químicos, asegurando un sistema de drenaje libre de fugas y de larga vida útil. Unión tipo cementar.",
     "stock": 100,
     "category": "plomeria",
@@ -125,7 +125,7 @@
       "tipo3": 750.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "toolbox",
+    "hint": "Caja de Herramientas Metálica 22 pulgadas",
     "description": "Caja de herramientas de uso rudo, fabricada en lámina de acero de 22 pulgadas. Incluye una charola interior extraíble para organizar piezas pequeñas. Sus broches metálicos de alta resistencia garantizan un cierre seguro para transportar tus herramientas a cualquier lugar.",
     "stock": 12,
     "category": "herramientas",
@@ -145,7 +145,7 @@
       "tipo3": 80.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "paintbrush",
+    "hint": "Brocha de Pelo de Camello 4 pulgadas",
     "description": "Brocha profesional de 4 pulgadas con cerdas naturales de pelo de camello, que garantizan un acabado extrafino, suave y sin rayas. Es la elección ideal para la aplicación de esmaltes, barnices, lacas y selladores en superficies lisas.",
     "stock": 45,
     "category": "pintura",
@@ -162,7 +162,7 @@
       "tipo3": 165.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "rebar",
+    "hint": "Varilla Corrugada 3/8",
     "description": "Varilla de acero corrugado de 3/8 de pulgada de diámetro y 12 metros de largo. Cumple con las más estrictas normas de calidad para el refuerzo de concreto en todo tipo de estructuras, proporcionando una adherencia superior y resistencia a la tensión.",
     "stock": 200,
     "category": "construccion",
@@ -179,7 +179,7 @@
       "tipo3": 2200.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "water heater",
+    "hint": "Calentador de Agua de Paso 1 servicio",
     "description": "Moderno calentador de agua instantáneo (boiler de paso) para 1 servicio (6 L/min). Su encendido electrónico y alta eficiencia permiten un ahorro de hasta 70% en el consumo de gas. Incluye un display digital para controlar la temperatura con precisión.",
     "stock": 5,
     "category": "plomeria",
@@ -196,7 +196,7 @@
       "tipo3": 950.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "angle grinder",
+    "hint": "Esmeriladora Angular 4 1/2 pulg",
     "description": "Esmeriladora angular de 4 1/2 pulgadas con un potente motor de 800W, ideal para cortar, desbastar y pulir metal. Su diseño compacto y ergonómico, junto con una guarda de protección ajustable, la hacen una herramienta segura y fácil de manejar.",
     "stock": 18,
     "category": "herramientas",
@@ -213,7 +213,7 @@
       "tipo3": 1600.00
     },
     "image": "https://placehold.co/600x400.png",
-    "hint": "waterproofing bucket",
+    "hint": "Impermeabilizante Rojo 5 años 19L",
     "description": "Impermeabilizante acrílico y elastomérico en color rojo terracota, con una durabilidad garantizada de 5 años. Su fórmula avanzada reduce la temperatura interior, resiste los rayos UV y previene la aparición de goteras y humedad. Cubeta de 19 litros.",
     "stock": 7,
     "category": "pintura",

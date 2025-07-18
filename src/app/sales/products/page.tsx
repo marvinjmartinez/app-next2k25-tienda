@@ -88,7 +88,6 @@ export default function ProductsAdminPage() {
   const [productCategory, setProductCategory] = useState('');
   const [productPrice, setProductPrice] = useState(0);
   const [productStock, setProductStock] = useState(0);
-  const [productHint, setProductHint] = useState('');
   const [productFeatured, setProductFeatured] = useState(false);
   const [productStatus, setProductStatus] = useState(true);
   const [productImage, setProductImage] = useState(SVG_PLACEHOLDER);
@@ -117,7 +116,6 @@ export default function ProductsAdminPage() {
     setProductCategory('');
     setProductPrice(0);
     setProductStock(0);
-    setProductHint('');
     setProductFeatured(false);
     setProductStatus(true);
     setProductImage(SVG_PLACEHOLDER);
@@ -132,7 +130,6 @@ export default function ProductsAdminPage() {
     setProductCategory(product.category);
     setProductPrice(product.price);
     setProductStock(product.stock);
-    setProductHint(product.hint);
     setProductFeatured(product.featured || false);
     setProductStatus(product.status === 'activo');
     setProductImage(product.image || SVG_PLACEHOLDER);
@@ -178,7 +175,7 @@ export default function ProductsAdminPage() {
             category: productCategory,
             price: productPrice,
             stock: productStock,
-            hint: productHint,
+            hint: productName, // Usar nombre como hint por defecto
             featured: productFeatured,
             status: productStatus ? 'activo' : 'inactivo',
             image: productImage,
@@ -207,10 +204,10 @@ export default function ProductsAdminPage() {
 
 
   const handleGenerateImage = (target: 'main' | 'gallery') => {
-    const hint = target === 'main' ? productHint : galleryHint;
+    const hint = target === 'main' ? productName : galleryHint;
     
     if (!hint || hint.length < 3) {
-      toast({ variant: 'destructive', title: "Pista inválida", description: "La pista de IA debe tener al menos 3 caracteres."});
+      toast({ variant: 'destructive', title: "Pista inválida", description: "El nombre del producto o la pista de IA para la galería debe tener al menos 3 caracteres."});
       return;
     }
     
@@ -474,7 +471,7 @@ export default function ProductsAdminPage() {
                             width={40}
                             height={40}
                             className="rounded-md object-cover"
-                            data-ai-hint={product.hint}
+                            data-ai-hint={product.name}
                         />
                         </TableCell>
                         <TableCell className="font-medium">
@@ -665,10 +662,6 @@ export default function ProductsAdminPage() {
                                     <Label htmlFor="stock">Stock</Label>
                                     <Input id="stock" name="stock" type="number" value={productStock} onChange={(e) => setProductStock(parseInt(e.target.value))} required />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="hint">Pista de IA para imagen principal</Label>
-                                    <Input id="hint" name="hint" value={productHint} onChange={(e) => setProductHint(e.target.value)} placeholder="Ej: power tool" />
-                                </div>
                             </div>
                             <div className="flex items-center space-x-2 pt-4">
                                 <Checkbox id="featured" name="featured" checked={productFeatured} onCheckedChange={(checked) => setProductFeatured(Boolean(checked))} />
@@ -699,7 +692,7 @@ export default function ProductsAdminPage() {
                                 <div className="flex gap-2 mt-2">
                                     <Button type="button" variant="outline" size="sm" onClick={() => handleGenerateImage('main')} disabled={isGenerating || isUploading}>
                                         {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                                        Generar
+                                        Generar con IA
                                     </Button>
                                     <input type="file" ref={mainImageInputRef} className="hidden" accept="image/*" onChange={(e) => handleFileUpload(e, 'main')}/>
                                     <Button type="button" variant="outline" size="sm" onClick={() => mainImageInputRef.current?.click()} disabled={isUploading || isGenerating}>
@@ -734,7 +727,7 @@ export default function ProductsAdminPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Input 
-                                        placeholder="Generar con IA..." 
+                                        placeholder="Generar con IA (pista)..." 
                                         value={galleryHint}
                                         onChange={(e) => setGalleryHint(e.target.value)}
                                         className="h-9"
