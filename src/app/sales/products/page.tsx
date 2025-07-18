@@ -277,7 +277,6 @@ export default function ProductsAdminPage() {
       startGeneratingMissingTransition(() => {
         generateMissingProductImagesAction({ mode }).then(result => {
             if (result.success) {
-                // Recargar productos desde la fuente de datos después de la actualización.
                 setProducts(getProducts());
                 toast({
                     title: "Imágenes Generadas",
@@ -604,7 +603,7 @@ export default function ProductsAdminPage() {
             </DialogHeader>
             <div className="py-4 flex flex-col gap-4">
                 <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('missing')}>
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3">
                         <ImagePlus className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div className="text-left">
                             <p className="font-semibold">Generar sólo faltantes ({productsWithoutImage})</p>
@@ -613,7 +612,7 @@ export default function ProductsAdminPage() {
                     </div>
                 </Button>
                 <Button variant="destructive" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('all')}>
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3">
                         <AlertTriangle className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div className="text-left">
                             <p className="font-semibold">Regenerar TODAS ({products.length})</p>

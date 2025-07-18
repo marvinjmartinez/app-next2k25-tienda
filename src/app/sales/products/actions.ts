@@ -132,8 +132,7 @@ export async function generateMissingProductImagesAction(
     { mode }: { mode: 'missing' | 'all' }
 ): Promise<{ success: boolean; error?: string; generatedCount?: number }> {
     
-    const products = getProducts(); // Cargar productos desde la fuente de datos
-    const productsCopy = JSON.parse(JSON.stringify(products));
+    const productsCopy: Product[] = getProducts();
 
     const productsToUpdate = mode === 'missing' 
         ? productsCopy.filter((p: Product) => !p.image || p.image.includes('placehold.co'))
@@ -147,7 +146,6 @@ export async function generateMissingProductImagesAction(
     
     for (const product of productsToUpdate) {
         try {
-            // Pausa de 2 segundos para evitar errores de límite de velocidad (429)
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             const hint = product.name;
@@ -164,11 +162,10 @@ export async function generateMissingProductImagesAction(
             }
         } catch (error) {
              console.error(`Error al generar imagen para el producto "${product.name}":`, error);
-             // No detenemos el proceso, simplemente registramos el error y continuamos.
         }
     }
     
-    saveProducts(productsCopy); // Guardar todos los productos actualizados
+    saveProducts(productsCopy);
 
     if (generatedCount > 0) {
          return { success: true, generatedCount };
