@@ -18,9 +18,10 @@ interface ProductCardProps {
   onImageClick: (product: Product) => void;
   onViewDetails?: (product: Product) => void;
   className?: string;
+  priority?: boolean;
 }
 
-export function ProductCard({ product, categoryName, onAddToCart, onImageClick, onViewDetails, className }: ProductCardProps) {
+export function ProductCard({ product, categoryName, onAddToCart, onImageClick, onViewDetails, className, priority = false }: ProductCardProps) {
 
   return (
     <Card className={cn("group flex flex-col", className)}>
@@ -40,7 +41,7 @@ export function ProductCard({ product, categoryName, onAddToCart, onImageClick, 
             height={300}
             className="w-full h-32 object-contain"
             data-ai-hint={product.hint}
-            priority={product.featured}
+            priority={priority}
           />
       </CardHeader>
       <CardContent className="p-3 flex-grow flex flex-col">

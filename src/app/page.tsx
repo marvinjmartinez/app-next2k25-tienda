@@ -196,6 +196,7 @@ export default function HomePage() {
                   categoryName={getCategoryName(product.category)}
                   onAddToCart={handleAddToCart}
                   onImageClick={handleOpenImageViewer}
+                  priority={true}
                 />
               ))}
             </div>
