@@ -132,20 +132,20 @@ export async function generateMissingProductImagesAction(
     { products, mode }: { products: Product[]; mode: 'missing' | 'all' }
 ): Promise<{ success: boolean; data?: Product[]; error?: string, generatedCount?: number }> {
     
+    const productsCopy: Product[] = JSON.parse(JSON.stringify(products));
+
     const productsToUpdate = mode === 'missing' 
-        ? products.filter(p => !p.image || p.image.includes('placehold.co'))
-        : products;
+        ? productsCopy.filter(p => !p.image || p.image.includes('placehold.co'))
+        : productsCopy;
 
     if (productsToUpdate.length === 0) {
         return { success: true, data: products, generatedCount: 0 };
     }
 
     let generatedCount = 0;
-    const updatedProducts: Product[] = JSON.parse(JSON.stringify(products));
-
+    
     try {
         for (const product of productsToUpdate) {
-            // Pausa de 1 segundo para evitar el rate limiting
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             const hint = product.name;
@@ -154,14 +154,14 @@ export async function generateMissingProductImagesAction(
             const imageResult = await generateProductImageFlow({ hint });
             if (imageResult.imageUrl) {
                 const { url: publicUrl } = await uploadFileFromDataURI(imageResult.imageUrl, 'distrimin/productos');
-                const productIndex = updatedProducts.findIndex(p => p.id === product.id);
+                const productIndex = productsCopy.findIndex(p => p.id === product.id);
                 if (productIndex !== -1) {
-                    updatedProducts[productIndex].image = publicUrl;
+                    productsCopy[productIndex].image = publicUrl;
                     generatedCount++;
                 }
             }
         }
-        return { success: true, data: updatedProducts, generatedCount };
+        return { success: true, data: productsCopy, generatedCount };
     } catch (error) {
         console.error("Error en generateMissingProductImagesAction:", error);
         const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado.";
