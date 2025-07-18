@@ -145,7 +145,10 @@ export async function generateMissingProductImagesAction(
 
     try {
         for (const product of productsToUpdate) {
-            const hint = product.name; // Usar siempre el nombre del producto como pista
+            // Pausa de 1 segundo para evitar el rate limiting
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            const hint = product.name;
             if (!hint) continue;
 
             const imageResult = await generateProductImageFlow({ hint });
