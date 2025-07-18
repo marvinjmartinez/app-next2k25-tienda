@@ -276,11 +276,16 @@ export default function ProductsAdminPage() {
       });
       startGeneratingMissingTransition(() => {
         generateMissingProductImagesAction({ mode }).then(result => {
-            if (result.success) {
-                setProducts(getProducts());
+            if (result.success && result.generatedCount && result.generatedCount > 0) {
+                setProducts(getProducts()); // Recargar desde localStorage
                 toast({
                     title: "Imágenes Generadas",
                     description: `Se procesaron ${result.generatedCount} imágenes exitosamente.`
+                });
+            } else if (result.success && result.generatedCount === 0) {
+                 toast({
+                    title: "No hay imágenes que generar",
+                    description: `Todos los productos ya tienen una imagen real.`
                 });
             } else {
                  toast({ variant: 'destructive', title: "Error al generar imágenes", description: result.error || "Ocurrió un error." });
@@ -449,7 +454,7 @@ export default function ProductsAdminPage() {
               </TableHeader>
               <TableBody>
                 {paginatedProducts.length > 0 ? (
-                    paginatedProducts.map((product) => (
+                    paginatedProducts.map((product, index) => (
                     <TableRow key={product.id}>
                         <TableCell>
                         <Image
@@ -459,6 +464,7 @@ export default function ProductsAdminPage() {
                             height={40}
                             className="rounded-md object-contain"
                             data-ai-hint={product.name}
+                            priority={index === 0}
                         />
                         </TableCell>
                         <TableCell className="font-medium">
