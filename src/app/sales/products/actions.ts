@@ -5,7 +5,7 @@ import { generateProductImage as generateProductImageFlow } from "@/ai/flows/gen
 import { generateProductDescription as generateProductDescriptionFlow } from "@/ai/flows/generate-product-description";
 import { uploadFile, uploadFileFromDataURI } from "@/lib/file-manager";
 import { z } from "zod";
-import type { Product } from "@/lib/dummy-data";
+import { getProducts, saveProducts, type Product } from "@/lib/dummy-data";
 
 const generateImageSchema = z.object({
     hint: z.string().min(3, "La pista debe tener al menos 3 caracteres."),
@@ -129,17 +129,18 @@ export async function generateProductDescriptionAction(formData: FormData): Prom
 
 
 export async function generateMissingProductImagesAction(
-    { products, mode }: { products: Product[]; mode: 'missing' | 'all' }
-): Promise<{ success: boolean; data?: Product[]; error?: string, generatedCount?: number }> {
+    { mode }: { mode: 'missing' | 'all' }
+): Promise<{ success: boolean; error?: string; generatedCount?: number }> {
     
-    const productsCopy: Product[] = JSON.parse(JSON.stringify(products));
+    const products = getProducts(); // Cargar productos desde la fuente de datos
+    const productsCopy = JSON.parse(JSON.stringify(products));
 
     const productsToUpdate = mode === 'missing' 
-        ? productsCopy.filter(p => !p.image || p.image.includes('placehold.co'))
+        ? productsCopy.filter((p: Product) => !p.image || p.image.includes('placehold.co'))
         : productsCopy;
 
     if (productsToUpdate.length === 0) {
-        return { success: true, data: products, generatedCount: 0 };
+        return { success: true, generatedCount: 0 };
     }
 
     let generatedCount = 0;
@@ -155,7 +156,7 @@ export async function generateMissingProductImagesAction(
             const imageResult = await generateProductImageFlow({ hint });
             if (imageResult.imageUrl) {
                 const { url: publicUrl } = await uploadFileFromDataURI(imageResult.imageUrl, 'distrimin/productos');
-                const productIndex = productsCopy.findIndex(p => p.id === product.id);
+                const productIndex = productsCopy.findIndex((p: Product) => p.id === product.id);
                 if (productIndex !== -1) {
                     productsCopy[productIndex].image = publicUrl;
                     generatedCount++;
@@ -167,9 +168,11 @@ export async function generateMissingProductImagesAction(
         }
     }
     
+    saveProducts(productsCopy); // Guardar todos los productos actualizados
+
     if (generatedCount > 0) {
-         return { success: true, data: productsCopy, generatedCount };
+         return { success: true, generatedCount };
     } else {
-        return { success: false, error: "No se pudieron generar nuevas imágenes. Revisa la consola para más detalles.", data: products, generatedCount: 0 };
+        return { success: false, error: "No se pudieron generar nuevas imágenes. Revisa la consola para más detalles.", generatedCount: 0 };
     }
 }

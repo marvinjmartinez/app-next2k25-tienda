@@ -94,7 +94,6 @@ export default function ProductsAdminPage() {
   const [productImage, setProductImage] = useState(SVG_PLACEHOLDER);
   const [galleryUrls, setGalleryUrls] = useState<string[]>([]);
   const [newGalleryUrl, setNewGalleryUrl] = useState('');
-  const [galleryHint, setGalleryHint] = useState('');
 
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -122,7 +121,6 @@ export default function ProductsAdminPage() {
     setProductImage(SVG_PLACEHOLDER);
     setGalleryUrls([]);
     setNewGalleryUrl('');
-    setGalleryHint('');
   };
   
   const populateFormState = (product: Product) => {
@@ -205,10 +203,10 @@ export default function ProductsAdminPage() {
 
 
   const handleGenerateImage = (target: 'main' | 'gallery') => {
-    const hint = target === 'main' ? productName : galleryHint;
+    const hint = productName;
     
     if (!hint || hint.length < 3) {
-      toast({ variant: 'destructive', title: "Pista inválida", description: "El nombre del producto o la pista de IA para la galería debe tener al menos 3 caracteres."});
+      toast({ variant: 'destructive', title: "Pista inválida", description: "El nombre del producto debe tener al menos 3 caracteres."});
       return;
     }
     
@@ -226,7 +224,6 @@ export default function ProductsAdminPage() {
                 toast({ title: "Imagen Principal Generada", description: "La imagen se ha generado. No olvides guardar." });
               } else {
                 setGalleryUrls(prev => [...prev, imageUrl]);
-                setGalleryHint('');
                 toast({ title: "Imagen de Galería Generada", description: "La nueva imagen se ha añadido. No olvides guardar." });
               }
           } else {
@@ -278,12 +275,13 @@ export default function ProductsAdminPage() {
           description: "Este proceso puede tardar varios minutos. Por favor, espera."
       });
       startGeneratingMissingTransition(() => {
-        generateMissingProductImagesAction({products, mode}).then(result => {
-            if (result.success && result.data) {
-                updateProductsStateAndStorage(result.data);
+        generateMissingProductImagesAction({ mode }).then(result => {
+            if (result.success) {
+                // Recargar productos desde la fuente de datos después de la actualización.
+                setProducts(getProducts());
                 toast({
                     title: "Imágenes Generadas",
-                    description: `Se generaron y actualizaron ${result.generatedCount} imágenes.`
+                    description: `Se procesaron ${result.generatedCount} imágenes exitosamente.`
                 });
             } else {
                  toast({ variant: 'destructive', title: "Error al generar imágenes", description: result.error || "Ocurrió un error." });
@@ -755,9 +753,8 @@ export default function ProductsAdminPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Input 
-                                        placeholder="Generar con IA (pista)..." 
-                                        value={galleryHint}
-                                        onChange={(e) => setGalleryHint(e.target.value)}
+                                        placeholder="Generar con IA (usará el nombre)" 
+                                        readOnly
                                         className="h-9"
                                     />
                                     <Button type="button" variant="outline" size="icon" className="h-9 w-9" onClick={() => handleGenerateImage('gallery')} disabled={isGenerating || isUploading}>
