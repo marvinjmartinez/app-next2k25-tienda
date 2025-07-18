@@ -158,14 +158,14 @@ export async function generateMissingProductImagesAction(
                 if (productIndex !== -1) {
                     productsCopy[productIndex].image = publicUrl;
                     generatedCount++;
+                    // Guardar después de cada actualización exitosa
+                    saveProducts(productsCopy);
                 }
             }
         } catch (error) {
              console.error(`Error al generar imagen para el producto "${product.name}":`, error);
         }
     }
-    
-    saveProducts(productsCopy);
 
     if (generatedCount > 0) {
          return { success: true, generatedCount };

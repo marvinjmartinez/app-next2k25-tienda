@@ -276,8 +276,10 @@ export default function ProductsAdminPage() {
       });
       startGeneratingMissingTransition(() => {
         generateMissingProductImagesAction({ mode }).then(result => {
+            // Siempre recargar desde localStorage
+            setProducts(getProducts());
+
             if (result.success && result.generatedCount && result.generatedCount > 0) {
-                setProducts(getProducts()); // Recargar desde localStorage
                 toast({
                     title: "Imágenes Generadas",
                     description: `Se procesaron ${result.generatedCount} imágenes exitosamente.`
@@ -462,7 +464,7 @@ export default function ProductsAdminPage() {
                             alt={product.name}
                             width={40}
                             height={40}
-                            className="rounded-md object-contain"
+                            className="w-auto h-auto rounded-md object-contain"
                             data-ai-hint={product.name}
                             priority={index === 0}
                         />
