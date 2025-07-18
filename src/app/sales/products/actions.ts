@@ -144,8 +144,9 @@ export async function generateMissingProductImagesAction(
 
     let generatedCount = 0;
     
-    try {
-        for (const product of productsToUpdate) {
+    for (const product of productsToUpdate) {
+        try {
+            // Pausa de 2 segundos para evitar errores de límite de velocidad (429)
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             const hint = product.name;
@@ -160,14 +161,15 @@ export async function generateMissingProductImagesAction(
                     generatedCount++;
                 }
             }
+        } catch (error) {
+             console.error(`Error al generar imagen para el producto "${product.name}":`, error);
+             // No detenemos el proceso, simplemente registramos el error y continuamos.
         }
-        return { success: true, data: productsCopy, generatedCount };
-    } catch (error) {
-        console.error("Error en generateMissingProductImagesAction:", error);
-        const errorMessage = error instanceof Error ? error.message : "Ocurrió un error inesperado.";
-        if (errorMessage.includes("API key not valid")) {
-            return { success: false, error: "La clave de API de Google no es válida. Por favor, verifica el archivo .env" };
-        }
-        return { success: false, error: errorMessage, data: products };
+    }
+    
+    if (generatedCount > 0) {
+         return { success: true, data: productsCopy, generatedCount };
+    } else {
+        return { success: false, error: "No se pudieron generar nuevas imágenes. Revisa la consola para más detalles.", data: products, generatedCount: 0 };
     }
 }
