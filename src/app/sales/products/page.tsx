@@ -600,23 +600,23 @@ export default function ProductsAdminPage() {
                     Selecciona cómo quieres generar las imágenes para los productos.
                 </DialogDescription>
             </DialogHeader>
-            <div className="py-4 grid sm:grid-cols-2 gap-4">
+            <div className="py-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                  <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('missing')}>
-                    <div className="flex items-start gap-3 text-left">
+                    <div className="flex items-start gap-4 text-left">
                         <ImagePlus className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div>
                             <p className="font-semibold">Generar sólo faltantes ({productsWithoutImage})</p>
-                            <p className="text-sm text-muted-foreground">La IA creará imágenes únicamente para los productos que usan un marcador de posición.</p>
+                            <p className="text-sm text-muted-foreground">La IA creará imágenes para productos que usan un marcador de posición.</p>
                         </div>
                     </div>
                 </Button>
                  <Button variant="destructive" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('all')}>
-                     <div className="flex items-start gap-3 text-left">
+                     <div className="flex items-start gap-4 text-left">
                         <AlertTriangle className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div>
                             <p className="font-semibold">Regenerar TODAS ({products.length})</p>
                             <p className="text-sm text-destructive-foreground/80">
-                                Se reemplazarán todas las imágenes. Esta acción puede tardar y consumir muchos recursos.
+                                Se reemplazarán todas las imágenes. Esta acción es intensiva.
                             </p>
                         </div>
                     </div>
