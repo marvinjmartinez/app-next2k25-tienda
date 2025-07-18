@@ -593,17 +593,17 @@ export default function ProductsAdminPage() {
       </div>
 
       <Dialog open={isBulkGenerateDialogOpen} onOpenChange={setBulkGenerateDialogOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-xl">
             <DialogHeader>
                 <DialogTitle>Generación Masiva de Imágenes</DialogTitle>
                 <DialogDescription>
                     Selecciona cómo quieres generar las imágenes para los productos.
                 </DialogDescription>
             </DialogHeader>
-            <div className="py-4 space-y-4">
-                <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('missing')}>
+            <div className="py-4 grid sm:grid-cols-2 gap-4">
+                 <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('missing')}>
                     <div className="flex items-start gap-3 text-left">
-                        <ImagePlus className="h-5 w-5 mt-1" />
+                        <ImagePlus className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div>
                             <p className="font-semibold">Generar sólo faltantes ({productsWithoutImage})</p>
                             <p className="text-sm text-muted-foreground">La IA creará imágenes únicamente para los productos que usan un marcador de posición.</p>
@@ -612,11 +612,11 @@ export default function ProductsAdminPage() {
                 </Button>
                  <Button variant="destructive" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('all')}>
                      <div className="flex items-start gap-3 text-left">
-                        <AlertTriangle className="h-5 w-5 mt-1" />
+                        <AlertTriangle className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div>
-                            <p className="font-semibold">Regenerar TODAS las imágenes ({products.length})</p>
+                            <p className="font-semibold">Regenerar TODAS ({products.length})</p>
                             <p className="text-sm text-destructive-foreground/80">
-                                Se reemplazarán todas las imágenes existentes. Esta acción puede tardar y consumir muchos recursos.
+                                Se reemplazarán todas las imágenes. Esta acción puede tardar y consumir muchos recursos.
                             </p>
                         </div>
                     </div>
