@@ -55,7 +55,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { generateProductImageAction, generateProductDescriptionAction, generateMissingProductImagesAction, uploadProductImageAction } from './actions';
+import { generateProductImageAction, generateProductDescriptionAction, uploadProductImageAction } from './actions';
 
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
@@ -269,30 +269,55 @@ export default function ProductsAdminPage() {
   }
 
   const handleGenerateMissingImages = (mode: 'missing' | 'all') => {
-      setBulkGenerateDialogOpen(false);
-      toast({
-          title: "Generando imágenes...",
-          description: "Este proceso puede tardar varios minutos. Por favor, espera."
-      });
-      startGeneratingMissingTransition(() => {
-        generateMissingProductImagesAction({ mode }).then(result => {
-            // Siempre recargar desde localStorage
-            setProducts(getProducts());
+      startGeneratingMissingTransition(async () => {
+          setBulkGenerateDialogOpen(false);
+          
+          let currentProducts = getProducts();
+          const productsToUpdate = mode === 'missing'
+              ? currentProducts.filter(p => !p.image || p.image.includes('placehold.co'))
+              : currentProducts;
 
-            if (result.success && result.generatedCount && result.generatedCount > 0) {
-                toast({
-                    title: "Imágenes Generadas",
-                    description: `Se procesaron ${result.generatedCount} imágenes exitosamente.`
-                });
-            } else if (result.success && result.generatedCount === 0) {
-                 toast({
-                    title: "No hay imágenes que generar",
-                    description: `Todos los productos ya tienen una imagen real.`
-                });
-            } else {
-                 toast({ variant: 'destructive', title: "Error al generar imágenes", description: result.error || "Ocurrió un error." });
-            }
-        });
+          if (productsToUpdate.length === 0) {
+              toast({ title: "No hay imágenes que generar", description: "Todos los productos ya tienen una imagen." });
+              return;
+          }
+
+          toast({ title: "Iniciando generación masiva...", description: `Se procesarán ${productsToUpdate.length} productos. Esto puede tardar.` });
+
+          let generatedCount = 0;
+          for (const product of productsToUpdate) {
+              try {
+                  const formData = new FormData();
+                  formData.append("hint", product.name);
+                  
+                  const result = await generateProductImageAction(formData);
+
+                  if (result.success && result.data?.imageUrl) {
+                      // Actualizar el producto en la lista de productos actual
+                      currentProducts = currentProducts.map(p =>
+                          p.id === product.id ? { ...p, image: result.data.imageUrl! } : p
+                      );
+                      // Guardar toda la lista actualizada en localStorage
+                      updateProductsStateAndStorage(currentProducts);
+                      generatedCount++;
+                      
+                      toast({
+                        title: `Imagen generada (${generatedCount}/${productsToUpdate.length})`,
+                        description: `Producto: ${product.name}`
+                      })
+                  } else {
+                      console.error(`Error al generar imagen para ${product.name}: ${result.error}`);
+                  }
+                  
+                  // Pausa de 2 segundos entre cada solicitud
+                  await new Promise(resolve => setTimeout(resolve, 2000));
+
+              } catch (error) {
+                  console.error(`Fallo catastrófico al generar imagen para ${product.name}:`, error);
+              }
+          }
+          
+          toast({ title: "Proceso finalizado", description: `Se generaron ${generatedCount} de ${productsToUpdate.length} imágenes.` });
       });
   }
 
