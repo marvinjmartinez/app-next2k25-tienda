@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Loader2, ImagePlus, Upload, AlertTriangle } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Search, ChevronLeft, ChevronRight, Trash2, Power, PowerOff, Sparkles, Loader2, ImagePlus, Upload, AlertTriangle, Info } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -56,10 +56,11 @@ import { Switch } from '@/components/ui/switch';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { generateProductImageAction, generateProductDescriptionAction, uploadProductImageAction } from './actions';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 
 const SVG_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect fill='%23e5e7eb' width='600' height='400'/%3E%3Ctext fill='%239ca3af' font-family='sans-serif' font-size='30' dy='10.5' font-weight='bold' x='50%25' y='50%25' text-anchor='middle'%3EImagen no disponible%3C/text%3E%3C/svg%3E";
-
+const DAILY_IMAGE_QUOTA = 100;
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-MX', {
@@ -79,7 +80,8 @@ export default function ProductsAdminPage() {
   const [isSaving, startSavingTransition] = useTransition();
   const [isGeneratingDesc, startGeneratingDescTransition] = useTransition();
   const [isGeneratingMissing, startGeneratingMissingTransition] = useTransition();
-  
+  const [generatedInSessionCount, setGeneratedInSessionCount] = useState(0);
+
   const mainImageInputRef = useRef<HTMLInputElement>(null);
   const galleryImageInputRef = useRef<HTMLInputElement>(null);
   
@@ -271,10 +273,9 @@ export default function ProductsAdminPage() {
   const handleGenerateMissingImages = (mode: 'missing' | 'all') => {
       startGeneratingMissingTransition(async () => {
           setBulkGenerateDialogOpen(false);
-          
           let currentProducts = getProducts();
           const productsToUpdate = mode === 'missing'
-              ? currentProducts.filter(p => !p.image || p.image.includes('placehold.co'))
+              ? currentProducts.filter(p => !p.image || p.image.includes('placehold.co') || p.image === SVG_PLACEHOLDER)
               : currentProducts;
 
           if (productsToUpdate.length === 0) {
@@ -283,8 +284,8 @@ export default function ProductsAdminPage() {
           }
 
           toast({ title: "Iniciando generación masiva...", description: `Se procesarán ${productsToUpdate.length} productos. Esto puede tardar.` });
-
-          let generatedCount = 0;
+          
+          let localGeneratedCount = 0;
           for (const product of productsToUpdate) {
               try {
                   const formData = new FormData();
@@ -293,33 +294,38 @@ export default function ProductsAdminPage() {
                   const result = await generateProductImageAction(formData);
 
                   if (result.success && result.data?.imageUrl) {
-                      // Actualizar el producto en la lista de productos actual
-                      currentProducts = currentProducts.map(p =>
+                      currentProducts = getProducts().map(p =>
                           p.id === product.id ? { ...p, image: result.data.imageUrl! } : p
                       );
-                      // Guardar toda la lista actualizada en localStorage
                       updateProductsStateAndStorage(currentProducts);
-                      generatedCount++;
-                      
+                      localGeneratedCount++;
+                      setGeneratedInSessionCount(prev => prev + 1);
                       toast({
-                        title: `Imagen generada (${generatedCount}/${productsToUpdate.length})`,
+                        title: `Imagen generada (${localGeneratedCount}/${productsToUpdate.length})`,
                         description: `Producto: ${product.name}`
                       })
                   } else {
-                      console.error(`Error al generar imagen para ${product.name}: ${result.error}`);
+                      throw new Error(result.error || "Error desconocido");
                   }
                   
-                  // Pausa de 2 segundos entre cada solicitud
                   await new Promise(resolve => setTimeout(resolve, 2000));
 
               } catch (error) {
-                  console.error(`Fallo catastrófico al generar imagen para ${product.name}:`, error);
+                  console.error(`Error al generar imagen para ${product.name}:`, error);
+                  toast({
+                      variant: "destructive",
+                      title: "Error de Generación",
+                      description: `No se pudo generar la imagen para ${product.name}. El proceso se ha detenido. Error: ${error}`,
+                      duration: 10000
+                  });
+                  break; // Detener el proceso si una imagen falla.
               }
           }
           
-          toast({ title: "Proceso finalizado", description: `Se generaron ${generatedCount} de ${productsToUpdate.length} imágenes.` });
+          toast({ title: "Proceso finalizado", description: `Se generaron ${localGeneratedCount} de ${productsToUpdate.length} imágenes.` });
       });
   }
+
 
   const handleGenerateDescription = () => {
       if (!productName || !productCategory) {
@@ -414,8 +420,11 @@ export default function ProductsAdminPage() {
   }, [filteredProducts, currentPage, itemsPerPage]);
 
   const productsWithoutImage = useMemo(() => {
-      return products.filter(p => !p.image || p.image.includes('placehold.co')).length;
+      return products.filter(p => !p.image || p.image.includes('placehold.co') || p.image === SVG_PLACEHOLDER).length;
   }, [products]);
+
+  const remainingQuota = DAILY_IMAGE_QUOTA - generatedInSessionCount;
+
 
   return (
     <>
@@ -635,7 +644,15 @@ export default function ProductsAdminPage() {
                 </DialogDescription>
             </DialogHeader>
             <div className="py-4 flex flex-col gap-4">
-                <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('missing')}>
+                 <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                        La API de Google tiene un límite gratuito de <strong>{DAILY_IMAGE_QUOTA} imágenes por día</strong>.
+                        Has generado <strong>{generatedInSessionCount}</strong> en esta sesión.
+                        Te quedan aproximadamente <strong>{remainingQuota}</strong>.
+                    </AlertDescription>
+                </Alert>
+                <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('missing')} disabled={isGeneratingMissing || productsWithoutImage === 0}>
                     <div className="flex items-start gap-3">
                         <ImagePlus className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div className="text-left">
@@ -644,13 +661,13 @@ export default function ProductsAdminPage() {
                         </div>
                     </div>
                 </Button>
-                <Button variant="destructive" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('all')}>
+                <Button variant="destructive" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('all')} disabled={isGeneratingMissing || products.length > remainingQuota}>
                     <div className="flex items-start gap-3">
                         <AlertTriangle className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div className="text-left">
                             <p className="font-semibold">Regenerar TODAS ({products.length})</p>
                             <p className="text-sm text-destructive-foreground/80">
-                                Se reemplazarán todas las imágenes. Esta acción es intensiva.
+                                {products.length > remainingQuota ? `Se excede la cuota diaria (${products.length} > ${remainingQuota})` : "Se reemplazarán todas las imágenes. Esta acción es intensiva."}
                             </p>
                         </div>
                     </div>
