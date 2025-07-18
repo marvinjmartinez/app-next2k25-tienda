@@ -593,7 +593,7 @@ export default function ProductsAdminPage() {
       </div>
 
       <Dialog open={isBulkGenerateDialogOpen} onOpenChange={setBulkGenerateDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
                 <DialogTitle>Generación Masiva de Imágenes</DialogTitle>
                 <DialogDescription>
@@ -602,7 +602,7 @@ export default function ProductsAdminPage() {
             </DialogHeader>
             <div className="py-4 flex flex-col gap-4">
                  <Button variant="outline" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('missing')}>
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-4">
                         <ImagePlus className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div className="text-left">
                             <p className="font-semibold">Generar sólo faltantes ({productsWithoutImage})</p>
@@ -611,7 +611,7 @@ export default function ProductsAdminPage() {
                     </div>
                 </Button>
                  <Button variant="destructive" className="w-full justify-start h-auto py-3" onClick={() => handleGenerateMissingImages('all')}>
-                     <div className="flex items-start gap-3">
+                     <div className="flex items-start gap-4">
                         <AlertTriangle className="h-5 w-5 mt-1 flex-shrink-0" />
                         <div className="text-left">
                             <p className="font-semibold">Regenerar TODAS ({products.length})</p>
