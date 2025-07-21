@@ -29,15 +29,15 @@ export default function ContactPage() {
       <SiteHeader />
 
       <main className="flex-1 py-16 md:py-24">
-        <div className="container mx-auto">
+        <div className="container mx-auto px-4 md:px-6">
           <div className="text-center mb-12">
             <h1 className="text-4xl md:text-5xl font-bold font-headline">Ponte en Contacto</h1>
             <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">¿Tienes alguna pregunta o necesitas una cotización? Estamos aquí para ayudarte.</p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-12">
+          <div className="grid md:grid-cols-2 gap-12 items-start">
             <Card>
-                <CardContent className="p-8">
+                <CardContent className="p-6 md:p-8">
                     <h2 className="text-2xl font-bold mb-6">Envíanos un Mensaje</h2>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
@@ -65,16 +65,16 @@ export default function ContactPage() {
               <div>
                   <h2 className="text-2xl font-bold mb-4">Información de Contacto</h2>
                   <div className="space-y-4">
-                      <div className="flex items-center gap-4">
-                          <MapPin className="h-6 w-6 text-primary" />
+                      <div className="flex items-start gap-4">
+                          <MapPin className="h-6 w-6 text-primary flex-shrink-0 mt-1" />
                           <p className="text-muted-foreground">Av. de los Constructores 123, Colonia Industrial, C.P. 54321, Ciudad Ejemplo, México</p>
                       </div>
                       <div className="flex items-center gap-4">
-                          <Phone className="h-6 w-6 text-primary" />
+                          <Phone className="h-6 w-6 text-primary flex-shrink-0" />
                           <p className="text-muted-foreground">+52 (55) 1234 5678</p>
                       </div>
                       <div className="flex items-center gap-4">
-                          <Mail className="h-6 w-6 text-primary" />
+                          <Mail className="h-6 w-6 text-primary flex-shrink-0" />
                           <p className="text-muted-foreground">contacto@distriminsas.com</p>
                       </div>
                   </div>

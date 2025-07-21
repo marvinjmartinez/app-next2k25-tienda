@@ -237,8 +237,8 @@ export default function QuotesPage() {
                 <TableRow>
                   <TableHead># Cotización</TableHead>
                   <TableHead>Cliente</TableHead>
-                  <TableHead>Asesor</TableHead>
-                  <TableHead>Fecha</TableHead>
+                  <TableHead className="hidden md:table-cell">Asesor</TableHead>
+                  <TableHead className="hidden lg:table-cell">Fecha</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                   <TableHead className="text-right">Acciones</TableHead>
@@ -249,8 +249,8 @@ export default function QuotesPage() {
                   <TableRow key={quote.id}>
                     <TableCell className="font-medium">{quote.id}</TableCell>
                     <TableCell>{quote.customerName}</TableCell>
-                    <TableCell>{quote.salespersonName || 'N/A'}</TableCell>
-                    <TableCell>{formatDate(quote.date)}</TableCell>
+                    <TableCell className="hidden md:table-cell">{quote.salespersonName || 'N/A'}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{formatDate(quote.date)}</TableCell>
                     <TableCell>
                       <Badge variant={statusBadges[quote.status] || 'outline'}>
                           {quote.status}

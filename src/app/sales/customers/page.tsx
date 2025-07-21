@@ -218,13 +218,13 @@ export default function CustomersPage() {
     return (
     <>
         <div className="space-y-6">
-            <div className="flex justify-between items-start">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <PageHeader
                     title="Gestión de Registrados"
                     description="Visualiza y administra todos los usuarios registrados en el sistema."
                 />
                  {isAdmin && (
-                    <Button onClick={() => setCreateUserDialogOpen(true)}>
+                    <Button onClick={() => setCreateUserDialogOpen(true)} className="w-full sm:w-auto">
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Crear Usuario
                     </Button>
@@ -264,9 +264,9 @@ export default function CustomersPage() {
                     <TableHeader>
                     <TableRow>
                         <TableHead>Nombre</TableHead>
-                        <TableHead>Rol</TableHead>
-                        <TableHead>Estado</TableHead>
-                        <TableHead>Registrado Desde</TableHead>
+                        <TableHead className="hidden sm:table-cell">Rol</TableHead>
+                        <TableHead className="hidden md:table-cell">Estado</TableHead>
+                        <TableHead className="hidden lg:table-cell">Registrado Desde</TableHead>
                         <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                     </TableHeader>
@@ -277,17 +277,17 @@ export default function CustomersPage() {
                             <div className="font-medium">{customer.name}</div>
                             <div className="text-sm text-muted-foreground">{customer.email}</div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                             <Badge variant={roleBadges[customer.role] || 'outline'}>
                                 {roleNames[customer.role] || customer.role}
                             </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden md:table-cell">
                             <Badge variant={customer.status === 'activo' ? 'default' : 'destructive'}>
                                 {customer.status === 'activo' ? 'Activo' : 'Inactivo'}
                             </Badge>
                         </TableCell>
-                        <TableCell>{formatDate(customer.since)}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{formatDate(customer.since)}</TableCell>
                         <TableCell className="text-right">
                             <DropdownMenu>
                             <DropdownMenuTrigger asChild>

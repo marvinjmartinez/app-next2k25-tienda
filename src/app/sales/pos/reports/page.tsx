@@ -38,7 +38,7 @@ export default function PosReportsPage() {
                     <CardDescription>
                        Selecciona un rango de fechas para ver el rendimiento del punto de venta.
                     </CardDescription>
-                    <div className="flex items-end gap-4 pt-4">
+                    <div className="flex flex-wrap items-end gap-4 pt-4">
                         <div className="grid gap-2">
                            <Label htmlFor="start-date">Fecha de Inicio</Label>
                            <Popover>
@@ -119,7 +119,7 @@ export default function PosReportsPage() {
                         </Card>
                     </div>
                     {/* Tabla */}
-                    <div>
+                    <div className="overflow-x-auto">
                         <h3 className="font-semibold mb-4">Resumen por Método de Pago</h3>
                         <Table>
                             <TableHeader>

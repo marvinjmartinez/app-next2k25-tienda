@@ -70,47 +70,49 @@ export default function AccountDashboardPage() {
                     <CardDescription>Aquí puedes ver todas las compras y cotizaciones que has realizado.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead># Pedido</TableHead>
-                                <TableHead>Fecha</TableHead>
-                                <TableHead>Asesor</TableHead>
-                                <TableHead>Estado</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
-                                <TableHead className="text-right">Acciones</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {myPurchases.length > 0 ? (
-                            myPurchases.map((purchase) => (
-                            <TableRow key={purchase.id}>
-                                <TableCell className="font-medium">{purchase.id}</TableCell>
-                                <TableCell>{formatDate(purchase.date)}</TableCell>
-                                <TableCell>{purchase.salespersonName || 'N/A'}</TableCell>
-                                <TableCell>
-                                    <Badge variant={statusBadges[purchase.status] || 'outline'}>
-                                        {purchase.status}
-                                    </Badge>
-                                </TableCell>
-                                <TableCell className="text-right">{formatCurrency(purchase.total)}</TableCell>
-                                <TableCell className="text-right">
-                                <Button variant="ghost" size="icon" onClick={() => handlePrint(purchase)}>
-                                        <Printer className="h-4 w-4" />
-                                        <span className="sr-only">Imprimir</span>
-                                </Button>
-                                </TableCell>
-                            </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={6} className="text-center h-24">
-                                    No has realizado ninguna compra todavía.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                        </TableBody>
-                    </Table>
+                    <div className="overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead># Pedido</TableHead>
+                                    <TableHead>Fecha</TableHead>
+                                    <TableHead>Asesor</TableHead>
+                                    <TableHead>Estado</TableHead>
+                                    <TableHead className="text-right">Total</TableHead>
+                                    <TableHead className="text-right">Acciones</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                            {myPurchases.length > 0 ? (
+                                myPurchases.map((purchase) => (
+                                <TableRow key={purchase.id}>
+                                    <TableCell className="font-medium">{purchase.id}</TableCell>
+                                    <TableCell>{formatDate(purchase.date)}</TableCell>
+                                    <TableCell>{purchase.salespersonName || 'N/A'}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={statusBadges[purchase.status] || 'outline'}>
+                                            {purchase.status}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">{formatCurrency(purchase.total)}</TableCell>
+                                    <TableCell className="text-right">
+                                    <Button variant="ghost" size="icon" onClick={() => handlePrint(purchase)}>
+                                            <Printer className="h-4 w-4" />
+                                            <span className="sr-only">Imprimir</span>
+                                    </Button>
+                                    </TableCell>
+                                </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="text-center h-24">
+                                        No has realizado ninguna compra todavía.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                            </TableBody>
+                        </Table>
+                    </div>
                 </CardContent>
             </Card>
         </div>

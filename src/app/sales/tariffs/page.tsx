@@ -127,15 +127,52 @@ export default function TariffsPage() {
               <TableRow>
                 <TableHead>Producto</TableHead>
                 <TableHead className="text-right">Precio Tipo 1 (Público)</TableHead>
-                <TableHead className="text-right">Precio Tipo 2 (Especial)</TableHead>
-                <TableHead className="text-right">Precio Tipo 3 (Costo)</TableHead>
+                <TableHead className="text-right hidden sm:table-cell">Precio Tipo 2 (Especial)</TableHead>
+                <TableHead className="text-right hidden md:table-cell">Precio Tipo 3 (Costo)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredProducts.length > 0 ? filteredProducts.map((product) => (
                 <TableRow key={product.id}>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="font-medium">
+                    {product.name}
+                    <div className="sm:hidden mt-2 space-y-2">
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor={`p1-${product.id}`} className="text-xs text-muted-foreground">P. Público</Label>
+                             <Input
+                                id={`p1-${product.id}`}
+                                type="number"
+                                value={product.priceTiers?.tipo1 ?? ''}
+                                onChange={(e) => handlePriceChange(product.id, 'tipo1', e.target.value)}
+                                className="w-24 h-8 text-right"
+                                step="0.01"
+                            />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor={`p2-${product.id}`} className="text-xs text-muted-foreground">P. Especial</Label>
+                              <Input
+                                id={`p2-${product.id}`}
+                                type="number"
+                                value={product.priceTiers?.tipo2 ?? ''}
+                                onChange={(e) => handlePriceChange(product.id, 'tipo2', e.target.value)}
+                                className="w-24 h-8 text-right"
+                                step="0.01"
+                            />
+                        </div>
+                         <div className="flex items-center justify-between md:hidden">
+                            <Label htmlFor={`p3-${product.id}`} className="text-xs text-muted-foreground">P. Costo</Label>
+                             <Input
+                                id={`p3-${product.id}`}
+                                type="number"
+                                value={product.priceTiers?.tipo3 ?? ''}
+                                onChange={(e) => handlePriceChange(product.id, 'tipo3', e.target.value)}
+                                className="w-24 h-8 text-right"
+                                step="0.01"
+                            />
+                        </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right hidden sm:table-cell">
                     <Input
                       type="number"
                       value={product.priceTiers?.tipo1 ?? ''}
@@ -144,7 +181,7 @@ export default function TariffsPage() {
                       step="0.01"
                     />
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right hidden sm:table-cell">
                     <Input
                       type="number"
                        value={product.priceTiers?.tipo2 ?? ''}
@@ -153,7 +190,7 @@ export default function TariffsPage() {
                       step="0.01"
                     />
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right hidden md:table-cell">
                      <Input
                       type="number"
                        value={product.priceTiers?.tipo3 ?? ''}

@@ -144,13 +144,13 @@ export default function CartPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="md:col-span-2">
+            <div className="grid lg:grid-cols-3 gap-8 items-start">
+              <div className="lg:col-span-2">
                 <Card>
                   <CardContent className="p-0">
                     <div className="space-y-4">
                       {cartItems.map(item => (
-                        <div key={item.id} className="flex flex-col md:flex-row items-start gap-4 p-4 border-b last:border-b-0">
+                        <div key={item.id} className="flex flex-col sm:flex-row items-start gap-4 p-4 border-b last:border-b-0">
                           {/* Columna de Checkbox e Info */}
                           <div className="flex items-center gap-4 flex-1">
                             <Checkbox
@@ -167,7 +167,7 @@ export default function CartPage() {
                           </div>
                           
                           {/* Columna de Controles y Subtotal */}
-                          <div className="w-full md:w-auto flex flex-col items-end gap-2">
+                          <div className="w-full sm:w-auto flex flex-col items-end gap-2">
                             <div className="flex items-center justify-end gap-2 w-full">
                                 <div className="flex items-center border rounded-md">
                                     <Button
@@ -222,7 +222,7 @@ export default function CartPage() {
                   </CardContent>
                 </Card>
               </div>
-              <div>
+              <div className="sticky top-20">
                 <Card>
                   <CardHeader>
                     <CardTitle>Resumen del Pedido</CardTitle>

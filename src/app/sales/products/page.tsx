@@ -429,17 +429,17 @@ export default function ProductsAdminPage() {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex justify-between items-start gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
             <PageHeader
                 title="Gestión de Productos"
                 description="Añade, edita y gestiona todos los productos de la tienda."
             />
-            <div className="flex gap-2">
-                <Button variant="outline" onClick={() => setBulkGenerateDialogOpen(true)} disabled={isGeneratingMissing}>
+            <div className="flex gap-2 w-full sm:w-auto">
+                <Button variant="outline" onClick={() => setBulkGenerateDialogOpen(true)} disabled={isGeneratingMissing} className="flex-1 sm:flex-none">
                      {isGeneratingMissing ? <Loader2 className="mr-2 animate-spin" /> : <ImagePlus className="mr-2" />}
                     Generar Imágenes
                 </Button>
-                <Button onClick={handleAddNew}>
+                <Button onClick={handleAddNew} className="flex-1 sm:flex-none">
                     <PlusCircle className="mr-2" />
                     Añadir Producto
                 </Button>

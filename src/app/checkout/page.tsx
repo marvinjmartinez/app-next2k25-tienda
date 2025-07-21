@@ -85,7 +85,7 @@ export default function CheckoutPage() {
 
   if (itemsForCheckout.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center min-h-screen text-center">
+        <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
             <h1 className="text-2xl font-bold mb-4">Tu carrito está vacío</h1>
             <p className="text-muted-foreground mb-8">No puedes proceder al pago sin productos.</p>
             <Button asChild>
@@ -115,7 +115,7 @@ export default function CheckoutPage() {
                   </Link>
               </Button>
           </div>
-          <form onSubmit={handlePlaceOrder} className="grid md:grid-cols-3 gap-8">
+          <form onSubmit={handlePlaceOrder} className="grid md:grid-cols-3 gap-8 items-start">
              <div className="md:col-span-1 md:order-2">
               <Card className="sticky top-20">
                 <CardHeader>
