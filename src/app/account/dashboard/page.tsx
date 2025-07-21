@@ -7,10 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/context/auth-context';
-import type { Quote } from '@/app/sales/create-quote/page';
+import type { Quote } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import { PrintableQuote } from '@/components/printable-quote';
+import { getQuotesApi } from '@/lib/local-storage-api';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
@@ -41,13 +42,9 @@ export default function AccountDashboardPage() {
 
   useEffect(() => {
     if (user) {
-        try {
-            const allQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
-            const userQuotes = allQuotes.filter(q => q.customerId === user.id);
-            setMyPurchases(userQuotes);
-        } catch (error) {
-            console.error("Error loading purchases from localStorage", error);
-        }
+        const allQuotes = getQuotesApi();
+        const userQuotes = allQuotes.filter(q => q.customerId === user.id);
+        setMyPurchases(userQuotes);
     }
   }, [user]);
 

@@ -1,23 +1,19 @@
-
 // src/app/cart/page.tsx
 "use client";
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Trash2, Save, Plus, Minus, Printer } from 'lucide-react';
+
 import { useCart } from '@/context/cart-context';
+import { useAuth } from '@/context/auth-context';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Trash2, ShoppingCart, User, LogOut, LayoutDashboard, Save, Plus, Minus, Printer } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/context/auth-context';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useRouter } from 'next/navigation';
-import { LogoTienda } from '@/components/logo-tienda';
-import type { Quote } from '@/app/sales/create-quote/page';
-import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
     AlertDialog,
@@ -30,14 +26,15 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useState } from 'react';
 import { PrintableCart } from '@/components/printable-cart';
-import type { CartItem } from '@/context/cart-context';
-
+import { SiteHeader } from '@/components/site-header';
+import { SiteFooter } from '@/components/site-footer';
+import { saveQuotesApi, getQuotesApi } from '@/lib/local-storage-api';
+import type { Quote, QuoteItem, CartItem } from '@/lib/types';
 
 export default function CartPage() {
-  const { cartItems, removeFromCart, updateQuantity, getSelectedItemsTotal, getCartItemCount, clearCart, toggleItemSelection, isItemSelected, getSelectedItems } = useCart();
-  const { user, logout, isAuthenticated } = useAuth();
+  const { cartItems, removeFromCart, updateQuantity, getSelectedItemsTotal, clearCart, toggleItemSelection, isItemSelected, getSelectedItems } = useCart();
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [itemsToPrint, setItemsToPrint] = useState<CartItem[] | null>(null);
@@ -49,14 +46,6 @@ export default function CartPage() {
     }).format(amount);
   };
   
-  const getDashboardPath = () => {
-    if (!user) return "/login";
-    if (user.role === 'admin' || user.role === 'vendedor') {
-      return "/sales/quotes";
-    }
-    return "/account/dashboard";
-  }
-
   const handleSaveForLater = () => {
     const selectedItemsToSave = getSelectedItems();
     if (!isAuthenticated || !user || selectedItemsToSave.length === 0) {
@@ -87,27 +76,16 @@ export default function CartPage() {
       })),
     };
 
-    try {
-      const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
-      existingQuotes.unshift(newQuote);
-      localStorage.setItem('saved_quotes', JSON.stringify(existingQuotes));
+    const existingQuotes = getQuotesApi();
+    saveQuotesApi([newQuote, ...existingQuotes]);
 
-      toast({
-        title: "Productos Guardados",
-        description: "Los productos seleccionados se han guardado en 'Mis Compras' para después.",
-      });
+    toast({
+      title: "Productos Guardados",
+      description: "Los productos seleccionados se han guardado en 'Mis Compras' para después.",
+    });
 
-      // Remove saved items from cart
-      selectedItemsToSave.forEach(item => removeFromCart(item.id));
-      
-    } catch (error) {
-      console.error("Error saving cart for later", error);
-      toast({
-        variant: 'destructive',
-        title: "Error al guardar",
-        description: "No se pudo guardar tu carrito. Inténtalo de nuevo.",
-      });
-    }
+    // Remove saved items from cart
+    selectedItemsToSave.forEach(item => removeFromCart(item.id));
   }
 
   const handleCheckout = () => {
@@ -151,47 +129,7 @@ export default function CartPage() {
   return (
     <>
     <div className="flex flex-col min-h-screen no-print">
-      <header className="bg-background/80 backdrop-blur-sm sticky top-0 z-50 border-b">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-          <Link href="/" className="flex items-center gap-2">
-            <LogoTienda width={40} height={40} className="h-10 w-auto" />
-            <span className="font-bold text-xl font-headline text-foreground">Distrimin SAS</span>
-          </Link>
-          <nav className="hidden md:flex gap-6 items-center">
-            <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">Inicio</Link>
-            <Link href="/products" className="text-sm font-medium hover:text-primary transition-colors">Productos</Link>
-            <Link href="/about" className="text-sm font-medium hover:text-primary transition-colors">Nosotros</Link>
-            <Link href="/contact" className="text-sm font-medium hover:text-primary transition-colors">Contacto</Link>
-          </nav>
-          <div className="flex items-center gap-4">
-             <Button variant="ghost" size="icon" asChild>
-                <Link href="/cart" className="relative">
-                    <ShoppingCart className="h-5 w-5" />
-                    {getCartItemCount() > 0 && (
-                        <Badge className="absolute -top-2 -right-2 h-5 w-5 justify-center p-1 text-xs bg-accent text-accent-foreground">{getCartItemCount()}</Badge>
-                    )}
-                    <span className="sr-only">Carrito</span>
-                </Link>
-            </Button>
-            {user ? (
-              <div className="flex items-center gap-2">
-                <div className="text-right">
-                    <span className="text-sm font-medium block">{user.name}</span>
-                    <span className="text-xs text-muted-foreground">{user.email}</span>
-                </div>
-                <User className="h-5 w-5 text-muted-foreground" />
-              </div>
-            ) : (
-                <Link href="/login">
-                    <Button>
-                        <User className="mr-2 h-4 w-4" />
-                        Iniciar Sesión
-                    </Button>
-                </Link>
-            )}
-          </div>
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1 py-12">
         <div className="container mx-auto px-4 md:px-6">
@@ -335,11 +273,7 @@ export default function CartPage() {
           )}
         </div>
       </main>
-      <footer className="bg-foreground text-background">
-        <div className="container mx-auto flex h-16 items-center justify-center px-4 md:px-6">
-          <p className="text-center text-sm text-muted-foreground">© 2024 Distrimin SAS. Todos los derechos reservados.</p>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
     <div className="hidden printable-content">
         {itemsToPrint && (
@@ -352,4 +286,3 @@ export default function CartPage() {
     </>
   );
 }
-

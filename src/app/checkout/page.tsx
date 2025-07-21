@@ -1,9 +1,7 @@
-
 // src/app/checkout/page.tsx
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { useCart } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -13,11 +11,12 @@ import { Separator } from '@/components/ui/separator';
 import { CreditCard, Truck, Lock, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, type UserRole } from '@/context/auth-context';
-import type { Quote } from '@/app/sales/create-quote/page';
+import { useAuth } from '@/context/auth-context';
+import type { Quote } from '@/lib/types';
 import { LogoTienda } from '@/components/logo-tienda';
 import type { Product } from '@/lib/dummy-data';
 import { getPriceForCustomer } from '@/lib/utils';
+import { getQuotesApi, saveQuotesApi } from '@/lib/local-storage-api';
 
 export default function CheckoutPage() {
   const { getSelectedItems, getSelectedItemsTotal, clearCart } = useCart();
@@ -71,16 +70,9 @@ export default function CheckoutPage() {
             status: 'activo'
           })),
       };
-
-      try {
-        const existingQuotes: Quote[] = JSON.parse(localStorage.getItem('saved_quotes') || '[]');
-        existingQuotes.unshift(newPurchase);
-        localStorage.setItem('saved_quotes', JSON.stringify(existingQuotes));
-      } catch (error) {
-        console.error("Error saving purchase to localStorage", error);
-      }
       
-      console.log("Placing order...", newPurchase);
+      const existingQuotes = getQuotesApi();
+      saveQuotesApi([newPurchase, ...existingQuotes]);
       
       toast({
           title: "¡Pedido Realizado!",
